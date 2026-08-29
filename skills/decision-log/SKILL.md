@@ -1,9 +1,9 @@
 ---
-name: skill-decision-log
+name: decision-log
 triggers:
   phrases: ["принято решение", "decision", "зафиксируй выбор"]
   files: ["05_decisions/**/*.md"]
-description: создание decision-карточки с rationale и evidence
+description: Создаёт decision-карточку с rationale, evidence, рисками и планом отката.
 inputs:
   - контекст: existing /04_synthesis/* для evidence
   - решение пользователя

@@ -1,7 +1,7 @@
 ---
 type: eval-case
 version: v0.1
-skill: skill-ingest
+skill: kb-ingest
 grader: contains
 tags: [regression, anti-fabrication]
 budget:

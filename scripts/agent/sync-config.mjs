@@ -1,6 +1,7 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { syncConfigs } from './config.mjs';
+import { auditRepository } from './repository-check.mjs';
 
 const execFileAsync = promisify(execFile);
 const args = process.argv.slice(2);
@@ -21,6 +22,16 @@ if (args.length !== 1 || !['--check', '--write'].includes(args[0])) {
       process.exitCode = 1;
     } else {
       for (const path of drift) console.log(`Updated ${path}`);
+    }
+
+    if (args[0] === '--check') {
+      const audit = await auditRepository(root);
+      if (audit.passed) {
+        console.log('Repository agent contract is valid.');
+      } else {
+        for (const error of audit.errors) console.error(`Repository audit: ${error}`);
+        process.exitCode = 1;
+      }
     }
   } catch (error) {
     console.error(error.message);

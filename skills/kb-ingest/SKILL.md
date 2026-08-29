@@ -1,10 +1,10 @@
 ---
-name: skill-ingest
+name: kb-ingest
 triggers:
   phrases: ["новый артефакт", "обработай источник", "добавь в KB"]
   files: ["01_raw/**/*"]
   events: ["новый файл в /01_raw/"]
-description: обработка нового артефакта по канонической ingest-цепочке из AGENTS.md
+description: Обрабатывает новый артефакт по канонической ingest-цепочке из AGENTS.md и обновляет связанные слои KB.
 inputs:
   - /01_raw/<domain>/<новый-файл>
 outputs:

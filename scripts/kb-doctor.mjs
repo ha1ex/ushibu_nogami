@@ -234,7 +234,7 @@ if (existsSync(DB_PATH)) {
 }
 
 // 6. scratch-hygiene (L4) — .context/inbox/*.md со status:needs-review старше N дней.
-//    Это непромоутнутая память от kb_retain: видимость, что её пора разобрать (skill-ingest)
+//    Это непромоутнутая память от kb_retain: видимость, что её пора разобрать (kb-ingest)
 //    и разложить по слоям или удалить. Advisory: НЕ влияет на exit (см. GATING ниже).
 const inboxDir = join(REPO_ROOT, '.context', 'inbox');
 if (existsSync(inboxDir)) {
@@ -308,7 +308,7 @@ if (issues.staleInbox.length > 0) {
   console.log(`  ⚠ Залежавшаяся inbox-память (>${INBOX_STALE_DAYS}д, status: needs-review)  (${issues.staleInbox.length})`);
   console.log('─'.repeat(60));
   for (const it of issues.staleInbox.slice(0, 20)) console.log(`  • ${it.file}   возраст=${it.age_days}д`);
-  console.log('  → разобрать через skill-ingest: разложить по слоям и закоммитить, либо удалить.');
+  console.log('  → разобрать через kb-ingest: разложить по слоям и закоммитить, либо удалить.');
   console.log('');
 }
 if (issues.staleAnswers.length > 0) {

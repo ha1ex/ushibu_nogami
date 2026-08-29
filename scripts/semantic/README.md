@@ -122,7 +122,7 @@ node scripts/semantic/mcp-server.mjs   # stdio
 - `kb_think(question, top?, layer?)` — собрать промпт-контекст под вопрос (как `think.mjs`, но через MCP)
 - `kb_backlinks(path, forward?)` — кто ссылается на файл
 - `kb_verify(text, threshold?, allow_corpus?)` — механическая проверка цитат `[source: /path]` (Tier-1 gate + FACT-advisory) + **`critique`**: actionable-список правок (какие цитаты перецитировать/удалить и почему) для петли verify→revise (N1)
-- `kb_retain(content, title?, tags?, source?)` — **write-path**: сохранить кандидат-заметку в `.context/inbox/` (status `needs-review`, НЕ коммитит, НЕ в слоях KB). Разбор — через `skill-ingest`.
+- `kb_retain(content, title?, tags?, source?)` — **write-path**: сохранить кандидат-заметку в `.context/inbox/` (status `needs-review`, НЕ коммитит, НЕ в слоях KB). Разбор — через `kb-ingest`.
 - `kb_promote(question, answer, tags?, threshold?)` — **gated write-path** (N2): сохранить ВЕРИФИЦИРОВАННЫЙ ответ как answer-card в `04_synthesis/_answers/`, только если он прошёл verify Tier-1 + provenance (цитаты строго ниже 04) + dedup (cos<0.90). Источники → `related:`. `kb-doctor` помечает карту stale при изменении источника.
 
 CLI-обвязка вокруг verify (Control-гейт):

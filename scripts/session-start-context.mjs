@@ -91,7 +91,7 @@ try {
 } catch { /* inbox absent */ }
 if (inboxPending > 0) {
   lines.push('## Inbox на ревью (kb_retain)');
-  lines.push(`- ${inboxPending} непромоутнутых заметок в .context/inbox/ (старейшей ${inboxOldest}д). Разбор — через skill-ingest.`);
+  lines.push(`- ${inboxPending} непромоутнутых заметок в .context/inbox/ (старейшей ${inboxOldest}д). Разбор — через kb-ingest.`);
   lines.push('');
 }
 

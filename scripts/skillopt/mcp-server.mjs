@@ -150,7 +150,7 @@ server.registerTool(
       "Только READ — не применяет. Чтобы применить — используй CLI: pnpm skill apply <run-id>.",
     inputSchema: {
       run_id: z.string().min(1).regex(/^[\w.-]+$/, "только буквы, цифры, _ . -").describe("Run-id с уже выполненным reflect."),
-      skill: z.string().min(1).regex(/^[\w.-]+$/, "только буквы, цифры, _ . -").describe("Имя скилла (например skill-ingest)."),
+      skill: z.string().min(1).regex(/^[\w.-]+$/, "только буквы, цифры, _ . -").describe("Имя скилла (например kb-ingest)."),
     },
   },
   async ({ run_id, skill }) => {

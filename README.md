@@ -303,7 +303,7 @@ node scripts/kb-critic.mjs --file answer.md --execute # авто-цикл verify
 
 **F. AI плохо следует скиллу.**
 ```bash
-pnpm skill rollout skill-ingest    # 2 из 3 кейсов провалились
+pnpm skill rollout kb-ingest       # 2 из 3 кейсов провалились
 pnpm skill reflect <run-id>        # LLM предлагает правку SKILL.md
 pnpm skill diff <run-id> && pnpm skill apply <run-id>   # human-in-the-loop
 ```
@@ -312,14 +312,17 @@ pnpm skill diff <run-id> && pnpm skill apply <run-id>   # human-in-the-loop
 
 ```
 ai-kb-harness-template/
-├── AGENTS.md                  ← системный промпт для агентов (метки, citation, ingest workflow)
-├── CLAUDE.md                  ← operational rules (язык, дисциплина веток, артефакты)
-├── .mcp.json                  ← конфиг MCP-серверов (kb-local + skillopt-local)
-├── .claude/settings.json      ← permissions + hooks (session-start, pre-tool-use)
+├── AGENTS.md                  ← единый нормативный контракт всех агентов
+├── CLAUDE.md                  ← тонкий Claude adapter, импортирует AGENTS.md
+├── agent-config/              ← канонический manifest MCP-серверов
+├── .mcp.json · .codex/        ← generated MCP adapters + Codex hooks
+├── .claude/settings.json      ← Claude permissions + lifecycle hooks
 ├── .remember/
 │   ├── core.md                ← semantic invariant проекта (коммитится)
 │   └── preferences.md         ← ручки формы ответа (answer-policy)
-├── skills/                    ← рабочие процедуры с триггерами (skill-ingest, skill-decision-log)
+├── skills/                    ← canonical shared skills (kb-ingest, decision-log, interviewer-agent)
+├── .claude/skills/            ← Claude symlink adapters + Claude-specific skills
+├── .agents/skills/            ← Codex symlink adapters общих skills
 ├── scripts/
 │   ├── semantic/              ← ядро поиска/синтеза + MCP-сервер
 │   │   ├── lib.mjs            ← вектор/BM25/граф/гибрид, temporal, чанкер, схема БД
@@ -371,8 +374,8 @@ open-questions/contradictions · дашборд SkillOpt. Для коллег: `
 | Файл | Что менять |
 |---|---|
 | **`kb.config.mjs`** | **Все настройки харнесса в одном месте**: слои (`layers.indexable`), provenance/coverage, frontmatter-правила, модель эмбеддера |
-| `AGENTS.md` § Project purpose | Цель и контекст проекта (заполняет `kb:init`) |
-| `CLAUDE.md` | Язык, дисциплина веток, команды запуска |
+| `AGENTS.md` | Цель, язык, Git/workspace policy и правила KB (частично заполняет `kb:init`) |
+| `CLAUDE.md` | Только Claude adapter; нормативные правила сюда не добавлять |
 | `.remember/core.md` · `preferences.md` | Инвариант проекта и форма ответа |
 | `scripts/semantic/probes.local.mjs` | Свои eval-пробы (создать; см. `probes.mjs`) |
 | `.mcp.json` · `LICENSE` | Конфиг MCP · copyright holder |
@@ -416,8 +419,9 @@ project-owned (`kb.config.mjs`, `AGENTS.md`, слои 00–06…) не трог�
 **Почему MCP, а не Bash-allowlist?** MCP-инструменты видны агенту как first-class с типизированной
 схемой; это стандарт (Claude Code/Desktop, Cursor, Windsurf).
 
-**Работает с GPT/Gemini/open-source?** Да. CLI отдаёт stdout/JSON; MCP — открытый стандарт. Хуки
-`.claude/settings.json` специфичны для Claude Code, но адаптируются под Cursor/Windsurf.
+**Работает с GPT/Gemini/open-source?** Да. CLI отдаёт stdout/JSON; MCP — открытый стандарт. Claude
+Code и Codex используют общий контракт, hooks и project skills через host adapters; для других
+клиентов те же scripts можно подключить их собственным lifecycle-конфигом.
 
 **Можно без AI-агента, как поиск по markdown?** Да — `pnpm kb:search` полезнее `grep -r` (смысл +
 термины + связи + цитаты).

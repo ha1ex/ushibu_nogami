@@ -95,7 +95,7 @@ if (doctor) {
 }
 
 add('## Ждут человека');
-add(`- .context/inbox: ${inboxCount} кандидатов${inboxCount ? ' → разбор через skill-ingest' : ' ✅'}`);
+add(`- .context/inbox: ${inboxCount} кандидатов${inboxCount ? ' → разбор через kb-ingest' : ' ✅'}`);
 if (dreamReport) add(`- свежий dream-report: .context/${dreamReport}`);
 add();
 add('Команды: pnpm kb:metrics (тренды) · pnpm kb:dream (аудит) · node scripts/kb-critic.mjs --file <f> (правка цитат)');

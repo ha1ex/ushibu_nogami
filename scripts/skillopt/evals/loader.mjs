@@ -7,7 +7,7 @@
 //   ---
 //   type: eval-case
 //   version: v0.1
-//   skill: skill-ingest
+//   skill: kb-ingest
 //   grader: contains
 //   tags: [regression, happy-path]
 //   budget: { max_tokens: 8000, timeout_ms: 60000 }
@@ -186,7 +186,11 @@ export async function listSkillsWithEvals() {
   for (const e of entries) {
     if (!e.isDirectory()) continue;
     if (e.name.startsWith(".") || e.name === "_shared") continue;
-    const skillFile = join(SKILLS_DIR, `${e.name}.md`);
+    const skillFiles = [
+      join(SKILLS_DIR, `${e.name}.md`),
+      join(SKILLS_DIR, e.name, `${e.name}.md`),
+      join(SKILLS_DIR, e.name, "SKILL.md"),
+    ];
     const evalsDir = join(SKILLS_DIR, e.name, "evals");
     let caseCount = 0;
     if (existsSync(evalsDir)) {
@@ -195,7 +199,7 @@ export async function listSkillsWithEvals() {
     }
     out.push({
       skill: e.name,
-      skillFileExists: existsSync(skillFile),
+      skillFileExists: skillFiles.some((path) => existsSync(path)),
       caseCount,
     });
   }
@@ -213,7 +217,8 @@ export async function listSkillsWithEvals() {
 /**
  * Читает содержимое skill-файла (как text). Поддерживает оба формата:
  *   skills/skill-foo.md
- *   skills/skill-foo/skill-foo.md  (если когда-нибудь введём)
+ *   skills/skill-foo/skill-foo.md
+ *   skills/skill-foo/SKILL.md      (native формат host skills)
  */
 export async function readSkillFile(skillName) {
   const candidates = [

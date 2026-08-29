@@ -1,21 +1,21 @@
-# Skills
+# Shared project skills
 
-> Скиллы — это явно описанные рабочие процедуры с триггерами.
-> Когда Claude видит триггер (фразу или паттерн файла), он открывает соответствующий SKILL.md
-> и следует ему пошагово.
+Скиллы здесь — канонические provider-neutral процедуры. Claude Code видит те же каталоги через
+`.claude/skills/<name>`, Codex — через `.agents/skills/<name>`; оба host roots содержат относительные
+symlink на этот каталог, поэтому копии процедур не расходятся.
 
 ## Формат
 
-Каждый скилл — отдельный markdown-файл с frontmatter:
+Каждый скилл находится в отдельном каталоге `skills/<name>/SKILL.md` с native frontmatter:
 
 ```yaml
 ---
-name: skill-имя
+name: имя
+description: Естественное описание назначения и условий применения скилла.
 triggers:
   phrases: ["короткая фраза", "ещё одна"]
   files: ["паттерны файлов"]
   events: ["события"]
-description: что скилл делает
 inputs: какие артефакты читает
 outputs: какие артефакты создаёт
 ---
@@ -23,12 +23,14 @@ outputs: какие артефакты создаёт
 
 ## Текущие скиллы
 
-- [`skill-ingest.md`](./skill-ingest.md) — обработка нового артефакта по 9-шаговому workflow из AGENTS.md
-- [`skill-decision-log.md`](./skill-decision-log.md) — добавление решения с rationale и evidence
+- [`kb-ingest`](./kb-ingest/SKILL.md) — обработка нового артефакта по ingest workflow из AGENTS.md.
+- [`decision-log`](./decision-log/SKILL.md) — добавление решения с rationale и evidence.
+- [`interviewer-agent`](./interviewer-agent/SKILL.md) — последовательный сбор неявного контекста.
 
 ## Как добавлять
 
-1. Создайте `skills/skill-<name>.md` с frontmatter (см. формат выше)
-2. Опишите процедуру явными шагами — Claude будет следовать им буквально
-3. Добавьте ссылку на скилл в этот README
-4. Если скилл часто запускается — пропишите его триггеры в `scripts/enrich-on-trigger.mjs` (опциональный UserPromptSubmit hook)
+1. Создайте `skills/<name>/SKILL.md` с frontmatter (см. формат выше).
+2. Опишите процедуру явными шагами — агенты будут следовать им буквально.
+3. Добавьте относительные symlink в `.claude/skills/<name>` и `.agents/skills/<name>`.
+4. Добавьте ссылку на скилл в этот README.
+5. Запустите `pnpm agent:check`, чтобы проверить identity host adapters и canonical файла.

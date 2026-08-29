@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // parse-raw.mjs — конвертация бинарного raw-артефакта (PDF/docx/pptx/xlsx/html) в Markdown-черновик
-// для слоя 02_sources. Опциональный шаг ingest-цепочки (skill-ingest, Шаг 1.5).
+// для слоя 02_sources. Опциональный шаг ingest-цепочки (kb-ingest, Шаг 1.5).
 //
 // Зеркалит file-parser Hindsight (markitdown). У нас — тонкая обёртка: shell-out к `markitdown`
 // (Microsoft, https://github.com/microsoft/markitdown), если он установлен. Жёсткой Python-зависимости
@@ -45,7 +45,7 @@ const which = spawnSync('which', ['markitdown'], { encoding: 'utf8' });
 if (which.status !== 0) {
   console.error('[parse-raw] markitdown не найден в PATH — шаг пропущен (мягкая деградация).');
   console.error('[parse-raw] Установка (опц.): pipx install markitdown   или   pip install "markitdown[all]"');
-  console.error('[parse-raw] Затем повторите, либо создайте 02_sources-саммари вручную (skill-ingest, Шаг 2).');
+  console.error('[parse-raw] Затем повторите, либо создайте 02_sources-саммари вручную (kb-ingest, Шаг 2).');
   process.exit(0);
 }
 
@@ -99,4 +99,4 @@ const fm = [
 
 writeFileSync(outAbs, fm);
 console.log(`[parse-raw] черновик 02_sources записан → ${outRel} (status: draft).`);
-console.log('[parse-raw] Доработай в саммари вручную (skill-ingest, Шаг 2), затем reindex.');
+console.log('[parse-raw] Доработай в саммари вручную (kb-ingest, Шаг 2), затем reindex.');

@@ -1,7 +1,7 @@
 ---
 type: eval-case
 version: v0.1
-skill: skill-ingest
+skill: kb-ingest
 grader: label-presence
 tags: [regression, happy-path]
 budget:
@@ -20,7 +20,7 @@ owner: template
 {{file:raw-customer-interview.md}}
 ```
 
-Действуй по skill-ingest: пройди 11 шагов и опиши **списком**, какие файлы ты создашь или обновишь и какие ключевые факты вынесешь из артефакта. Не нужно писать содержимое файлов целиком — только bullet-points с метками.
+Действуй по kb-ingest: пройди 11 шагов и опиши **списком**, какие файлы ты создашь или обновишь и какие ключевые факты вынесешь из артефакта. Не нужно писать содержимое файлов целиком — только bullet-points с метками.
 
 # Expected
 
