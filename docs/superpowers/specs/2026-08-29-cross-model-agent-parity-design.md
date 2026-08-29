@@ -121,7 +121,7 @@ DECISION: `claude-api`, upstream `mcp-builder` и upstream `skill-creator` ос�
 
 DECISION: `.conductor/settings.toml` содержит versioned setup для каждого нового workspace:
 
-1. `corepack enable`;
+1. запуск pnpm через `corepack pnpm` без записи global symlink;
 2. frozen-lockfile install трёх подпакетов;
 3. построение локального semantic index;
 4. `git config core.hooksPath scripts/git-hooks`.

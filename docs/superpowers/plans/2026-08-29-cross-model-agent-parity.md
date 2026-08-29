@@ -18,7 +18,8 @@
 - Оба MCP adapter файла генерируются из `agent-config/mcp-servers.json` и запускают процессы из Git root.
 - Claude и Codex используют один SessionStart script и один PostToolUse write guard.
 - Canonical shared skills: `kb-ingest`, `decision-log`, `interviewer-agent`; target platforms — macOS/Linux.
-- Conductor использует frozen lockfiles, строит semantic index и запускает viewer на выделенных портах.
+- Conductor вызывает pnpm через `corepack pnpm` без global symlink, использует frozen lockfiles,
+  строит semantic index и запускает viewer на выделенных портах.
 - Новые функции разрабатываются TDD: RED должен быть зафиксирован до production implementation.
 - Изменения не пушатся и не публикуются автоматически.
 
@@ -359,8 +360,7 @@ test('uses standalone defaults and rejects invalid ports', () => {
 Install the existing viewer lockfile before the RED run:
 
 ```bash
-corepack enable
-pnpm -C tools/viewer install --frozen-lockfile
+corepack pnpm -C tools/viewer install --frozen-lockfile
 ```
 
 - [ ] **Step 2: Run RED**
@@ -379,16 +379,17 @@ Expected: FAIL because `ports.ts` is missing.
 Create repository settings with schema URL, `scripts.setup`, `run_mode = "concurrent"`, default local viewer run and cross-environment check run. Setup command is exactly:
 
 ```sh
-corepack enable && pnpm run setup && pnpm kb:index && git config core.hooksPath scripts/git-hooks
+corepack pnpm run setup && corepack pnpm kb:index && git config core.hooksPath scripts/git-hooks
 ```
 
-Viewer run maps `VIEWER_PORT=$CONDUCTOR_PORT` and `VITE_PORT=$((CONDUCTOR_PORT + 1))` before `pnpm viewer:dev`.
+Viewer run maps `VIEWER_PORT=$CONDUCTOR_PORT` and `VITE_PORT=$((CONDUCTOR_PORT + 1))` before
+`corepack pnpm viewer:dev`.
 
 Extend `auditRepository` with consumer checks that the shared Conductor settings contain frozen
 setup, `kb:index`, hook bootstrap, concurrent mode and `CONDUCTOR_PORT` viewer mapping. Add a failing
 fixture case first, run it RED, then implement the checks and run it GREEN.
 
-Change root setup to three `pnpm -C <dir> install --frozen-lockfile` calls. Add:
+Change root setup to three `corepack pnpm -C <dir> install --frozen-lockfile` calls. Add:
 
 ```json
 "viewer:test": "pnpm -C tools/viewer exec tsx --test ports.test.ts",
