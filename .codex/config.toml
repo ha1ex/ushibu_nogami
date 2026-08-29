@@ -1,0 +1,13 @@
+# Generated from agent-config/mcp-servers.json. Do not edit.
+
+[mcp_servers.kb-local]
+command = "sh"
+args = ["-lc", "cd \"$(git rev-parse --show-toplevel)\" && exec node scripts/semantic/mcp-server.mjs"]
+startup_timeout_sec = 30
+tool_timeout_sec = 120
+
+[mcp_servers.skillopt-local]
+command = "sh"
+args = ["-lc", "cd \"$(git rev-parse --show-toplevel)\" && exec node scripts/skillopt/mcp-server.mjs"]
+startup_timeout_sec = 30
+tool_timeout_sec = 120

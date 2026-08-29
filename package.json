@@ -24,10 +24,12 @@
     "kb:update": "node scripts/kb-update.mjs",
     "kb:metrics": "node scripts/kb-metrics.mjs",
     "kb:digest": "node scripts/kb-digest.mjs",
-    "whoajor:test": "pnpm -C scripts/whoajor test",
+    "whoajor:test": "corepack pnpm -C scripts/whoajor test",
     "whoajor:collect": "node scripts/whoajor/collect.mjs",
     "whoajor:validate": "node scripts/whoajor/validate.mjs",
     "whoajor:build-db": "node scripts/whoajor/normalize.mjs",
-    "whoajor:sync": "node scripts/whoajor/sync.mjs"
+    "whoajor:sync": "node scripts/whoajor/sync.mjs",
+    "agent:sync": "node scripts/agent/sync-config.mjs --write",
+    "agent:check": "node scripts/agent/sync-config.mjs --check"
   }
 }
