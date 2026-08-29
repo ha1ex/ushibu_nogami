@@ -4,7 +4,7 @@ import { basename, dirname, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const validatorPaths = [
+const DEFAULT_VALIDATOR_PATHS = [
   resolve(here, '..', 'check-decisions.mjs'),
   resolve(here, '..', 'check-md-frontmatter.mjs'),
   resolve(here, '..', 'check-provenance.mjs'),
@@ -95,7 +95,7 @@ function runValidator(validatorPath, payload, root) {
  * Validate final on-disk file text with all existing Write validators.
  * Deleted files and symlinks resolving outside root are deliberately skipped.
  */
-export async function validateWrittenPaths(paths, { root = process.cwd() } = {}) {
+export async function validateWrittenPaths(paths, { root = process.cwd(), validators = DEFAULT_VALIDATOR_PATHS } = {}) {
   const lexicalRoot = resolve(root);
   let realRoot;
   try {
@@ -121,11 +121,14 @@ export async function validateWrittenPaths(paths, { root = process.cwd() } = {})
     const content = await readFile(realPath, 'utf8');
     const payload = {
       tool_name: 'Write',
-      tool_input: { file_path: realPath, content },
+      tool_input: { file_path: path, content },
     };
-    const results = await Promise.all(validatorPaths.map((validatorPath) => runValidator(validatorPath, payload, realRoot)));
-    for (const result of results) {
-      if (result.status !== 0) diagnostics.push(result.output.trim());
+    const activeValidators = Array.isArray(validators) ? validators : DEFAULT_VALIDATOR_PATHS;
+    const results = await Promise.all(activeValidators.map((validatorPath) => runValidator(validatorPath, payload, realRoot)));
+    for (const [index, result] of results.entries()) {
+      if (result.status !== 0) {
+        diagnostics.push(result.output.trim() || `validator ${basename(activeValidators[index])} exited ${result.status}`);
+      }
     }
   }
 
