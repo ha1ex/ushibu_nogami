@@ -31,6 +31,10 @@ export async function resolveSafeMarkdownPath(root: string, requestedPath: strin
       realpath(lexicalTarget),
     ]);
     if (!isInside(resolvedRoot, resolvedTarget)) return null;
+    const targetRelative = relative(resolvedRoot, resolvedTarget);
+    if (!targetRelative
+      || hasUnsafeSegment(targetRelative)
+      || extname(targetRelative).toLowerCase() !== '.md') return null;
     if (!(await stat(resolvedTarget)).isFile()) return null;
     return {
       relativePath: lexicalRelative.split(sep).join('/'),

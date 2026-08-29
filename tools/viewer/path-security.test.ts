@@ -55,6 +55,25 @@ test('accepts an internal symlink but retains the lexical link path', async () =
   });
 });
 
+test('rejects markdown aliases whose internal real targets are hidden or non-markdown', async (t) => {
+  const cases = [
+    { name: 'root env file', target: '.env', linkTarget: '../.env', alias: 'env-alias.md' },
+    { name: 'git config', target: '.git/config', linkTarget: '../.git/config', alias: 'git-alias.md' },
+    { name: 'plain text file', target: 'note.txt', linkTarget: '../note.txt', alias: 'text-alias.md' },
+  ];
+
+  for (const fixture of cases) {
+    await t.test(fixture.name, async () => {
+      const root = await makeRoot();
+      await write(root, fixture.target, 'sensitive or non-markdown\n');
+      await mkdir(join(root, '03_wiki'), { recursive: true });
+      await symlink(fixture.linkTarget, join(root, '03_wiki', fixture.alias));
+
+      assert.equal(await resolveSafeMarkdownPath(root, `03_wiki/${fixture.alias}`), null);
+    });
+  }
+});
+
 test('rejects traversal, hidden segments, non-markdown paths, and missing files', async () => {
   const root = await makeRoot();
   await write(root, '03_wiki/visible.md', '# Visible\n');
