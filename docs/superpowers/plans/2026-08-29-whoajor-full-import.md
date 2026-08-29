@@ -6,7 +6,7 @@
 
 **Architecture:** Последовательный HTTP-сборщик сохраняет каждый ответ content-addressed и ведёт manifest. Независимый валидатор доказывает полноту и целостность; нормализатор строит SQLite только из сохранённого raw, после чего генератор создаёт source summary и обновляет KB.
 
-**Tech Stack:** Node.js 20–22, ESM, встроенные `fetch`/`node:test`/`node:crypto`, `better-sqlite3` 12.10.0, pnpm.
+**Tech Stack:** Node.js 20–22, ESM, встроенные `fetch`/`node:test`/`node:crypto`, `better-sqlite3` 12.10.0, Corepack + pnpm.
 
 **Spec:** `docs/superpowers/specs/2026-08-29-whoajor-full-import-design.md`
 
@@ -22,7 +22,9 @@
 - Публичный scope: meta, tags, draft, полный match index/details, leaderboard, все player views, weapons/details/time-series и weapon-splits.
 - Комбинаторный перебор `tag × map × side × from × to` не выполняется; импортируются первичные сущности, unfiltered views и конечные `by=day` views.
 - Любой пропуск, schema drift обязательного поля, duplicate PK, broken FK или изменение границы snapshot блокирует публикацию.
-- После каждого завершённого коммита: `pnpm whoajor:test`, релевантные KB-гейты, затем `git push origin HEAD:main` без force-push.
+- После каждого завершённого коммита: `corepack pnpm whoajor:test` и релевантные KB-гейты.
+  Автоматический push в `main` запрещён; он допустим только по явной команде пользователя и без
+  force-push, после чего обязательно дать проверяемое резюме на русском.
 
 ## Карта файлов
 
@@ -60,6 +62,8 @@
 - Create: `scripts/whoajor/lib/contract.mjs`
 - Create: `scripts/whoajor/test/canonical-json.test.mjs`
 - Modify: `package.json`
+- Modify: `scripts/agent/repository-check.mjs`
+- Modify: `scripts/agent/test-repository-check.mjs`
 
 **Interfaces:**
 - Produces: `canonicalStringify(value): string`, `sha256Hex(data): string`, `normalizeQuery(entries): string`, `requestKey(path, query): string`, `CONTRACT`, `buildUrl(baseUrl, path, query): URL`.
@@ -139,30 +143,33 @@ required keys и primary key functions. `buildUrl` обязан кодирова
 }
 ```
 
-В корневой `package.json` добавить `scripts/whoajor install` в `setup`, а также:
+После создания lockfile добавить в корневой `setup` четвёртую frozen-установку
+`corepack pnpm -C scripts/whoajor install --frozen-lockfile`, а также:
 
 ```json
-"whoajor:test": "pnpm -C scripts/whoajor test",
+"whoajor:test": "corepack pnpm -C scripts/whoajor test",
 "whoajor:collect": "node scripts/whoajor/collect.mjs",
 "whoajor:validate": "node scripts/whoajor/validate.mjs",
 "whoajor:build-db": "node scripts/whoajor/normalize.mjs",
 "whoajor:sync": "node scripts/whoajor/sync.mjs"
 ```
 
-Run: `pnpm -C scripts/whoajor install`
+Run: `corepack pnpm -C scripts/whoajor install`
 
 Expected: создаётся `scripts/whoajor/pnpm-lock.yaml`, dependency `better-sqlite3@12.10.0`.
+В том же commit обновить exact `rootSetup` contract и fixtures в repository audit: setup обязан
+содержать четыре, а не три, frozen-установки через Corepack.
 
 - [ ] **Step 5: Запустить tests и проверки**
 
-Run: `pnpm whoajor:test && git diff --check`
+Run: `corepack pnpm whoajor:test && corepack pnpm agent:test && corepack pnpm agent:check && git diff --check`
 
 Expected: все tests PASS, diff-check clean.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add package.json scripts/whoajor
+git add package.json scripts/whoajor scripts/agent/repository-check.mjs scripts/agent/test-repository-check.mjs
 git commit -m "Добавить контракт импорта whoajor"
 ```
 
@@ -228,7 +235,7 @@ Resume разрешён, только если manifest entry, файл, byte co
 
 - [ ] **Step 4: Запустить tests**
 
-Run: `pnpm whoajor:test`
+Run: `corepack pnpm whoajor:test`
 
 Expected: canonical/raw-store tests PASS.
 
@@ -294,7 +301,7 @@ user-agent: 'ushibu-nogami-whoajor-import/1.0' } })`, сохраняет observe
 
 - [ ] **Step 4: Запустить tests**
 
-Run: `pnpm whoajor:test`
+Run: `corepack pnpm whoajor:test`
 
 Expected: все tests PASS.
 
@@ -382,7 +389,7 @@ CLI принимает:
 
 - [ ] **Step 4: Запустить offline tests**
 
-Run: `pnpm whoajor:test`
+Run: `corepack pnpm whoajor:test`
 
 Expected: все tests PASS; fake router не видел POST или неизвестных URLs.
 
@@ -460,7 +467,7 @@ CLI всегда записывает `validation-report.json`; exit `0` тол�
 
 - [ ] **Step 4: Запустить tests**
 
-Run: `pnpm whoajor:test`
+Run: `corepack pnpm whoajor:test`
 
 Expected: все tests PASS.
 
@@ -537,7 +544,7 @@ Normalizer работает в одной transaction, удаляет непол
 
 - [ ] **Step 4: Запустить tests и SQLite checks**
 
-Run: `pnpm whoajor:test`
+Run: `corepack pnpm whoajor:test`
 
 Expected: tests PASS, `foreign_key_check` пуст, два builds имеют одинаковый logical fingerprint.
 
@@ -606,7 +613,7 @@ FACT source counts, INFERENCE и UNKNOWN, содержит ссылку на raw
 
 - [ ] **Step 4: Запустить tests**
 
-Run: `pnpm whoajor:test`
+Run: `corepack pnpm whoajor:test`
 
 Expected: все tests PASS.
 
@@ -635,7 +642,7 @@ git commit -m "Добавить публикацию полного снимка
 Run:
 
 ```bash
-pnpm whoajor:collect -- --output .context/whoajor-staging/2026-08-29-full --delay-ms 250 --page-size 100
+corepack pnpm whoajor:collect -- --output .context/whoajor-staging/2026-08-29-full --delay-ms 250 --page-size 100
 ```
 
 Expected: последовательный GET-only run; manifest status `collected`; ориентир `matches=368`,
@@ -646,7 +653,7 @@ players `>=81`, weapons `39`. Точные acceptance counts берутся из
 Run:
 
 ```bash
-pnpm whoajor:validate -- .context/whoajor-staging/2026-08-29-full
+corepack pnpm whoajor:validate -- .context/whoajor-staging/2026-08-29-full
 ```
 
 Expected: exit `0`, `status=complete`, `errors=[]`; расхождение `META_MAP_SUM_MISMATCH` сохранено.
@@ -660,7 +667,7 @@ Expected: exit `0`, `status=complete`, `errors=[]`; расхождение `META
 Run:
 
 ```bash
-pnpm whoajor:build-db -- .context/whoajor-staging/2026-08-29-full
+corepack pnpm whoajor:build-db -- .context/whoajor-staging/2026-08-29-full
 sqlite3 .context/whoajor-staging/2026-08-29-full/whoajor.sqlite 'pragma integrity_check; pragma foreign_key_check;'
 sqlite3 -header -column .context/whoajor-staging/2026-08-29-full/whoajor.sqlite \
   'select (select count(*) from matches) matches, (select count(*) from players) players, (select count(*) from match_rounds) rounds;'
@@ -736,8 +743,8 @@ Expected before implementation: FAIL, test file/module отсутствует.
 ```yaml
 - name: Validate whoajor snapshots
   run: |
-    pnpm -C scripts/whoajor install --frozen-lockfile
-    pnpm whoajor:test
+    corepack pnpm -C scripts/whoajor install --frozen-lockfile
+    corepack pnpm whoajor:test
     node scripts/whoajor/test/published-snapshot.test.mjs
 ```
 
@@ -753,12 +760,13 @@ evidence из нового source summary.
 Run:
 
 ```bash
-pnpm whoajor:test
-pnpm kb:doctor
+corepack pnpm whoajor:test
+corepack pnpm kb:check
+corepack pnpm kb:doctor
 node scripts/semantic/verify.mjs --scan --provenance --no-semantic
 node scripts/semantic/test-gate.mjs
-pnpm kb:index
-pnpm kb:eval
+corepack pnpm kb:index
+corepack pnpm kb:eval
 ```
 
 Expected: все команды exit `0`; doctor без замечаний; verify clean; retrieval не хуже baseline.
@@ -778,15 +786,17 @@ sqlite3 -header -column 01_raw/whoajor/2026-08-29-full-snapshot/whoajor.sqlite \
 Expected: только ожидаемые изменения; manifest complete; counts совпадают с summary/SQLite.
 Если SQLite сохранён как gzip, распаковать во временный каталог и выполнить те же запросы там.
 
-- [ ] **Step 6: Commit и push**
+- [ ] **Step 6: Commit и подготовить результат к проверке**
 
 ```bash
 git add .github/workflows/kb-ci.yml package.json 02_sources index.md log.md 03_wiki 04_synthesis scripts/whoajor
 git commit -m "Подключить полный whoajor к базе знаний"
-git push origin HEAD:main
 ```
 
 - [ ] **Step 7: Дать пользователю проверяемое резюме на русском**
+
+Сообщить commit/branch и явно указать, что push не выполнялся. Если пользователь отдельно потребовал
+push в `main`, выполнить его только после зелёных гейтов и затем дать обязательное post-push резюме.
 
 Сообщить без технического жаргона:
 
