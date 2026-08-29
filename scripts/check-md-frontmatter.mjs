@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// check-md-frontmatter.mjs — PreToolUse hook для Write/Edit/MultiEdit на .md.
+// check-md-frontmatter.mjs — validator общего PostToolUse guard для Write/Edit/MultiEdit на .md.
 //
 // Логика мягкая (минимум false-positive):
 //   • Если у файла есть frontmatter (--- … ---) — он должен содержать поля, перечисленные

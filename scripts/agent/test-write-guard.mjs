@@ -210,7 +210,7 @@ test('journals malformed stdin while failing open', async (t) => {
   const journalRoot = await mkdtemp(join(tmpdir(), 'write-guard-journal-'));
   t.after(() => rm(journalRoot, { recursive: true, force: true }));
 
-  const result = await runWriteGuard('{not-json', { env: { KB_ROOT: journalRoot } });
+  const result = await runWriteGuard('{not-json', { env: { KB_ROOT: journalRoot, KB_JOURNAL: '1' } });
   const lines = (await readFile(join(journalRoot, '.context/kb-journal.jsonl'), 'utf8')).trim().split('\n');
   const record = JSON.parse(lines.at(-1));
 

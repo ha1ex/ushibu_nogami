@@ -29,6 +29,7 @@
 | — | `semantic/test-gate.mjs` | adversarial-сьют контура доверия — векторы обхода гейта (A3, CI-гейт) |
 | `corepack pnpm skill` | `skillopt/cli.mjs` | SkillOpt CLI (rollout/reflect/diff/apply) |
 | — | `agent/write-guard.mjs`, validators, `session-start-context.mjs` | общие PostToolUse/SessionStart hooks (`.claude/settings.json`, `.codex/hooks.json`) |
+| `corepack pnpm agent:test` | `agent/test-{config,write-guard,repository-check,kb-init}.mjs` | явный non-recursive набор тестов agent harness; Corepack bootstrap проверяется отдельно в CI |
 | — | `git-hooks/pre-push` | единый `corepack pnpm kb:check` до CI (`git config core.hooksPath scripts/git-hooks`) |
 | — | `lib/kb-root.mjs`, `lib/provenance.mjs`, `lib/journal.mjs`, `lib/frontmatter.mjs` | shared dependency-free утилиты (корень/конфиг, provenance, журнал, frontmatter) |
 | — | `search-quality-probes.mjs`, `dedup-skills.mjs` | проверки качества корпуса |

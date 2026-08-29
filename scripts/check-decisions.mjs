@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// check-decisions.mjs — PreToolUse hook для Write/Edit в /05_decisions/.
+// check-decisions.mjs — validator общего PostToolUse guard для Write/Edit в /05_decisions/.
 // Гарантирует, что новая или обновлённая decision-карточка содержит:
 //   1. метку `DECISION:`
 //   2. хотя бы одну ссылку на источник: `[source: /02_sources/...]`,

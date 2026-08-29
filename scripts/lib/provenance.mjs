@@ -2,7 +2,7 @@
 //
 // Зачем отдельный модуль: им пользуются ДВА потребителя с разными ограничениями —
 //   • verify.mjs (Control/Evaluate) — может позволить себе native-deps (sqlite/onnx);
-//   • check-provenance.mjs (PreToolUse hook) — должен быть БЫСТРЫМ и БЕЗ native-deps,
+//   • check-provenance.mjs (validator PostToolUse guard) — должен быть БЫСТРЫМ и БЕЗ native-deps,
 //     иначе каждая правка .md тянула бы better-sqlite3 + загрузку модели.
 // Поэтому здесь НЕТ импортов lib.mjs — только pure Node (regex + строки).
 //

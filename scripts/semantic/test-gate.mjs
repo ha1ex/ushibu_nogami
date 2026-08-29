@@ -164,7 +164,7 @@ const vt = (text, opts = {}) => verifyText(text, { semantic: false, ...opts });
   ok('resolveSegments/cleanCitePath: traversal/escapes детектятся, ./ — легален');
 }
 
-// ---------- 12. PreToolUse-хук: блокирует запись, fail-open наблюдаем ----------
+// ---------- 12. PostToolUse guard: валидирует запись, fail-open наблюдаем ----------
 {
   const hook = join(REPO_ROOT, 'scripts', 'check-provenance.mjs');
   const run = (input) => spawnSync('node', [hook], {

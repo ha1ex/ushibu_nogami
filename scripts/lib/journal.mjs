@@ -60,7 +60,7 @@ export async function appendJournal(entry) {
 }
 
 /**
- * A4: наблюдаемый fail-open для PreToolUse-хуков. Хук, упавший на битом payload, обязан
+ * A4: наблюдаемый fail-open для общего PostToolUse guard. Хук, упавший на битом payload, обязан
  * остаться allow (не блокировать работу из-за инфраструктурной ошибки), но НЕ молчать:
  * событие уходит в журнал (kind: hook-error) и предупреждение — в stderr.
  * Never throws (как и appendJournal).

@@ -19,7 +19,7 @@
     "kb:critic": "node scripts/kb-critic.mjs",
     "kb:dream": "node scripts/dream-cycle.mjs",
     "viewer:dev": "corepack pnpm -C tools/viewer dev",
-    "viewer:test": "corepack pnpm -C tools/viewer exec tsx --test ports.test.ts",
+    "viewer:test": "corepack pnpm -C tools/viewer test",
     "viewer:build": "corepack pnpm -C tools/viewer build",
     "kb:init": "node scripts/kb-init.mjs",
     "kb:update": "node scripts/kb-update.mjs",
@@ -31,7 +31,8 @@
     "whoajor:build-db": "node scripts/whoajor/normalize.mjs",
     "whoajor:sync": "node scripts/whoajor/sync.mjs",
     "agent:sync": "node scripts/agent/sync-config.mjs --write",
+    "agent:test": "node --test scripts/agent/test-config.mjs scripts/agent/test-write-guard.mjs scripts/agent/test-repository-check.mjs scripts/agent/test-kb-init.mjs",
     "agent:check": "node scripts/agent/sync-config.mjs --check",
-    "kb:check": "corepack pnpm agent:check && node scripts/semantic/test-retrieval.mjs && node scripts/semantic/test-control.mjs && node scripts/semantic/test-gate.mjs && node scripts/kb-doctor.mjs && node scripts/semantic/verify.mjs --scan --provenance --no-semantic"
+    "kb:check": "corepack pnpm agent:test && corepack pnpm agent:check && corepack pnpm viewer:test && node scripts/semantic/test-retrieval.mjs && node scripts/semantic/test-control.mjs && node scripts/semantic/test-gate.mjs && node scripts/kb-doctor.mjs && node scripts/semantic/verify.mjs --scan --provenance --no-semantic"
   }
 }

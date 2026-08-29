@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, realpath, rm, symlink, writeFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 import test from 'node:test';
 
 import { auditRepository } from './repository-check.mjs';
@@ -9,6 +12,19 @@ import { discoverEvals, listSkillsWithEvals, readSkillFile } from '../skillopt/e
 
 const sharedSkills = ['kb-ingest', 'decision-log', 'interviewer-agent'];
 const fixtureRoots = [];
+const execFileAsync = promisify(execFile);
+const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const claudeSession = 'node "$CLAUDE_PROJECT_DIR/scripts/session-start-context.mjs"';
+const claudeGuard = 'node "$CLAUDE_PROJECT_DIR/scripts/agent/write-guard.mjs"';
+const codexSession = 'node "$(git rev-parse --show-toplevel)/scripts/session-start-context.mjs"';
+const codexGuard = 'node "$(git rev-parse --show-toplevel)/scripts/agent/write-guard.mjs"';
+const requiredClaudeAllow = [
+  'Bash(corepack pnpm run setup:*)',
+  'Bash(corepack pnpm kb:*)',
+  'Bash(corepack pnpm agent:*)',
+  'Bash(corepack pnpm viewer:*)',
+  'Bash(corepack pnpm skill:*)',
+];
 const validConductorSettings = `"$schema" = "https://conductor.build/schemas/settings.repo.schema.json"
 
 [scripts]
@@ -29,21 +45,33 @@ icon = "test-tube"
 const validRootPackage = {
   scripts: {
     setup: 'corepack pnpm -C scripts/semantic install --frozen-lockfile && corepack pnpm -C scripts/skillopt install --frozen-lockfile && corepack pnpm -C tools/viewer install --frozen-lockfile && corepack pnpm -C scripts/whoajor install --frozen-lockfile',
+    'agent:test': 'node --test scripts/agent/test-config.mjs scripts/agent/test-write-guard.mjs scripts/agent/test-repository-check.mjs scripts/agent/test-kb-init.mjs',
+    'agent:check': 'node scripts/agent/sync-config.mjs --check',
     'viewer:dev': 'corepack pnpm -C tools/viewer dev',
-    'viewer:test': 'corepack pnpm -C tools/viewer exec tsx --test ports.test.ts',
+    'viewer:test': 'corepack pnpm -C tools/viewer test',
     'viewer:build': 'corepack pnpm -C tools/viewer build',
-    'kb:check': 'corepack pnpm agent:check && node scripts/semantic/test-retrieval.mjs && node scripts/semantic/test-control.mjs && node scripts/semantic/test-gate.mjs && node scripts/kb-doctor.mjs && node scripts/semantic/verify.mjs --scan --provenance --no-semantic',
+    'kb:check': 'corepack pnpm agent:test && corepack pnpm agent:check && corepack pnpm viewer:test && node scripts/semantic/test-retrieval.mjs && node scripts/semantic/test-control.mjs && node scripts/semantic/test-gate.mjs && node scripts/kb-doctor.mjs && node scripts/semantic/verify.mjs --scan --provenance --no-semantic',
   },
 };
 const validViewerPackage = {
   scripts: {
     dev: 'concurrently -n server,client -c blue,magenta "corepack pnpm dev:server" "corepack pnpm dev:client"',
+    test: 'tsx --test ./*.test.ts',
   },
 };
 const validPrePush = `#!/usr/bin/env bash
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 corepack pnpm kb:check
+`;
+const validWorkflow = `name: fixture
+jobs:
+  check:
+    steps:
+      - name: Run deterministic quality gate
+        run: corepack pnpm kb:check
+      - name: Verify Corepack bootstrap without recursion
+        run: node --test scripts/agent/test-corepack-bootstrap.mjs
 `;
 
 function withConductorSettings(transform) {
@@ -85,32 +113,194 @@ async function makeFixture({
   rootPackage = validRootPackage,
   viewerPackage = validViewerPackage,
   prePush = validPrePush,
+  harness = { version: 1, level: 2 },
+  workflows = { ci: validWorkflow, kbCi: validWorkflow },
 } = {}) {
   const root = await mkdtemp(join(tmpdir(), 'repository-check-'));
   fixtureRoots.push(root);
   await write(root, 'AGENTS.md', `${agentRule}\n`);
   await write(root, 'CLAUDE.md', claude);
   await write(root, '.claude/settings.json', JSON.stringify(claudeSettings ?? {
+    permissions: { allow: requiredClaudeAllow },
     hooks: {
-      SessionStart: [{ hooks: [{ command: 'node scripts/session-start-context.mjs' }] }],
-      PostToolUse: [{ hooks: [{ command: 'node scripts/agent/write-guard.mjs' }] }],
+      SessionStart: [{ hooks: [{ type: 'command', command: claudeSession, timeout: 10 }] }],
+      PostToolUse: [{ matcher: 'Write|Edit|MultiEdit', hooks: [{ type: 'command', command: claudeGuard, timeout: 10 }] }],
     },
   }));
   await write(root, '.codex/hooks.json', JSON.stringify(codexHooks ?? {
     hooks: {
-      SessionStart: [{ hooks: [{ command: 'node scripts/session-start-context.mjs' }] }],
-      PostToolUse: [{ hooks: [{ command: 'node scripts/agent/write-guard.mjs' }] }],
+      SessionStart: [{ matcher: '^(startup|resume|clear|compact)$', hooks: [{ type: 'command', command: codexSession, timeout: 10 }] }],
+      PostToolUse: [{ matcher: 'apply_patch|Edit|Write', hooks: [{ type: 'command', command: codexGuard, timeout: 10 }] }],
     },
   }));
+  if (harness !== null) await write(root, 'agent-config/harness.json', `${JSON.stringify(harness, null, 2)}\n`);
   if (conductorSettings !== null) {
     await write(root, '.conductor/settings.toml', conductorSettings);
   }
   await write(root, 'package.json', JSON.stringify(rootPackage));
   await write(root, 'tools/viewer/package.json', JSON.stringify(viewerPackage));
   await write(root, 'scripts/git-hooks/pre-push', prePush);
+  if (workflows?.ci !== null) await write(root, '.github/workflows/ci.yml', workflows.ci);
+  if (workflows?.kbCi !== null) await write(root, '.github/workflows/kb-ci.yml', workflows.kbCi);
   if (linkSkills) await linkSharedSkills(root);
   return root;
 }
+
+test('rejects missing and malformed harness level manifests', async (t) => {
+  const cases = [
+    { name: 'missing', harness: null },
+    { name: 'extra key', harness: { version: 1, level: 2, extra: true } },
+    { name: 'wrong version', harness: { version: 2, level: 2 } },
+    { name: 'out of range', harness: { version: 1, level: 4 } },
+    { name: 'non-integer', harness: { version: 1, level: 1.5 } },
+  ];
+
+  for (const fixture of cases) {
+    await t.test(fixture.name, async () => {
+      const root = await makeFixture({ harness: fixture.harness });
+      const result = await auditRepository(root);
+      assert.equal(result.passed, false);
+      assert.match(result.errors.join('\n'), /agent-config\/harness\.json.*version.*level|harness manifest/i);
+    });
+  }
+});
+
+test('accepts level 1 without common PostToolUse guards or CI workflows', async () => {
+  const root = await makeFixture({
+    harness: { version: 1, level: 1 },
+    workflows: { ci: null, kbCi: null },
+    claudeSettings: {
+      permissions: { allow: requiredClaudeAllow },
+      hooks: {
+        SessionStart: [{ hooks: [{ type: 'command', command: claudeSession, timeout: 10 }] }],
+        PostToolUse: [{ matcher: 'NotebookEdit', hooks: [{ command: 'node scripts/other-hook.mjs' }] }],
+      },
+    },
+    codexHooks: {
+      hooks: {
+        SessionStart: [{ matcher: '^(startup|resume|clear|compact)$', hooks: [{ type: 'command', command: codexSession, timeout: 10 }] }],
+        PostToolUse: [{ matcher: 'custom_tool', hooks: [{ command: 'node scripts/other-hook.mjs' }] }],
+      },
+    },
+  });
+
+  assert.deepEqual(await auditRepository(root), { passed: true, errors: [] });
+});
+
+test('rejects common PostToolUse guards at levels below 2', async () => {
+  const root = await makeFixture({ harness: { version: 1, level: 0 }, workflows: { ci: null, kbCi: null } });
+  const result = await auditRepository(root);
+
+  assert.equal(result.passed, false);
+  assert.match(result.errors.join('\n'), /level 0.*PostToolUse.*absent/i);
+});
+
+test('rejects a missing canonical PostToolUse guard at level 2', async () => {
+  const root = await makeFixture({
+    codexHooks: {
+      hooks: {
+        SessionStart: [{ matcher: '^(startup|resume|clear|compact)$', hooks: [{ command: codexSession }] }],
+        PostToolUse: [{ matcher: 'custom_tool', hooks: [{ command: 'node scripts/other-hook.mjs' }] }],
+      },
+    },
+  });
+  const result = await auditRepository(root);
+
+  assert.equal(result.passed, false);
+  assert.match(result.errors.join('\n'), /Codex.*canonical PostToolUse/i);
+});
+
+test('rejects stale bare-pnpm Claude permissions and accepts required Corepack workflows', async () => {
+  const root = await makeFixture({
+    claudeSettings: {
+      permissions: {
+        allow: ['Bash(pnpm run setup:*)', 'Bash(pnpm kb:*)'],
+      },
+      hooks: {
+        SessionStart: [{ hooks: [{ command: claudeSession }] }],
+        PostToolUse: [{ matcher: 'Write|Edit|MultiEdit', hooks: [{ command: claudeGuard }] }],
+      },
+    },
+  });
+
+  const result = await auditRepository(root);
+  const errors = result.errors.join('\n');
+  assert.equal(result.passed, false);
+  assert.match(errors, /Claude permissions.*bare pnpm/i);
+  assert.match(errors, /corepack pnpm run setup/i);
+  assert.match(errors, /corepack pnpm agent/i);
+  assert.match(errors, /corepack pnpm viewer/i);
+  assert.match(errors, /corepack pnpm skill/i);
+});
+
+test('rejects non-canonical SessionStart quoting and a Codex matcher missing clear', async () => {
+  const root = await makeFixture({
+    claudeSettings: {
+      permissions: { allow: requiredClaudeAllow },
+      hooks: {
+        SessionStart: [{ hooks: [{ command: 'node $CLAUDE_PROJECT_DIR/scripts/session-start-context.mjs' }] }],
+        PostToolUse: [{ matcher: 'Write|Edit|MultiEdit', hooks: [{ command: claudeGuard }] }],
+      },
+    },
+    codexHooks: {
+      hooks: {
+        SessionStart: [{ matcher: 'startup|resume|compact', hooks: [{ command: codexSession }] }],
+        PostToolUse: [{ matcher: 'apply_patch|Edit|Write', hooks: [{ command: codexGuard }] }],
+      },
+    },
+  });
+
+  const result = await auditRepository(root);
+  const errors = result.errors.join('\n');
+  assert.equal(result.passed, false);
+  assert.match(errors, /Claude SessionStart.*exact.*CLAUDE_PROJECT_DIR/i);
+  assert.match(errors, /Codex SessionStart.*clear/i);
+});
+
+test('the repository Claude SessionStart command executes when the project path contains spaces', async () => {
+  const settings = JSON.parse(await readFile(join(projectRoot, '.claude/settings.json'), 'utf8'));
+  const command = settings.hooks.SessionStart[0].hooks[0].command;
+  const spacedRoot = await mkdtemp(join(tmpdir(), 'claude project with spaces-'));
+  fixtureRoots.push(spacedRoot);
+  await write(spacedRoot, 'scripts/session-start-context.mjs', 'process.stdout.write("session-ok");\n');
+
+  const result = await execFileAsync('sh', ['-c', command], {
+    env: { ...process.env, CLAUDE_PROJECT_DIR: spacedRoot },
+  });
+
+  assert.equal(result.stdout, 'session-ok');
+});
+
+test('rejects recursive or incomplete permanent gate scripts', async () => {
+  const root = await makeFixture({
+    rootPackage: {
+      scripts: {
+        ...validRootPackage.scripts,
+        'agent:test': 'node --test scripts/agent/*.mjs scripts/agent/test-corepack-bootstrap.mjs',
+        'kb:check': 'corepack pnpm agent:check',
+      },
+    },
+  });
+  const result = await auditRepository(root);
+  const errors = result.errors.join('\n');
+
+  assert.equal(result.passed, false);
+  assert.match(errors, /agent:test.*explicit.*test-corepack-bootstrap/i);
+  assert.match(errors, /kb:check.*agent:test.*viewer:test/i);
+});
+
+test('rejects CI without a separate Corepack bootstrap test step', async () => {
+  const root = await makeFixture({
+    workflows: {
+      ci: 'steps:\n  - run: corepack pnpm kb:check\n',
+      kbCi: validWorkflow,
+    },
+  });
+  const result = await auditRepository(root);
+
+  assert.equal(result.passed, false);
+  assert.match(result.errors.join('\n'), /ci\.yml.*test-corepack-bootstrap\.mjs.*separate/i);
+});
 
 test('rejects missing shared Conductor settings with an actionable error', async () => {
   const root = await makeFixture({ conductorSettings: null });

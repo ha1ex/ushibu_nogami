@@ -49,6 +49,9 @@ jobs:
         env:
           KB_JOURNAL: '0'
 
+      - name: Verify Corepack bootstrap without recursion
+        run: node --test scripts/agent/test-corepack-bootstrap.mjs
+
       # Свежий checkout = свежие mtime → индекс собираем заново (он gitignored).
       # Первый прогон тянет модель с HuggingFace — соединение бывает флаки (connect timeout),
       # поэтому 3 попытки с очисткой частичного индекса между ними.

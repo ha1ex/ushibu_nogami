@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// check-provenance.mjs — PreToolUse hook (Write|Edit|MultiEdit) для 04_synthesis / 05_decisions.
+// check-provenance.mjs — validator общего PostToolUse guard для 04_synthesis / 05_decisions.
 //
 // N4: enforce порядок пирамиды (AGENTS.md) на этапе записи — synthesis/decisions могут цитировать
 // `[source: /path]` только СТРОГО более низкий слой (synthesis → source/wiki/context; decisions →

@@ -10,14 +10,38 @@ const conductorSchema = 'https://conductor.build/schemas/settings.repo.schema.js
 const conductorSetup = 'corepack pnpm run setup && corepack pnpm kb:index && git config core.hooksPath scripts/git-hooks';
 const rootSetup = 'corepack pnpm -C scripts/semantic install --frozen-lockfile && corepack pnpm -C scripts/skillopt install --frozen-lockfile && corepack pnpm -C tools/viewer install --frozen-lockfile && corepack pnpm -C scripts/whoajor install --frozen-lockfile';
 const viewerCommand = 'VIEWER_PORT=$CONDUCTOR_PORT VITE_PORT=$((CONDUCTOR_PORT + 1)) corepack pnpm viewer:dev';
+const agentTest = 'node --test scripts/agent/test-config.mjs scripts/agent/test-write-guard.mjs scripts/agent/test-repository-check.mjs scripts/agent/test-kb-init.mjs';
+const kbCheck = 'corepack pnpm agent:test && corepack pnpm agent:check && corepack pnpm viewer:test && node scripts/semantic/test-retrieval.mjs && node scripts/semantic/test-control.mjs && node scripts/semantic/test-gate.mjs && node scripts/kb-doctor.mjs && node scripts/semantic/verify.mjs --scan --provenance --no-semantic';
 const rootExecutableScripts = {
   setup: rootSetup,
+  'agent:test': agentTest,
+  'agent:check': 'node scripts/agent/sync-config.mjs --check',
   'viewer:dev': 'corepack pnpm -C tools/viewer dev',
-  'viewer:test': 'corepack pnpm -C tools/viewer exec tsx --test ports.test.ts',
+  'viewer:test': 'corepack pnpm -C tools/viewer test',
   'viewer:build': 'corepack pnpm -C tools/viewer build',
-  'kb:check': 'corepack pnpm agent:check && node scripts/semantic/test-retrieval.mjs && node scripts/semantic/test-control.mjs && node scripts/semantic/test-gate.mjs && node scripts/kb-doctor.mjs && node scripts/semantic/verify.mjs --scan --provenance --no-semantic',
+  'kb:check': kbCheck,
 };
 const viewerDev = 'concurrently -n server,client -c blue,magenta "corepack pnpm dev:server" "corepack pnpm dev:client"';
+const viewerTest = 'tsx --test ./*.test.ts';
+const claudeSessionCommand = 'node "$CLAUDE_PROJECT_DIR/scripts/session-start-context.mjs"';
+const codexSessionCommand = 'node "$(git rev-parse --show-toplevel)/scripts/session-start-context.mjs"';
+const canonicalPostToolUse = {
+  Claude: {
+    matcher: 'Write|Edit|MultiEdit',
+    command: 'node "$CLAUDE_PROJECT_DIR/scripts/agent/write-guard.mjs"',
+  },
+  Codex: {
+    matcher: 'apply_patch|Edit|Write',
+    command: 'node "$(git rev-parse --show-toplevel)/scripts/agent/write-guard.mjs"',
+  },
+};
+const requiredClaudePermissions = [
+  'Bash(corepack pnpm run setup:*)',
+  'Bash(corepack pnpm kb:*)',
+  'Bash(corepack pnpm agent:*)',
+  'Bash(corepack pnpm viewer:*)',
+  'Bash(corepack pnpm skill:*)',
+];
 const canonicalConductorLines = [
   `"$schema" = "${conductorSchema}"`,
   '[scripts]',
@@ -61,18 +85,9 @@ async function readText(root, path, errors) {
   }
 }
 
-function eventHookCommands(config, event) {
+function eventHookEntries(config, event) {
   const entries = config?.hooks?.[event];
-  if (!Array.isArray(entries)) return [];
-
-  const commands = [];
-  for (const entry of entries) {
-    if (!entry || !Array.isArray(entry.hooks)) continue;
-    for (const hook of entry.hooks) {
-      if (hook && typeof hook.command === 'string') commands.push(hook.command);
-    }
-  }
-  return commands;
+  return Array.isArray(entries) ? entries : [];
 }
 
 function escapeRegExp(value) {
@@ -84,7 +99,77 @@ function commandReferencesScript(command, scriptPath) {
   return new RegExp(`(?:^|[\\s"'=/])${escaped}(?=$|[\\s"'\`;|&])`).test(command);
 }
 
-async function auditHooks(root, path, label, errors) {
+function auditClaudePermissions(config, errors) {
+  const allow = config?.permissions?.allow;
+  if (!Array.isArray(allow)) {
+    errors.push('Claude permissions must allow documented workflows through corepack pnpm.');
+    return;
+  }
+  if (allow.some((permission) => typeof permission === 'string' && /^Bash\(pnpm\b/.test(permission))) {
+    errors.push('Claude permissions must not retain stale bare pnpm allow entries.');
+  }
+  const missing = requiredClaudePermissions.filter((permission) => !allow.includes(permission));
+  if (missing.length > 0) {
+    errors.push(`Claude permissions must include Corepack workflows: ${missing.join(', ')}.`);
+  }
+}
+
+function auditSessionStart(config, label, errors) {
+  const entries = eventHookEntries(config, 'SessionStart');
+  const expectedCommand = label === 'Claude' ? claudeSessionCommand : codexSessionCommand;
+  const references = [];
+  for (const entry of entries) {
+    for (const hook of Array.isArray(entry?.hooks) ? entry.hooks : []) {
+      if (typeof hook?.command === 'string' && commandReferencesScript(hook.command, 'scripts/session-start-context.mjs')) {
+        references.push({ entry, hook });
+      }
+    }
+  }
+
+  if (references.length !== 1 || references[0].hook.command !== expectedCommand) {
+    if (label === 'Claude') {
+      errors.push(`Claude SessionStart command must be exact and safely quote CLAUDE_PROJECT_DIR: ${claudeSessionCommand}.`);
+    } else {
+      errors.push(`Codex SessionStart command must be exact: ${codexSessionCommand}.`);
+    }
+  }
+  if (label === 'Codex'
+    && (references.length !== 1 || references[0].entry.matcher !== '^(startup|resume|clear|compact)$')) {
+    errors.push('Codex SessionStart matcher must be anchored and include startup, resume, clear, and compact.');
+  }
+}
+
+function auditPostToolUse(config, label, level, errors) {
+  const entries = eventHookEntries(config, 'PostToolUse');
+  const references = [];
+  for (const entry of entries) {
+    for (const hook of Array.isArray(entry?.hooks) ? entry.hooks : []) {
+      if (typeof hook?.command === 'string' && commandReferencesScript(hook.command, 'scripts/agent/write-guard.mjs')) {
+        references.push({ entry, hook });
+      }
+    }
+  }
+
+  if (level < 2) {
+    if (references.length > 0) {
+      errors.push(`${label} level ${level} requires the common PostToolUse scripts/agent/write-guard.mjs guard to be absent.`);
+    }
+    return;
+  }
+
+  const expected = canonicalPostToolUse[label];
+  const canonical = references.filter(({ entry, hook }) => (
+    entry.matcher === expected.matcher
+    && hook.type === 'command'
+    && hook.command === expected.command
+    && hook.timeout === 10
+  ));
+  if (references.length !== 1 || canonical.length !== 1) {
+    errors.push(`${label} canonical PostToolUse must contain exactly one scripts/agent/write-guard.mjs guard at level ${level}.`);
+  }
+}
+
+async function auditHooks(root, path, label, level, errors) {
   const content = await readText(root, path, errors);
   if (content === null) return;
 
@@ -96,16 +181,27 @@ async function auditHooks(root, path, label, errors) {
     return;
   }
 
-  const requiredHooks = [
-    { event: 'SessionStart', script: 'scripts/session-start-context.mjs' },
-    { event: 'PostToolUse', script: 'scripts/agent/write-guard.mjs' },
-  ];
-  for (const { event, script } of requiredHooks) {
-    const commands = eventHookCommands(config, event);
-    if (!commands.some((command) => commandReferencesScript(command, script))) {
-      errors.push(`${label} ${event} hooks must reference ${script}.`);
-    }
+  auditSessionStart(config, label, errors);
+  if (Number.isInteger(level)) auditPostToolUse(config, label, level, errors);
+  if (label === 'Claude') auditClaudePermissions(config, errors);
+}
+
+async function auditHarness(root, errors) {
+  let value;
+  try {
+    value = JSON.parse(await readFile(join(root, 'agent-config/harness.json'), 'utf8'));
+  } catch (error) {
+    errors.push(`Harness manifest agent-config/harness.json must be valid JSON with strict version and level fields: ${error.message}`);
+    return null;
   }
+
+  const keys = value && typeof value === 'object' && !Array.isArray(value) ? Object.keys(value).sort() : [];
+  if (keys.length !== 2 || keys[0] !== 'level' || keys[1] !== 'version'
+    || value.version !== 1 || !Number.isInteger(value.level) || value.level < 0 || value.level > 3) {
+    errors.push('Harness manifest agent-config/harness.json must be exactly { "version": 1, "level": 0..3 }.');
+    return null;
+  }
+  return value.level;
 }
 
 async function auditSharedSkills(root, errors) {
@@ -207,7 +303,24 @@ function hasExactly(values, expected) {
     && expected.every((value) => values.includes(value));
 }
 
-async function auditConductor(root, errors) {
+async function auditWorkflow(root, path, errors) {
+  let content;
+  try {
+    content = await readFile(join(root, path), 'utf8');
+  } catch (error) {
+    errors.push(`${path} is required at harness level 2 or 3: ${error.message}`);
+    return;
+  }
+  const lines = content.split(/\r?\n/).map((line) => line.trim());
+  if (!lines.includes('run: corepack pnpm kb:check')) {
+    errors.push(`${path} must call corepack pnpm kb:check.`);
+  }
+  if (!lines.includes('run: node --test scripts/agent/test-corepack-bootstrap.mjs')) {
+    errors.push(`${path} must run test-corepack-bootstrap.mjs as a separate non-recursive step.`);
+  }
+}
+
+async function auditConductor(root, level, errors) {
   let settings;
   try {
     settings = await readFile(join(root, '.conductor/settings.toml'), 'utf8');
@@ -261,6 +374,10 @@ async function auditConductor(root, errors) {
       if (packageJson?.scripts?.[script] !== command) {
         if (script === 'setup') {
           errors.push(`Root setup must use exactly four frozen-lockfile installs through corepack pnpm: ${rootSetup}.`);
+        } else if (script === 'agent:test') {
+          errors.push(`Root agent:test must list the four explicit non-recursive tests and exclude test-corepack-bootstrap.mjs: ${agentTest}.`);
+        } else if (script === 'kb:check') {
+          errors.push(`Root kb:check must include agent:test, agent:check, and viewer:test without bootstrap recursion: ${kbCheck}.`);
         } else {
           errors.push(`Root ${script} script must run through Corepack without a global pnpm shim: ${command}.`);
         }
@@ -274,8 +391,13 @@ async function auditConductor(root, errors) {
   } catch (error) {
     errors.push(`Cannot read tools/viewer/package.json for Conductor bootstrap: ${error.message}`);
   }
-  if (viewerPackage !== undefined && viewerPackage?.scripts?.dev !== viewerDev) {
-    errors.push(`Viewer dev script must launch both processes through Corepack without a global pnpm shim: ${viewerDev}.`);
+  if (viewerPackage !== undefined) {
+    if (viewerPackage?.scripts?.dev !== viewerDev) {
+      errors.push(`Viewer dev script must launch both processes through Corepack without a global pnpm shim: ${viewerDev}.`);
+    }
+    if (viewerPackage?.scripts?.test !== viewerTest) {
+      errors.push(`Viewer test script must run every top-level viewer test: ${viewerTest}.`);
+    }
   }
 
   let prePush;
@@ -294,12 +416,18 @@ async function auditConductor(root, errors) {
       errors.push('The pre-push hook must run corepack pnpm kb:check without a global pnpm shim.');
     }
   }
+
+  if (level >= 2) {
+    await auditWorkflow(root, '.github/workflows/ci.yml', errors);
+    await auditWorkflow(root, '.github/workflows/kb-ci.yml', errors);
+  }
 }
 
 export async function auditRepository(root) {
   const errors = [];
   const claude = await readText(root, 'CLAUDE.md', errors);
   const agents = await readText(root, 'AGENTS.md', errors);
+  const level = await auditHarness(root, errors);
 
   if (claude !== null) {
     const firstContentLine = withoutHtmlComments(claude)
@@ -317,10 +445,10 @@ export async function auditRepository(root) {
     }
   }
 
-  await auditHooks(root, '.claude/settings.json', 'Claude', errors);
-  await auditHooks(root, '.codex/hooks.json', 'Codex', errors);
+  await auditHooks(root, '.claude/settings.json', 'Claude', level, errors);
+  await auditHooks(root, '.codex/hooks.json', 'Codex', level, errors);
   await auditSharedSkills(root, errors);
-  await auditConductor(root, errors);
+  await auditConductor(root, level, errors);
 
   return { passed: errors.length === 0, errors };
 }

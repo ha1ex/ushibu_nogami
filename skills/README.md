@@ -33,4 +33,4 @@ outputs: какие артефакты создаёт
 2. Опишите процедуру явными шагами — агенты будут следовать им буквально.
 3. Добавьте относительные symlink в `.claude/skills/<name>` и `.agents/skills/<name>`.
 4. Добавьте ссылку на скилл в этот README.
-5. Запустите `pnpm agent:check`, чтобы проверить identity host adapters и canonical файла.
+5. Запустите `corepack pnpm agent:check`, чтобы проверить identity host adapters и canonical файла.

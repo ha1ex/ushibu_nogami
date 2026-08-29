@@ -10,7 +10,7 @@
     "dev": "concurrently -n server,client -c blue,magenta \"corepack pnpm dev:server\" \"corepack pnpm dev:client\"",
     "dev:server": "tsx watch server.ts",
     "dev:client": "vite",
-    "test": "tsx --test ports.test.ts",
+    "test": "tsx --test ./*.test.ts",
     "build": "tsc -b && vite build",
     "preview": "vite preview"
   },

@@ -12,10 +12,11 @@
 `on-device` · `MCP-ready` · `0 cloud` · `любая LLM (Claude/GPT/Gemini/Ollama)` · `MIT`
 
 > **Это не сам шаблон, а развёрнутый из него проект — «Ushibu Nogami».**
-> Демо-корпус (736 карточек: anthropics-skills, claude-cookbooks, cybos-cases, fabric-patterns)
-> и демо-отчёты в `docs/examples/` вычищены через `kb:init --strip-demo`; сохранены
-> `06_outputs/mcp-catalog/` и walkthrough-пример в слоях `00→05`. Ниже — документация оснастки:
-> она описывает инструменты, а не содержимое этой KB. Апстрим: `ha1ex/ai-kb-harness-template`.
+> Текущий корпус — скаутинг CS2 для команды «Ушибу ногами»: снимок статистики пяти составов,
+> контекст ростера и расписания, профили соперников, стратегия вето и планы на четыре матча.
+> Демо-библиотеки и walkthrough удалены; сохранён внешний каталог `06_outputs/mcp-catalog/`.
+> Ниже — документация оснастки, а карта содержимого этой KB находится в [`index.md`](index.md).
+> Апстрим: `ha1ex/ai-kb-harness-template`.
 
 ---
 
@@ -132,8 +133,9 @@ corepack pnpm kb:check         # единый deterministic gate (должен �
   [`AGENTS.md`](AGENTS.md), ручки формы ответа — в [`.remember/preferences.md`](.remember/preferences.md).
 - **Локальный гейт до CI:** `git config core.hooksPath scripts/git-hooks` — pre-push прогонит тот же
   `corepack pnpm kb:check`, что и CI (закрывает запись в слои мимо хуков агента).
-- **Живой пример дисциплины:** сквозной walkthrough «пилот AI-ассистента поддержки» в слоях
-  `00_context → 05_decisions` (см. [`index.md`](index.md)); удаляется `kb:init --strip-demo`.
+- **Живой корпус:** CS2-снимок `stats.whoajor.com` развёрнут от source summary до профилей карт,
+  стратегии вето и планов на матчи (см. [`index.md`](index.md)); командные агрегаты при этом остаются
+  проекцией индивидуальной статистики, а не измерением сыгранности пятёрки.
 - **MCP-конфигурация:** `.mcp.json` и `.codex/config.toml` сгенерированы из
   `agent-config/mcp-servers.json`; править generated-файлы вручную не нужно.
 - **Веб-витрина для коллег:** `corepack pnpm viewer:dev` → `http://localhost:5173` (см. [ниже](#веб-витрина-для-коллег)).
@@ -178,7 +180,16 @@ Project MCP и hooks запускают код из репозитория, по
 | **L2 — + гейты** | Общие PostToolUse-хуки Claude/Codex, `verify`-гейт цитат (traversal, coverage), provenance, CI, pre-push | + `.claude/settings.json`, `.codex/hooks.json`, `.github/workflows/` | проекты, где цена выдумки высока |
 | **L3 — + петли** | `kb-critic --execute`, `dream-cycle`, SkillOpt, answer-cards | + `claude` CLI (или другая LLM для SkillOpt) | ведение KB как живой системы |
 
-`corepack pnpm kb:init --level N` включает нужный уровень (L0/L1 снимает хуки и CI-workflows).
+`corepack pnpm kb:init --level N` сохраняет выбранный уровень в строгом manifest
+`agent-config/harness.json`. L0/L1 снимает общий PostToolUse guard у обоих host adapters и
+CI-workflows, но сохраняет SessionStart и посторонние hooks. L2/L3 восстанавливает по одному
+каноническому guard без дублей. Если CI-файлы уже были удалены снижением уровня, перед возвратом
+на L2/L3 восстановите их из Git: repository audit снова потребует оба workflow.
+
+Постоянная граница качества не зависит от интерактивного клиента: `agent:test` явно запускает
+config/write-guard/repository/kb-init тесты, `viewer:test` — все viewer-тесты, а `kb:check` объединяет
+оба набора с `agent:check` и KB-гейтами. Рекурсивный Corepack bootstrap-тест намеренно не входит в
+`agent:test`/`kb:check`: оба CI workflow запускают его отдельным шагом.
 
 ## Ключевые концепции (от общего к частному)
 
@@ -344,7 +355,7 @@ corepack pnpm skill diff <run-id> && corepack pnpm skill apply <run-id>   # huma
 ai-kb-harness-template/
 ├── AGENTS.md                  ← единый нормативный контракт всех агентов
 ├── CLAUDE.md                  ← тонкий Claude adapter, импортирует AGENTS.md
-├── agent-config/              ← канонический manifest MCP-серверов
+├── agent-config/              ← MCP manifest + harness.json с выбранным level 0..3
 ├── .mcp.json · .codex/        ← generated MCP adapters + Codex hooks
 ├── .claude/settings.json      ← Claude permissions + lifecycle hooks
 ├── .remember/
@@ -399,7 +410,7 @@ open-questions/contradictions · дашборд SkillOpt. Для коллег: `
 ## Параметризация под свой проект
 
 **Начни с `corepack pnpm kb:init`** — он вписывает цель проекта в `AGENTS.md`/`.remember/core.md`
-(они подмешиваются в системный промпт агента), по желанию вычищает демо-корпус и walkthrough,
+(они подмешиваются в системный промпт агента), по желанию вычищает оставшиеся демо-артефакты,
 и включает нужный уровень оснастки (`--level 0..3`). Остальное — руками:
 
 | Файл | Что менять |
@@ -410,6 +421,7 @@ open-questions/contradictions · дашборд SkillOpt. Для коллег: `
 | `.remember/core.md` · `preferences.md` | Инвариант проекта и форма ответа |
 | `scripts/semantic/probes.local.mjs` | Свои eval-пробы (создать; см. `probes.mjs`) |
 | `agent-config/mcp-servers.json` | MCP manifest (`command`, `args`, `description`); после изменения запустить `corepack pnpm agent:sync` |
+| `agent-config/harness.json` | Текущее состояние уровня оснастки; обновляется через `corepack pnpm kb:init --level N` |
 | `LICENSE` | Copyright holder |
 
 **Не нужно** править ядро (`scripts/semantic/`, `scripts/lib/`) — оно template-owned и обновляется

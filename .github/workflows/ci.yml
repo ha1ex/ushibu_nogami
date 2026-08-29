@@ -38,3 +38,6 @@ jobs:
 
       - name: Run deterministic quality gate
         run: corepack pnpm kb:check
+
+      - name: Verify Corepack bootstrap without recursion
+        run: node --test scripts/agent/test-corepack-bootstrap.mjs

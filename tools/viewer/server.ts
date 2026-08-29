@@ -17,6 +17,7 @@ import { extname, join, resolve, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import matter from "gray-matter";
+import { resolveSafeMarkdownPath } from "./path-security.js";
 import { resolveViewerPorts } from "./ports.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -117,17 +118,16 @@ async function handleTree(): Promise<unknown> {
 }
 
 async function handleDoc(relPath: string): Promise<unknown | null> {
-  // Безопасность: отдаём ТОЛЬКО .md строго внутри REPO_ROOT.
-  // resolve() нормализует "..", relative() ловит выход за корень; dot-сегменты
-  // (.git/.claude/.remember/.context) запрещены полностью.
-  const safe = relPath.replace(/^\/+/, "");
-  if (extname(safe) !== ".md") return null;
-  const abs = resolve(REPO_ROOT, safe);
-  const rel = relative(REPO_ROOT, abs);
-  if (rel === "" || rel.startsWith("..") || rel.startsWith("/")) return null;
-  if (rel.split("/").some((seg) => seg.startsWith("."))) return null;
-  if (!existsSync(abs)) return null;
-  const raw = await readFile(abs, "utf8");
+  const safe = await resolveSafeMarkdownPath(REPO_ROOT, relPath);
+  if (!safe) return null;
+  const { relativePath: rel, resolvedPath } = safe;
+  let raw: string;
+  try {
+    raw = await readFile(resolvedPath, "utf8");
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") return null;
+    throw error;
+  }
   const { data, content } = matter(raw);
   const layerMatch = rel.match(/^([^/]+)\//);
   const layer = layerMatch ? layerMatch[1] : "";

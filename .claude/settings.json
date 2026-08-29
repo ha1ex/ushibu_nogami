@@ -7,9 +7,11 @@
       "Grep",
       "Glob",
       "WebFetch",
-      "Bash(pnpm install:*)",
-      "Bash(pnpm run setup:*)",
-      "Bash(pnpm kb:*)",
+      "Bash(corepack pnpm run setup:*)",
+      "Bash(corepack pnpm kb:*)",
+      "Bash(corepack pnpm agent:*)",
+      "Bash(corepack pnpm viewer:*)",
+      "Bash(corepack pnpm skill:*)",
       "Bash(node scripts/kb-doctor.mjs:*)",
       "Bash(node scripts/semantic/search.mjs:*)",
       "Bash(node scripts/semantic/think.mjs:*)",
@@ -61,7 +63,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node $CLAUDE_PROJECT_DIR/scripts/session-start-context.mjs",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/session-start-context.mjs\"",
             "timeout": 10
           }
         ]

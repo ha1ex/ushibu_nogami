@@ -46,7 +46,7 @@ export default {
   },
 
   frontmatter: {
-    // Слой → обязательные поля frontmatter (PreToolUse-хук check-md-frontmatter).
+    // Слой → обязательные поля frontmatter (общий PostToolUse guard вызывает check-md-frontmatter).
     rules: {
       '02_sources': ['type'],
       '03_wiki': ['type'],

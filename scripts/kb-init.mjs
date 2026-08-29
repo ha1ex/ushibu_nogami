@@ -4,13 +4,13 @@
 // Делает за пользователя ручную таблицу «Параметризация под свой проект» из README:
 //   1. Вписывает цель проекта в AGENTS.md § Project purpose и .remember/core.md § Цель проекта —
 //      эти файлы подмешиваются в СИСТЕМНЫЙ ПРОМПТ агента (think.mjs / mcp-server.mjs);
-//      без init каждый форк работает с целью демо-проекта («736 карточек»).
+//      без init каждый форк сохраняет цель исходного проекта.
 //   2. --strip-demo: удаляет демо-корпус (4 библиотеки навыков + _skills-index.md) и отчёты
 //      docs/examples/*; walkthrough-пример удаляется тоже, если не указан --keep-walkthrough.
 //      mcp-catalog СОХРАНЯЕТСЯ (курируемый каталог MCP полезен любому проекту).
 //   3. --level 0..3: уровень принятия оснастки (см. README § Уровни принятия):
-//      L0/L1 — только поиск/MCP: выключает PreToolUse-хуки и снимает CI-workflows;
-//      L2/L3 — дисциплина+гейты: оставляет hooks и CI как есть (дефолт: 2).
+//      L0/L1 — только поиск/MCP: выключает общий PostToolUse guard и снимает CI-workflows;
+//      L2/L3 — дисциплина+гейты: включает общий PostToolUse guard (дефолт: 2).
 //   4. Пишет строку в log.md, чистит walkthrough-блок из index.md при удалении примера.
 //
 // Использование:
@@ -18,9 +18,9 @@
 //   node scripts/kb-init.mjs --name "Аудит ниши X" --purpose "…" --strip-demo --level 2
 //   флаги: --name S  --purpose S  --strip-demo | --keep-demo  --keep-walkthrough  --level N  --yes
 //
-// После init: pnpm kb:index && pnpm kb:eval --update-baseline (состав проб изменился).
+// После init: corepack pnpm kb:index && corepack pnpm kb:eval --update-baseline.
 
-import { existsSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline/promises';
@@ -39,7 +39,14 @@ for (let i = 0; i < argv.length; i++) {
   else if (a === '--strip-demo') flags.stripDemo = true;
   else if (a === '--keep-demo') flags.stripDemo = false;
   else if (a === '--keep-walkthrough') flags.keepWalkthrough = true;
-  else if (a === '--level') flags.level = Math.max(0, Math.min(3, parseInt(argv[++i], 10) || 2));
+  else if (a === '--level') {
+    const value = argv[++i];
+    if (!/^[0-3]$/.test(value ?? '')) {
+      console.error('kb-init: --level должен быть целым числом от 0 до 3.');
+      process.exit(2);
+    }
+    flags.level = Number(value);
+  }
   else if (a === '--yes' || a === '-y') flags.yes = true;
   else if (a === '--help' || a === '-h') {
     console.log('kb-init: параметризация клона. Флаги: --name S --purpose S --strip-demo|--keep-demo --keep-walkthrough --level 0..3 --yes');
@@ -144,25 +151,92 @@ if (flags.stripDemo) {
 
 // ---------- 3. уровень принятия ----------
 
-if (flags.level < 2) {
-  // L0/L1: только поиск/MCP — без хуков и CI-гейтов.
-  const settingsPath = p('.claude', 'settings.json');
-  if (existsSync(settingsPath)) {
-    try {
-      const settings = JSON.parse(readFileSync(settingsPath, 'utf8'));
-      if (settings.hooks && settings.hooks.PreToolUse) {
-        delete settings.hooks.PreToolUse;
-        writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
-        summaryOps.push('.claude/settings.json — PreToolUse-хуки сняты (L' + flags.level + ')');
-      }
-    } catch (e) {
-      console.error(`⚠ .claude/settings.json не разобран (${e.message}) — снимите хуки вручную.`);
-    }
+const COMMON_GUARD_SCRIPT = 'scripts/agent/write-guard.mjs';
+const canonicalPostToolUse = {
+  claude: {
+    matcher: 'Write|Edit|MultiEdit',
+    hooks: [{
+      type: 'command',
+      command: 'node "$CLAUDE_PROJECT_DIR/scripts/agent/write-guard.mjs"',
+      timeout: 10,
+    }],
+  },
+  codex: {
+    matcher: 'apply_patch|Edit|Write',
+    hooks: [{
+      type: 'command',
+      command: 'node "$(git rev-parse --show-toplevel)/scripts/agent/write-guard.mjs"',
+      timeout: 10,
+    }],
+  },
+};
+
+function isCommonGuard(hook) {
+  return hook && typeof hook.command === 'string' && hook.command.includes(COMMON_GUARD_SCRIPT);
+}
+
+function withoutCommonGuard(entries) {
+  if (!Array.isArray(entries)) return [];
+  return entries.flatMap((entry) => {
+    if (!entry || !Array.isArray(entry.hooks)) return [entry];
+    const hooks = entry.hooks.filter((hook) => !isCommonGuard(hook));
+    return hooks.length > 0 ? [{ ...entry, hooks }] : [];
+  });
+}
+
+function configurePostToolUse(path, label, canonical, enabled) {
+  if (!existsSync(path)) {
+    console.error(`⚠ ${label} не найден — настройте PostToolUse вручную.`);
+    return;
   }
+  try {
+    const config = JSON.parse(readFileSync(path, 'utf8'));
+    if (!config.hooks || typeof config.hooks !== 'object' || Array.isArray(config.hooks)) config.hooks = {};
+    const remaining = withoutCommonGuard(config.hooks.PostToolUse);
+    if (enabled) remaining.push(canonical);
+    if (remaining.length > 0) config.hooks.PostToolUse = remaining;
+    else delete config.hooks.PostToolUse;
+    writeFileSync(path, JSON.stringify(config, null, 2) + '\n');
+    summaryOps.push(`${label} — общий PostToolUse guard ${enabled ? 'включён' : 'снят'} (L${flags.level})`);
+  } catch (error) {
+    console.error(`⚠ ${label} не разобран (${error.message}) — настройте PostToolUse вручную.`);
+  }
+}
+
+configurePostToolUse(
+  p('.claude', 'settings.json'),
+  '.claude/settings.json',
+  canonicalPostToolUse.claude,
+  flags.level >= 2,
+);
+configurePostToolUse(
+  p('.codex', 'hooks.json'),
+  '.codex/hooks.json',
+  canonicalPostToolUse.codex,
+  flags.level >= 2,
+);
+
+if (flags.level < 2) {
+  // L0/L1: только поиск/MCP — без общего guard и CI-гейтов.
   for (const wf of ['.github/workflows/kb-ci.yml', '.github/workflows/ci.yml']) {
     if (rmIfExists(wf)) summaryOps.push(`${wf} — снят (L${flags.level})`);
   }
 }
+
+const harness = { version: 1, level: flags.level };
+if (harness.version !== 1 || !Number.isInteger(harness.level) || harness.level < 0 || harness.level > 3) {
+  throw new Error('internal error: invalid harness manifest');
+}
+const harnessPath = p('agent-config', 'harness.json');
+const harnessTemp = `${harnessPath}.tmp-${process.pid}-${Date.now()}`;
+try {
+  writeFileSync(harnessTemp, JSON.stringify(harness, null, 2) + '\n');
+  renameSync(harnessTemp, harnessPath);
+} catch (error) {
+  rmSync(harnessTemp, { force: true });
+  throw error;
+}
+summaryOps.push(`agent-config/harness.json — сохранён level=${flags.level}`);
 
 // ---------- 4. log.md ----------
 
@@ -181,7 +255,7 @@ console.log('\nkb-init: готово.');
 for (const s of summaryOps) console.log(`  • ${s}`);
 console.log(`
 Дальше:
-  1. pnpm kb:index                          # пересобрать индекс под новый состав
-  2. pnpm kb:eval --update-baseline         # переснять baseline (состав проб изменился)
+  1. corepack pnpm kb:index                 # пересобрать индекс под новый состав
+  2. corepack pnpm kb:eval --update-baseline # переснять baseline (состав проб изменился)
   3. Проверить AGENTS.md / .remember/core.md / .remember/preferences.md руками.
 ${flags.level >= 2 ? '  4. git config core.hooksPath scripts/git-hooks   # локальный pre-push гейт цитат' : ''}`);
