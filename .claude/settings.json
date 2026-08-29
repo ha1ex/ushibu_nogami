@@ -67,23 +67,13 @@
         ]
       }
     ],
-    "PreToolUse": [
+    "PostToolUse": [
       {
         "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "node $CLAUDE_PROJECT_DIR/scripts/check-decisions.mjs",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node $CLAUDE_PROJECT_DIR/scripts/check-md-frontmatter.mjs",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node $CLAUDE_PROJECT_DIR/scripts/check-provenance.mjs",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/agent/write-guard.mjs\"",
             "timeout": 10
           }
         ]
