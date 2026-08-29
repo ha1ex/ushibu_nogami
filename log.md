@@ -39,3 +39,7 @@
 - harness (Control) | A1–A4: закрыты обходы контура доверия — path-traversal в цитатах, claim-coverage (FACT/DECISION без цитаты = гейт), регистронезависимый `[source:]`, adversarial-сьют `test-gate.mjs` в CI, наблюдаемый fail-open хуков, git pre-push гейт.
 - 00_context…05_decisions | walkthrough-пример «пилот AI-ассистента поддержки»: сквозная цепочка raw → summary → wiki → synthesis → decision с метками/цитатами; удаляется `kb:init --strip-demo`.
 - 04_synthesis/_answers | закоммичен каркас для verified answer-cards (`kb_promote`, N2).
+
+## 2026-08-29
+
+- (init) kb:init: проект «Ushibu Nogami — личная база знаний», демо вычищено, level=2.

@@ -39,9 +39,7 @@
 ## Outputs
 
 - [Финальные артефакты](./06_outputs/)
-- [Каталог навыков — external corpus, 736 карточек](./06_outputs/_skills-index.md)
 - [Каталог базовых MCP — 12 серверов](./06_outputs/mcp-catalog/_index.md)
-- [Отчёты на демо-корпусе (аудит/eval/dedup/качество поиска)](./docs/examples/README.md)
 - [CHANGELOG](./CHANGELOG.md)
 
 ---

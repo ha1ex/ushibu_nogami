@@ -11,6 +11,12 @@
 
 `on-device` · `MCP-ready` · `0 cloud` · `любая LLM (Claude/GPT/Gemini/Ollama)` · `MIT`
 
+> **Это не сам шаблон, а развёрнутый из него проект — «Ushibu Nogami».**
+> Демо-корпус (736 карточек: anthropics-skills, claude-cookbooks, cybos-cases, fabric-patterns)
+> и демо-отчёты в `docs/examples/` вычищены через `kb:init --strip-demo`; сохранены
+> `06_outputs/mcp-catalog/` и walkthrough-пример в слоях `00→05`. Ниже — документация оснастки:
+> она описывает инструменты, а не содержимое этой KB. Апстрим: `ha1ex/ai-kb-harness-template`.
+
 ---
 
 ## Содержание
