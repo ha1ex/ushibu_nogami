@@ -1,6 +1,6 @@
 # Cross-model parity для Claude Code и Codex
 
-Статус: review  
+Статус: review
 Дата: 2026-08-29
 
 ## Цель

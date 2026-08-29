@@ -95,7 +95,7 @@ test('check mode reports adapter drift without overwriting it', async () => {
 
 - [ ] **Step 2: Run RED**
 
-Run: `node --test scripts/agent/test-config.mjs`  
+Run: `node --test scripts/agent/test-config.mjs`
 Expected: FAIL with `ERR_MODULE_NOT_FOUND` for `scripts/agent/config.mjs`.
 
 - [ ] **Step 3: Implement the manifest library and CLI**
@@ -169,7 +169,7 @@ Add an integration test that creates an invalid `05_decisions/x.md`, calls `vali
 
 - [ ] **Step 2: Run RED**
 
-Run: `node --test scripts/agent/test-write-guard.mjs`  
+Run: `node --test scripts/agent/test-write-guard.mjs`
 Expected: FAIL because `write-guard-lib.mjs` does not exist.
 
 - [ ] **Step 3: Implement normalization and validation**
@@ -186,7 +186,7 @@ Aggregate exit-2 diagnostics. Malformed event JSON is fail-open and journaled. C
 
 - [ ] **Step 4: Run GREEN**
 
-Run: `node --test scripts/agent/test-write-guard.mjs`  
+Run: `node --test scripts/agent/test-write-guard.mjs`
 Expected: all tests PASS, output pristine.
 
 - [ ] **Step 5: Configure both clients**
@@ -266,7 +266,7 @@ directories so the audit exercises real adapters rather than mocks.
 
 - [ ] **Step 2: Run RED**
 
-Run: `node --test scripts/agent/test-repository-check.mjs`  
+Run: `node --test scripts/agent/test-repository-check.mjs`
 Expected: FAIL because `repository-check.mjs` is missing.
 
 - [ ] **Step 3: Implement repository audit**
@@ -365,7 +365,7 @@ corepack pnpm -C tools/viewer install --frozen-lockfile
 
 - [ ] **Step 2: Run RED**
 
-Run: `pnpm -C tools/viewer exec tsx --test ports.test.ts`  
+Run: `pnpm -C tools/viewer exec tsx --test ports.test.ts`
 Expected: FAIL because `ports.ts` is missing.
 
 - [ ] **Step 3: Implement port resolver and wire both processes**
