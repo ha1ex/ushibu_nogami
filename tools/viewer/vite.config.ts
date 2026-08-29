@@ -2,9 +2,9 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "node:path";
+import { resolveViewerPorts } from "./ports.js";
 
-const clientPort = Number(process.env.VITE_PORT) || 5173;
-const apiPort = Number(process.env.VIEWER_PORT) || 3001;
+const { apiPort, clientPort } = resolveViewerPorts(process.env);
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],

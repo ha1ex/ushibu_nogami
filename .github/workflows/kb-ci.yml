@@ -26,9 +26,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Enable corepack (pnpm)
-        run: corepack enable
-
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -43,24 +40,12 @@ jobs:
           path: scripts/semantic/.transformers-cache
           key: transformers-cache-e5-small-v1
 
-      - name: Install semantic deps
-        run: pnpm -C scripts/semantic install
+      - name: Install frozen dependencies
+        run: corepack pnpm run setup
 
-      # Офлайн-юнит-тесты graph/temporal каналов (без модели и сети) — быстрый ранний гейт.
-      # Корпус без related:/date не упражняет эти каналы, поэтому логика проверяется на фикстурах.
-      - name: Retrieval channel unit tests (graph + temporal, offline)
-        run: node scripts/semantic/test-retrieval.mjs
-
-      # Control-логика (N1 critique + N4 provenance + маскирование примеров) — чистые функции,
-      # без модели/БД. Ранний детерминированный гейт.
-      - name: Control unit tests (verify critique + provenance, offline)
-        run: node scripts/semantic/test-control.mjs
-
-      # Adversarial-сьют контура доверия (A3): известные векторы обхода гейта
-      # (path-traversal, регистр цитат, uncited FACT/DECISION, unclosed fence, external-corpus)
-      # обязаны фейлиться. Рефакторинг verify/provenance, тихо открывший дыру, = красный билд.
-      - name: Gate adversarial tests (verify/provenance red-team, offline)
-        run: node scripts/semantic/test-gate.mjs
+      # Единый offline-гейт: agent parity, retrieval/control/red-team fixtures, doctor и provenance.
+      - name: Run deterministic quality gate
+        run: corepack pnpm kb:check
         env:
           KB_JOURNAL: '0'
 
@@ -87,15 +72,6 @@ jobs:
         with:
           path: scripts/semantic/.transformers-cache
           key: transformers-cache-e5-small-v1
-
-      - name: KB doctor (EXIT 0 contract)
-        run: node scripts/kb-doctor.mjs
-
-      # Цитатный + provenance-гейт (N3/N4): детерминированный Tier-1 (--no-semantic, без модели)
-      # по слоям, несущим цитаты. Живые [source:/path] обязаны разрешаться; synthesis/decisions —
-      # цитировать только более низкий слой пирамиды. Примеры в комментариях/коде игнорируются.
-      - name: Citation + provenance gate (verify --scan, deterministic Tier-1)
-        run: node scripts/semantic/verify.mjs --scan --provenance --no-semantic
 
       - name: Retrieval eval (gate on overall recall@k / MRR regression vs baseline)
         run: node scripts/semantic/eval.mjs

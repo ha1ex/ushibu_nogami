@@ -9,6 +9,25 @@ import { discoverEvals, listSkillsWithEvals, readSkillFile } from '../skillopt/e
 
 const sharedSkills = ['kb-ingest', 'decision-log', 'interviewer-agent'];
 const fixtureRoots = [];
+const validConductorSettings = `"$schema" = "https://conductor.build/schemas/settings.repo.schema.json"
+
+[scripts]
+setup = "corepack pnpm run setup && corepack pnpm kb:index && git config core.hooksPath scripts/git-hooks"
+run_mode = "concurrent"
+
+[scripts.run.viewer]
+available_in = ["local"]
+command = "VIEWER_PORT=$CONDUCTOR_PORT VITE_PORT=$((CONDUCTOR_PORT + 1)) corepack pnpm viewer:dev"
+
+[scripts.run.check]
+available_in = ["local", "cloud"]
+command = "corepack pnpm kb:check"
+`;
+const validRootPackage = {
+  scripts: {
+    setup: 'corepack pnpm -C scripts/semantic install --frozen-lockfile && corepack pnpm -C scripts/skillopt install --frozen-lockfile && corepack pnpm -C tools/viewer install --frozen-lockfile && corepack pnpm -C scripts/whoajor install --frozen-lockfile',
+  },
+};
 
 test.after(async () => {
   await Promise.all(fixtureRoots.map((root) => rm(root, { recursive: true, force: true })));
@@ -41,6 +60,8 @@ async function makeFixture({
   claudeSettings,
   codexHooks,
   linkSkills = true,
+  conductorSettings = validConductorSettings,
+  rootPackage = validRootPackage,
 } = {}) {
   const root = await mkdtemp(join(tmpdir(), 'repository-check-'));
   fixtureRoots.push(root);
@@ -58,9 +79,52 @@ async function makeFixture({
       PostToolUse: [{ hooks: [{ command: 'node scripts/agent/write-guard.mjs' }] }],
     },
   }));
+  if (conductorSettings !== null) {
+    await write(root, '.conductor/settings.toml', conductorSettings);
+  }
+  await write(root, 'package.json', JSON.stringify(rootPackage));
   if (linkSkills) await linkSharedSkills(root);
   return root;
 }
+
+test('rejects missing shared Conductor settings with an actionable error', async () => {
+  const root = await makeFixture({ conductorSettings: null });
+
+  const result = await auditRepository(root);
+
+  assert.equal(result.passed, false);
+  assert.match(result.errors.join('\n'), /shared Conductor settings are missing.*\.conductor\/settings\.toml/i);
+});
+
+test('rejects an invalid Conductor bootstrap and run contract', async () => {
+  const root = await makeFixture({
+    conductorSettings: `"$schema" = "https://example.com/wrong-schema.json"
+[scripts]
+setup = "pnpm install"
+run_mode = "nonconcurrent"
+[scripts.run.viewer]
+available_in = ["cloud"]
+command = "pnpm viewer:dev"
+[scripts.run.check]
+available_in = ["local"]
+command = "pnpm test"
+`,
+    rootPackage: { scripts: { setup: 'pnpm install' } },
+  });
+
+  const result = await auditRepository(root);
+  const errors = result.errors.join('\n');
+
+  assert.equal(result.passed, false);
+  assert.match(errors, /repository settings schema/i);
+  assert.match(errors, /Conductor setup.*corepack pnpm run setup.*kb:index.*hooksPath/i);
+  assert.match(errors, /root setup.*four frozen-lockfile installs/i);
+  assert.match(errors, /run_mode.*concurrent/i);
+  assert.match(errors, /viewer.*available_in.*local/i);
+  assert.match(errors, /viewer.*CONDUCTOR_PORT.*VITE_PORT/i);
+  assert.match(errors, /check.*available_in.*local.*cloud/i);
+  assert.match(errors, /check.*corepack pnpm kb:check/i);
+});
 
 test('rejects split instructions and divergent shared skills', async () => {
   const root = await makeFixture({

@@ -8,7 +8,7 @@
     "node": ">=20 <23"
   },
   "scripts": {
-    "setup": "pnpm -C scripts/semantic install && pnpm -C scripts/skillopt install && pnpm -C tools/viewer install && pnpm -C scripts/whoajor install",
+    "setup": "corepack pnpm -C scripts/semantic install --frozen-lockfile && corepack pnpm -C scripts/skillopt install --frozen-lockfile && corepack pnpm -C tools/viewer install --frozen-lockfile && corepack pnpm -C scripts/whoajor install --frozen-lockfile",
     "skill": "node scripts/skillopt/cli.mjs",
     "kb:index": "node scripts/semantic/index.mjs",
     "kb:search": "node scripts/semantic/search.mjs",
@@ -19,6 +19,7 @@
     "kb:critic": "node scripts/kb-critic.mjs",
     "kb:dream": "node scripts/dream-cycle.mjs",
     "viewer:dev": "cd tools/viewer && pnpm dev",
+    "viewer:test": "pnpm -C tools/viewer exec tsx --test ports.test.ts",
     "viewer:build": "cd tools/viewer && pnpm build",
     "kb:init": "node scripts/kb-init.mjs",
     "kb:update": "node scripts/kb-update.mjs",
@@ -30,6 +31,7 @@
     "whoajor:build-db": "node scripts/whoajor/normalize.mjs",
     "whoajor:sync": "node scripts/whoajor/sync.mjs",
     "agent:sync": "node scripts/agent/sync-config.mjs --write",
-    "agent:check": "node scripts/agent/sync-config.mjs --check"
+    "agent:check": "node scripts/agent/sync-config.mjs --check",
+    "kb:check": "pnpm agent:check && node scripts/semantic/test-retrieval.mjs && node scripts/semantic/test-control.mjs && node scripts/semantic/test-gate.mjs && node scripts/kb-doctor.mjs && node scripts/semantic/verify.mjs --scan --provenance --no-semantic"
   }
 }

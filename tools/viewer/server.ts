@@ -17,10 +17,11 @@ import { extname, join, resolve, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import matter from "gray-matter";
+import { resolveViewerPorts } from "./ports.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(process.env.REPO_ROOT || join(__dirname, "..", ".."));
-const PORT = Number(process.env.VIEWER_PORT) || 3001;
+const PORT = resolveViewerPorts(process.env).apiPort;
 // Безопасность: по умолчанию слушаем только loopback. Для доступа из сети
 // явно задайте VIEWER_HOST=0.0.0.0 (на свой риск — API читает файлы и спавнит node).
 const HOST = process.env.VIEWER_HOST || "127.0.0.1";

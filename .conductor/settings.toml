@@ -1,0 +1,16 @@
+"$schema" = "https://conductor.build/schemas/settings.repo.schema.json"
+
+[scripts]
+setup = "corepack pnpm run setup && corepack pnpm kb:index && git config core.hooksPath scripts/git-hooks"
+run_mode = "concurrent"
+
+[scripts.run.viewer]
+available_in = ["local"]
+command = "VIEWER_PORT=$CONDUCTOR_PORT VITE_PORT=$((CONDUCTOR_PORT + 1)) corepack pnpm viewer:dev"
+default = true
+icon = "play"
+
+[scripts.run.check]
+available_in = ["local", "cloud"]
+command = "corepack pnpm kb:check"
+icon = "test-tube"

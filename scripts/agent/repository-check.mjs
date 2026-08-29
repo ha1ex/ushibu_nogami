@@ -6,6 +6,10 @@ const hostAdapters = [
   { label: 'Claude', root: '.claude' },
   { label: 'Codex', root: '.agents' },
 ];
+const conductorSchema = 'https://conductor.build/schemas/settings.repo.schema.json';
+const conductorSetup = 'corepack pnpm run setup && corepack pnpm kb:index && git config core.hooksPath scripts/git-hooks';
+const rootSetup = 'corepack pnpm -C scripts/semantic install --frozen-lockfile && corepack pnpm -C scripts/skillopt install --frozen-lockfile && corepack pnpm -C tools/viewer install --frozen-lockfile && corepack pnpm -C scripts/whoajor install --frozen-lockfile';
+const viewerCommand = 'VIEWER_PORT=$CONDUCTOR_PORT VITE_PORT=$((CONDUCTOR_PORT + 1)) corepack pnpm viewer:dev';
 
 function withoutHtmlComments(content) {
   return content.replace(/<!--[\s\S]*?-->/g, '');
@@ -109,6 +113,83 @@ async function auditSharedSkills(root, errors) {
   }
 }
 
+function parseTomlContract(content) {
+  const values = new Map();
+  let section = '';
+
+  for (const line of content.split('\n')) {
+    const sectionMatch = line.match(/^\s*\[([^\]]+)]\s*(?:#.*)?$/);
+    if (sectionMatch) {
+      section = sectionMatch[1];
+      continue;
+    }
+
+    const valueMatch = line.match(/^\s*("[^"]+"|[A-Za-z0-9_-]+)\s*=\s*(.*?)\s*(?:#.*)?$/);
+    if (!valueMatch) continue;
+    const key = valueMatch[1].startsWith('"') ? JSON.parse(valueMatch[1]) : valueMatch[1];
+    const raw = valueMatch[2];
+    let value = raw;
+    try {
+      if (raw.startsWith('"') || raw.startsWith('[')) value = JSON.parse(raw);
+    } catch {
+      // The consumer checks below report the affected value as invalid.
+    }
+    values.set(section ? `${section}.${key}` : key, value);
+  }
+
+  return values;
+}
+
+function hasExactly(values, expected) {
+  return Array.isArray(values)
+    && values.length === expected.length
+    && expected.every((value) => values.includes(value));
+}
+
+async function auditConductor(root, errors) {
+  let settings;
+  try {
+    settings = await readFile(join(root, '.conductor/settings.toml'), 'utf8');
+  } catch {
+    errors.push('Shared Conductor settings are missing: .conductor/settings.toml.');
+  }
+
+  if (settings !== undefined) {
+    const config = parseTomlContract(settings);
+    if (config.get('$schema') !== conductorSchema) {
+      errors.push(`Shared Conductor settings must use the repository settings schema ${conductorSchema}.`);
+    }
+    if (config.get('scripts.setup') !== conductorSetup) {
+      errors.push(`Conductor setup must be exactly: ${conductorSetup}.`);
+    }
+    if (config.get('scripts.run_mode') !== 'concurrent') {
+      errors.push('Conductor scripts.run_mode must be concurrent.');
+    }
+    if (!hasExactly(config.get('scripts.run.viewer.available_in'), ['local'])) {
+      errors.push('Conductor viewer available_in must contain only local.');
+    }
+    if (config.get('scripts.run.viewer.command') !== viewerCommand) {
+      errors.push(`Conductor viewer command must map VIEWER_PORT from CONDUCTOR_PORT and VITE_PORT from CONDUCTOR_PORT + 1: ${viewerCommand}.`);
+    }
+    if (!hasExactly(config.get('scripts.run.check.available_in'), ['local', 'cloud'])) {
+      errors.push('Conductor check available_in must contain local and cloud.');
+    }
+    if (config.get('scripts.run.check.command') !== 'corepack pnpm kb:check') {
+      errors.push('Conductor check command must be exactly: corepack pnpm kb:check.');
+    }
+  }
+
+  let packageJson;
+  try {
+    packageJson = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
+  } catch (error) {
+    errors.push(`Cannot read root package.json for Conductor bootstrap: ${error.message}`);
+  }
+  if (packageJson !== undefined && packageJson?.scripts?.setup !== rootSetup) {
+    errors.push(`Root setup must use exactly four frozen-lockfile installs through corepack pnpm: ${rootSetup}.`);
+  }
+}
+
 export async function auditRepository(root) {
   const errors = [];
   const claude = await readText(root, 'CLAUDE.md', errors);
@@ -133,6 +214,7 @@ export async function auditRepository(root) {
   await auditHooks(root, '.claude/settings.json', 'Claude', errors);
   await auditHooks(root, '.codex/hooks.json', 'Codex', errors);
   await auditSharedSkills(root, errors);
+  await auditConductor(root, errors);
 
   return { passed: errors.length === 0, errors };
 }

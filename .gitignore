@@ -19,7 +19,8 @@ tools/viewer/.vite/
 
 # SkillOpt local overrides (если пользователь не хочет коммитить настройку)
 .skillopt.local.json
-.env
+.env*
+!.env.example
 
 # Кэш моделей transformers.js (~120 MB)
 scripts/semantic/.transformers-cache/

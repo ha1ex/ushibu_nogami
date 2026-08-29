@@ -1,6 +1,6 @@
 # AI KB Harness — шаблон
 
-> Превращает обычный **markdown-репозиторий в базу знаний**, с которой AI-агент (Claude Code, Cursor,
+> Превращает обычный **markdown-репозиторий в базу знаний**, с которой AI-агент (Claude Code, Codex, Cursor,
 > Claude Desktop, любой MCP-клиент) работает аккуратно: ищет по смыслу, отвечает **со ссылками на
 > источник**, не выдумывает и сам поддерживает порядок.
 
@@ -101,7 +101,8 @@ flowchart LR
 
 ## Быстрый старт (5 минут)
 
-Требования: **Node 22** (есть `.nvmrc` — `nvm use`), **pnpm** через `corepack enable`.
+Требования: **Node 20 или 22** (есть `.nvmrc` — `nvm use`), **pnpm** через Corepack. Глобально
+включать Corepack или создавать системные symlink не нужно.
 
 ```bash
 # 1. Создать проект из шаблона (или кнопка «Use this template» в GitHub UI)
@@ -109,7 +110,7 @@ gh repo create my-project --template ha1ex/ai-kb-harness-template --public --clo
 cd my-project
 
 # 2. Поставить зависимости (semantic + skillopt + viewer)
-pnpm run setup
+corepack pnpm run setup
 
 # 3. Параметризовать клон (цель проекта → системный промпт агента; демо-корпус — по желанию)
 pnpm kb:init                 # интерактивно; или: --name "Проект X" --strip-demo --level 2
@@ -118,28 +119,52 @@ pnpm kb:init                 # интерактивно; или: --name "Про�
 mkdir -p 01_raw/research && cp ~/your-doc.md 01_raw/research/2026-01-01-first.md
 
 # 5. Построить индекс (первый раз скачает модель ~120 MB, дальше локально)
-pnpm kb:index
+corepack pnpm kb:index
 
 # 6. Проверить, что всё живо
 pnpm kb:search "тема"        # гибридный поиск
-pnpm kb:doctor               # health-check (должен быть EXIT 0)
+pnpm kb:check                # единый deterministic gate (должен быть EXIT 0)
 ```
 
 Дальше:
 - **Персонализация:** `pnpm kb:init` уже вписал цель в [`AGENTS.md`](AGENTS.md) и
   [`.remember/core.md`](.remember/core.md) — проверь руками; язык/workflow меняются только в
   [`AGENTS.md`](AGENTS.md), ручки формы ответа — в [`.remember/preferences.md`](.remember/preferences.md).
-- **Локальный гейт цитат до CI:** `git config core.hooksPath scripts/git-hooks` — pre-push
-  прогонит `verify --scan --provenance` (закрывает запись в слои мимо хуков агента).
+- **Локальный гейт до CI:** `git config core.hooksPath scripts/git-hooks` — pre-push прогонит тот же
+  `pnpm kb:check`, что и CI (закрывает запись в слои мимо хуков агента).
 - **Живой пример дисциплины:** сквозной walkthrough «пилот AI-ассистента поддержки» в слоях
   `00_context → 05_decisions` (см. [`index.md`](index.md)); удаляется `kb:init --strip-demo`.
-- **MCP в Claude Code:** generated `.mcp.json` уже настроен — перезапусти Claude Code в проекте,
-  появятся инструменты `kb_*`. Его source of truth — `agent-config/mcp-servers.json`.
+- **MCP-конфигурация:** `.mcp.json` и `.codex/config.toml` сгенерированы из
+  `agent-config/mcp-servers.json`; править generated-файлы вручную не нужно.
 - **Веб-витрина для коллег:** `pnpm viewer:dev` → `http://localhost:5173` (см. [ниже](#веб-витрина-для-коллег)).
 
 > **Supply chain:** запускай `pnpm audit`. В шаблоне зафиксирован `pnpm.overrides` на
 > `protobufjs>=7.5.8` (закрывает critical-RCE из транзитивной ONNX-зависимости). Viewer-API слушает
 > только `127.0.0.1` (наружу — `VIEWER_HOST=0.0.0.0`).
+
+### Подключение Claude Code и Codex
+
+Project MCP и hooks запускают код из репозитория, поэтому каждый клиент требует одноразового
+явного доверия:
+
+- **Claude Code:** открой проект и одобри project MCP из `.mcp.json` при запросе клиента; затем
+  открой `/mcp` и убедись, что `kb-local` и `skillopt-local` подключены.
+- **Codex:** открой проект и подтверди доверие project config из `.codex`; в `/hooks` проверь
+  `SessionStart` и `PostToolUse`, а в `/mcp` — серверы `kb-local` и `skillopt-local`.
+
+### Cross-model smoke-тест
+
+Для свежих Claude Code и Codex workspace последовательно проверь один и тот же сценарий:
+
+1. Дождись успешного setup и проверь, что в корне появился `.semantic-index.sqlite`.
+2. Подтверди доверие project config и hooks по инструкции выше.
+3. Убедись, что оба клиента видят MCP-серверы `kb-local` и `skillopt-local`.
+4. Вызови в обоих клиентах `kb_search` с одним и тем же запросом и проверь, что вернулись результаты KB.
+5. Попроси оба клиента записать одну и ту же невалидную decision fixture и проверь одинаковый feedback write guard.
+6. Исправь fixture и запусти `pnpm kb:check`: команда должна завершиться с кодом 0.
+7. Попроси каждый клиент завершить работу без команды на push: ни один не должен пушить в `main`.
+
+Этот smoke подтверждает общий контракт и критерии приёмки, но не требует побуквенно одинаковых ответов.
 
 ## Уровни принятия (L0–L3)
 
@@ -264,6 +289,11 @@ Control · Observe · Evolve), а каждый прогон оставляет �
 | `pnpm kb:eval` | retrieval-бенчмарк (recall@k/MRR) + регрессия vs baseline |
 | `pnpm kb:dream` | еженедельный LLM-аудит + консолидация фактов (в `.context/`) |
 | `pnpm skill …` | SkillOpt CLI (rollout/reflect/diff/apply) |
+
+Важно: standalone-режимы `pnpm kb:think "…" --execute`, `pnpm kb:critic … --execute` и
+`pnpm kb:dream --execute` вызывают `claude` CLI. Они provider-specific и находятся вне parity-контракта
+интерактивных Claude Code/Codex workflow; без `--execute` команды можно использовать для подготовки
+промпта вручную.
 
 **MCP-сервер** (`scripts/semantic/mcp-server.mjs`, см. [`scripts/semantic/README.md`](scripts/semantic/README.md)) —
 шесть инструментов любому MCP-клиенту:
