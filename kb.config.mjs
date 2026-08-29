@@ -38,7 +38,11 @@ export default {
     // Слои, где метки FACT:/DECISION: обязаны иметь цитату в абзаце (claim-coverage, гейт CI).
     coverageLayers: ['04_synthesis', '05_decisions'],
     // Зеркала внешних библиотек в 06_outputs — внутренние [source:] к ним неприменимы.
-    externalCorpusDirs: ['mcp-catalog'],
+    // Это ИМЕНА-ВАЙТЛИСТ, а не список существующих папок: имя может остаться в списке, даже если
+    // папки сейчас нет. Сейчас реально присутствует только mcp-catalog (остальные вычищены
+    // kb:init --strip-demo), но имена сохраняем — на них опирается template-owned
+    // scripts/semantic/test-control.mjs, и они снова заработают, если зеркало вернут.
+    externalCorpusDirs: ['anthropics-skills', 'claude-cookbooks', 'cybos-cases', 'fabric-patterns', 'mcp-catalog'],
   },
 
   frontmatter: {
