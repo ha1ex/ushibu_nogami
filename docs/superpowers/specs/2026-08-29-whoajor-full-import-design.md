@@ -3,7 +3,7 @@ type: design
 title: Полный импорт stats.whoajor.com
 date: 2026-08-29
 version: v0.1
-status: proposed
+status: approved
 ---
 
 # Полный импорт stats.whoajor.com
