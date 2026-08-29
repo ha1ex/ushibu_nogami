@@ -2,9 +2,9 @@
   "generated_at": "2026-08-29",
   "probe_count": 20,
   "overall": {
-    "recall_at_3": 0.95,
-    "recall_at_5": 0.95,
-    "mrr": 0.7167,
+    "recall_at_3": 0.9,
+    "recall_at_5": 1,
+    "mrr": 0.7058,
     "n": 20
   },
   "by_category": {
@@ -15,9 +15,9 @@
       "n": 2
     },
     "Veto": {
-      "recall_at_3": 0.75,
-      "recall_at_5": 0.75,
-      "mrr": 0.5,
+      "recall_at_3": 0.5,
+      "recall_at_5": 1,
+      "mrr": 0.4875,
       "n": 4
     },
     "Diagnostics": {
@@ -29,7 +29,7 @@
     "Opponents": {
       "recall_at_3": 1,
       "recall_at_5": 1,
-      "mrr": 0.625,
+      "mrr": 0.5833,
       "n": 4
     },
     "Methodology": {
