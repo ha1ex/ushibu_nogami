@@ -92,9 +92,7 @@ git config core.hooksPath scripts/git-hooks
 конфигурации агентов и KB:
 
 ```bash
-pnpm agent:check
-node scripts/kb-doctor.mjs
-pnpm kb:verify --scan --provenance
+corepack pnpm kb:check
 ```
 
 ## Source hierarchy

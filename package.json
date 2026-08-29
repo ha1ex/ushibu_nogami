@@ -2,7 +2,7 @@
   "name": "ai-kb-harness-template",
   "version": "0.2.0",
   "private": true,
-  "description": "Стартовая оснастка для проектов где markdown-репо = knowledge base, а AI-агенты — ежедневный инструмент. Перед использованием: pnpm run setup (или вручную: cd scripts/semantic && pnpm install; cd scripts/skillopt && pnpm install; cd tools/viewer && pnpm install).",
+  "description": "Стартовая оснастка для проектов где markdown-репо = knowledge base, а AI-агенты — ежедневный инструмент. Перед использованием: corepack pnpm run setup.",
   "packageManager": "pnpm@9.15.0",
   "engines": {
     "node": ">=20 <23"
@@ -18,9 +18,9 @@
     "kb:verify": "node scripts/semantic/verify.mjs",
     "kb:critic": "node scripts/kb-critic.mjs",
     "kb:dream": "node scripts/dream-cycle.mjs",
-    "viewer:dev": "cd tools/viewer && pnpm dev",
-    "viewer:test": "pnpm -C tools/viewer exec tsx --test ports.test.ts",
-    "viewer:build": "cd tools/viewer && pnpm build",
+    "viewer:dev": "corepack pnpm -C tools/viewer dev",
+    "viewer:test": "corepack pnpm -C tools/viewer exec tsx --test ports.test.ts",
+    "viewer:build": "corepack pnpm -C tools/viewer build",
     "kb:init": "node scripts/kb-init.mjs",
     "kb:update": "node scripts/kb-update.mjs",
     "kb:metrics": "node scripts/kb-metrics.mjs",
@@ -32,6 +32,6 @@
     "whoajor:sync": "node scripts/whoajor/sync.mjs",
     "agent:sync": "node scripts/agent/sync-config.mjs --write",
     "agent:check": "node scripts/agent/sync-config.mjs --check",
-    "kb:check": "pnpm agent:check && node scripts/semantic/test-retrieval.mjs && node scripts/semantic/test-control.mjs && node scripts/semantic/test-gate.mjs && node scripts/kb-doctor.mjs && node scripts/semantic/verify.mjs --scan --provenance --no-semantic"
+    "kb:check": "corepack pnpm agent:check && node scripts/semantic/test-retrieval.mjs && node scripts/semantic/test-control.mjs && node scripts/semantic/test-gate.mjs && node scripts/kb-doctor.mjs && node scripts/semantic/verify.mjs --scan --provenance --no-semantic"
   }
 }

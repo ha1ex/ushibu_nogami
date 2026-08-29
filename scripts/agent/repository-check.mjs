@@ -10,6 +10,29 @@ const conductorSchema = 'https://conductor.build/schemas/settings.repo.schema.js
 const conductorSetup = 'corepack pnpm run setup && corepack pnpm kb:index && git config core.hooksPath scripts/git-hooks';
 const rootSetup = 'corepack pnpm -C scripts/semantic install --frozen-lockfile && corepack pnpm -C scripts/skillopt install --frozen-lockfile && corepack pnpm -C tools/viewer install --frozen-lockfile && corepack pnpm -C scripts/whoajor install --frozen-lockfile';
 const viewerCommand = 'VIEWER_PORT=$CONDUCTOR_PORT VITE_PORT=$((CONDUCTOR_PORT + 1)) corepack pnpm viewer:dev';
+const rootExecutableScripts = {
+  setup: rootSetup,
+  'viewer:dev': 'corepack pnpm -C tools/viewer dev',
+  'viewer:test': 'corepack pnpm -C tools/viewer exec tsx --test ports.test.ts',
+  'viewer:build': 'corepack pnpm -C tools/viewer build',
+  'kb:check': 'corepack pnpm agent:check && node scripts/semantic/test-retrieval.mjs && node scripts/semantic/test-control.mjs && node scripts/semantic/test-gate.mjs && node scripts/kb-doctor.mjs && node scripts/semantic/verify.mjs --scan --provenance --no-semantic',
+};
+const viewerDev = 'concurrently -n server,client -c blue,magenta "corepack pnpm dev:server" "corepack pnpm dev:client"';
+const canonicalConductorLines = [
+  `"$schema" = "${conductorSchema}"`,
+  '[scripts]',
+  `setup = "${conductorSetup}"`,
+  'run_mode = "concurrent"',
+  '[scripts.run.viewer]',
+  'available_in = ["local"]',
+  `command = "${viewerCommand}"`,
+  'default = true',
+  'icon = "play"',
+  '[scripts.run.check]',
+  'available_in = ["local", "cloud"]',
+  'command = "corepack pnpm kb:check"',
+  'icon = "test-tube"',
+];
 
 function withoutHtmlComments(content) {
   return content.replace(/<!--[\s\S]*?-->/g, '');
@@ -113,7 +136,32 @@ async function auditSharedSkills(root, errors) {
   }
 }
 
-function parseTomlContract(content) {
+function stripTomlComment(line) {
+  let quoted = false;
+  let escaped = false;
+  for (let index = 0; index < line.length; index += 1) {
+    const character = line[index];
+    if (quoted && escaped) {
+      escaped = false;
+    } else if (quoted && character === '\\') {
+      escaped = true;
+    } else if (character === '"') {
+      quoted = !quoted;
+    } else if (!quoted && character === '#') {
+      return line.slice(0, index);
+    }
+  }
+  return line;
+}
+
+function canonicalTomlLines(content) {
+  return content
+    .split('\n')
+    .map((line) => stripTomlComment(line).trim())
+    .filter(Boolean);
+}
+
+function parseTomlContractForDiagnostics(content) {
   const values = new Map();
   let section = '';
 
@@ -155,7 +203,13 @@ async function auditConductor(root, errors) {
   }
 
   if (settings !== undefined) {
-    const config = parseTomlContract(settings);
+    const lines = canonicalTomlLines(settings);
+    if (lines.length !== canonicalConductorLines.length
+      || lines.some((line, index) => line !== canonicalConductorLines[index])) {
+      errors.push('Shared settings must match the bounded canonical Conductor repository contract; duplicate, unknown, malformed, reordered, and non-canonical lines are not allowed. TOML comments are allowed.');
+    }
+
+    const config = parseTomlContractForDiagnostics(settings);
     if (config.get('$schema') !== conductorSchema) {
       errors.push(`Shared Conductor settings must use the repository settings schema ${conductorSchema}.`);
     }
@@ -185,8 +239,43 @@ async function auditConductor(root, errors) {
   } catch (error) {
     errors.push(`Cannot read root package.json for Conductor bootstrap: ${error.message}`);
   }
-  if (packageJson !== undefined && packageJson?.scripts?.setup !== rootSetup) {
-    errors.push(`Root setup must use exactly four frozen-lockfile installs through corepack pnpm: ${rootSetup}.`);
+  if (packageJson !== undefined) {
+    for (const [script, command] of Object.entries(rootExecutableScripts)) {
+      if (packageJson?.scripts?.[script] !== command) {
+        if (script === 'setup') {
+          errors.push(`Root setup must use exactly four frozen-lockfile installs through corepack pnpm: ${rootSetup}.`);
+        } else {
+          errors.push(`Root ${script} script must run through Corepack without a global pnpm shim: ${command}.`);
+        }
+      }
+    }
+  }
+
+  let viewerPackage;
+  try {
+    viewerPackage = JSON.parse(await readFile(join(root, 'tools/viewer/package.json'), 'utf8'));
+  } catch (error) {
+    errors.push(`Cannot read tools/viewer/package.json for Conductor bootstrap: ${error.message}`);
+  }
+  if (viewerPackage !== undefined && viewerPackage?.scripts?.dev !== viewerDev) {
+    errors.push(`Viewer dev script must launch both processes through Corepack without a global pnpm shim: ${viewerDev}.`);
+  }
+
+  let prePush;
+  try {
+    prePush = await readFile(join(root, 'scripts/git-hooks/pre-push'), 'utf8');
+  } catch (error) {
+    errors.push(`Cannot read pre-push hook for Conductor bootstrap: ${error.message}`);
+  }
+  if (prePush !== undefined) {
+    const executableLines = prePush
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith('#'));
+    if (!executableLines.includes('corepack pnpm kb:check')
+      || executableLines.some((line) => /(?<!corepack )\bpnpm\b/.test(line))) {
+      errors.push('The pre-push hook must run corepack pnpm kb:check without a global pnpm shim.');
+    }
   }
 }
 

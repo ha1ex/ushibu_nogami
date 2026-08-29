@@ -31,11 +31,28 @@ test('uses standalone defaults', () => {
   assert.deepEqual(resolveViewerPorts({}), { apiPort: 3001, clientPort: 5173 });
 });
 
+test('accepts valid TCP port boundaries', () => {
+  assert.deepEqual(resolveViewerPorts({ CONDUCTOR_PORT: '1' }), { apiPort: 1, clientPort: 2 });
+  assert.deepEqual(resolveViewerPorts({ CONDUCTOR_PORT: '65534' }), {
+    apiPort: 65534,
+    clientPort: 65535,
+  });
+  assert.deepEqual(resolveViewerPorts({ VIEWER_PORT: '65535', VITE_PORT: '1' }), {
+    apiPort: 65535,
+    clientPort: 1,
+  });
+});
+
 test('rejects non-decimal and out-of-range selected ports', () => {
   for (const env of [
     { CONDUCTOR_PORT: '0' },
     { CONDUCTOR_PORT: '65535' },
     { CONDUCTOR_PORT: '12.5' },
+    { CONDUCTOR_PORT: 'NaN' },
+    { CONDUCTOR_PORT: '+4400' },
+    { CONDUCTOR_PORT: '-1' },
+    { CONDUCTOR_PORT: '1e3' },
+    { CONDUCTOR_PORT: '' },
     { VIEWER_PORT: '0' },
     { VIEWER_PORT: '0x1000' },
     { VITE_PORT: '65536' },

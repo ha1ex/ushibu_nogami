@@ -113,7 +113,7 @@ cd my-project
 corepack pnpm run setup
 
 # 3. Параметризовать клон (цель проекта → системный промпт агента; демо-корпус — по желанию)
-pnpm kb:init                 # интерактивно; или: --name "Проект X" --strip-demo --level 2
+corepack pnpm kb:init        # интерактивно; или: --name "Проект X" --strip-demo --level 2
 
 # 4. Положить первый источник
 mkdir -p 01_raw/research && cp ~/your-doc.md 01_raw/research/2026-01-01-first.md
@@ -122,23 +122,23 @@ mkdir -p 01_raw/research && cp ~/your-doc.md 01_raw/research/2026-01-01-first.md
 corepack pnpm kb:index
 
 # 6. Проверить, что всё живо
-pnpm kb:search "тема"        # гибридный поиск
-pnpm kb:check                # единый deterministic gate (должен быть EXIT 0)
+corepack pnpm kb:search "тема" # гибридный поиск
+corepack pnpm kb:check         # единый deterministic gate (должен быть EXIT 0)
 ```
 
 Дальше:
-- **Персонализация:** `pnpm kb:init` уже вписал цель в [`AGENTS.md`](AGENTS.md) и
+- **Персонализация:** `corepack pnpm kb:init` уже вписал цель в [`AGENTS.md`](AGENTS.md) и
   [`.remember/core.md`](.remember/core.md) — проверь руками; язык/workflow меняются только в
   [`AGENTS.md`](AGENTS.md), ручки формы ответа — в [`.remember/preferences.md`](.remember/preferences.md).
 - **Локальный гейт до CI:** `git config core.hooksPath scripts/git-hooks` — pre-push прогонит тот же
-  `pnpm kb:check`, что и CI (закрывает запись в слои мимо хуков агента).
+  `corepack pnpm kb:check`, что и CI (закрывает запись в слои мимо хуков агента).
 - **Живой пример дисциплины:** сквозной walkthrough «пилот AI-ассистента поддержки» в слоях
   `00_context → 05_decisions` (см. [`index.md`](index.md)); удаляется `kb:init --strip-demo`.
 - **MCP-конфигурация:** `.mcp.json` и `.codex/config.toml` сгенерированы из
   `agent-config/mcp-servers.json`; править generated-файлы вручную не нужно.
-- **Веб-витрина для коллег:** `pnpm viewer:dev` → `http://localhost:5173` (см. [ниже](#веб-витрина-для-коллег)).
+- **Веб-витрина для коллег:** `corepack pnpm viewer:dev` → `http://localhost:5173` (см. [ниже](#веб-витрина-для-коллег)).
 
-> **Supply chain:** запускай `pnpm audit`. В шаблоне зафиксирован `pnpm.overrides` на
+> **Supply chain:** запускай `corepack pnpm audit`. В шаблоне зафиксирован `pnpm.overrides` на
 > `protobufjs>=7.5.8` (закрывает critical-RCE из транзитивной ONNX-зависимости). Viewer-API слушает
 > только `127.0.0.1` (наружу — `VIEWER_HOST=0.0.0.0`).
 
@@ -161,7 +161,7 @@ Project MCP и hooks запускают код из репозитория, по
 3. Убедись, что оба клиента видят MCP-серверы `kb-local` и `skillopt-local`.
 4. Вызови в обоих клиентах `kb_search` с одним и тем же запросом и проверь, что вернулись результаты KB.
 5. Попроси оба клиента записать одну и ту же невалидную decision fixture и проверь одинаковый feedback write guard.
-6. Исправь fixture и запусти `pnpm kb:check`: команда должна завершиться с кодом 0.
+6. Исправь fixture и запусти `corepack pnpm kb:check`: команда должна завершиться с кодом 0.
 7. Попроси каждый клиент завершить работу без команды на push: ни один не должен пушить в `main`.
 
 Этот smoke подтверждает общий контракт и критерии приёмки, но не требует побуквенно одинаковых ответов.
@@ -175,10 +175,10 @@ Project MCP и hooks запускают код из репозитория, по
 |---|---|---|---|
 | **L0 — поиск** | `kb:index` / `kb:search` / `kb:think` на **существующем** markdown-репо | `scripts/semantic/` + свои слои в `INDEXABLE_LAYERS` | команда с живым `docs/`, не желающая мигрировать структуру |
 | **L1 — + MCP и слои** | инструменты `kb_*` в любом MCP-клиенте, пирамида `00→06`, frontmatter | + `.mcp.json`, `AGENTS.md` | solo-работа с агентом каждый день |
-| **L2 — + гейты** | PreToolUse-хуки, `verify`-гейт цитат (traversal, coverage), provenance, CI, pre-push | + `.claude/settings.json`, `.github/workflows/` | проекты, где цена выдумки высока |
+| **L2 — + гейты** | Общие PostToolUse-хуки Claude/Codex, `verify`-гейт цитат (traversal, coverage), provenance, CI, pre-push | + `.claude/settings.json`, `.codex/hooks.json`, `.github/workflows/` | проекты, где цена выдумки высока |
 | **L3 — + петли** | `kb-critic --execute`, `dream-cycle`, SkillOpt, answer-cards | + `claude` CLI (или другая LLM для SkillOpt) | ведение KB как живой системы |
 
-`pnpm kb:init --level N` включает нужный уровень (L0/L1 снимает хуки и CI-workflows).
+`corepack pnpm kb:init --level N` включает нужный уровень (L0/L1 снимает хуки и CI-workflows).
 
 ## Ключевые концепции (от общего к частному)
 
@@ -279,19 +279,19 @@ Control · Observe · Evolve), а каждый прогон оставляет �
 
 | Команда | Что делает |
 |---|---|
-| `pnpm kb:init` | параметризация клона: цель проекта, `--strip-demo`, `--level 0..3` |
-| `pnpm kb:index` | построить/обновить гибридный индекс |
-| `pnpm kb:search "запрос"` | гибридный поиск (вектор + BM25 + RRF + граф + temporal) |
-| `pnpm kb:think "вопрос"` | собрать промпт-синтез с цитатами и правилами AGENTS.md |
-| `pnpm kb:verify --scan --provenance` | проверка цитат + provenance по слоям (гейт CI) |
-| `pnpm kb:critic --file ans.md` | revision-промпт по битым цитатам (`--execute` — авто-цикл) |
-| `pnpm kb:doctor` | health-check базы (frontmatter, битые ссылки, orphans, stale) |
-| `pnpm kb:eval` | retrieval-бенчмарк (recall@k/MRR) + регрессия vs baseline |
-| `pnpm kb:dream` | еженедельный LLM-аудит + консолидация фактов (в `.context/`) |
-| `pnpm skill …` | SkillOpt CLI (rollout/reflect/diff/apply) |
+| `corepack pnpm kb:init` | параметризация клона: цель проекта, `--strip-demo`, `--level 0..3` |
+| `corepack pnpm kb:index` | построить/обновить гибридный индекс |
+| `corepack pnpm kb:search "запрос"` | гибридный поиск (вектор + BM25 + RRF + граф + temporal) |
+| `corepack pnpm kb:think "вопрос"` | собрать промпт-синтез с цитатами и правилами AGENTS.md |
+| `corepack pnpm kb:verify --scan --provenance` | проверка цитат + provenance по слоям (гейт CI) |
+| `corepack pnpm kb:critic --file ans.md` | revision-промпт по битым цитатам (`--execute` — авто-цикл) |
+| `corepack pnpm kb:doctor` | health-check базы (frontmatter, битые ссылки, orphans, stale) |
+| `corepack pnpm kb:eval` | retrieval-бенчмарк (recall@k/MRR) + регрессия vs baseline |
+| `corepack pnpm kb:dream` | еженедельный LLM-аудит + консолидация фактов (в `.context/`) |
+| `corepack pnpm skill …` | SkillOpt CLI (rollout/reflect/diff/apply) |
 
-Важно: standalone-режимы `pnpm kb:think "…" --execute`, `pnpm kb:critic … --execute` и
-`pnpm kb:dream --execute` вызывают `claude` CLI. Они provider-specific и находятся вне parity-контракта
+Важно: standalone-режимы `corepack pnpm kb:think "…" --execute`, `corepack pnpm kb:critic … --execute` и
+`corepack pnpm kb:dream --execute` вызывают `claude` CLI. Они provider-specific и находятся вне parity-контракта
 интерактивных Claude Code/Codex workflow; без `--execute` команды можно использовать для подготовки
 промпта вручную.
 
@@ -309,17 +309,17 @@ Control · Observe · Evolve), а каждый прогон оставляет �
 
 ## Типичные рабочие сценарии
 
-**A. Новый проект.** `gh repo create … --template …` → `pnpm run setup` → положить источник в
-`01_raw/` → `pnpm kb:index`.
+**A. Новый проект.** `gh repo create … --template …` → `corepack pnpm run setup` → положить источник в
+`01_raw/` → `corepack pnpm kb:index`.
 
 **B. Вопрос по базе.** Агент в IDE сам вызывает `kb_search` → `kb_think` и отвечает с метками и
 цитатами; `kb_verify` подтверждает, что ссылки настоящие.
 
 **C. Правка важного файла.**
 ```bash
-pnpm kb:search "тема" --explain
+corepack pnpm kb:search "тема" --explain
 node scripts/semantic/backlinks.mjs 03_wiki/foo.md   # кто на меня ссылается
-pnpm kb:index                                        # инкрементальная переиндексация
+corepack pnpm kb:index                               # инкрементальная переиндексация
 ```
 
 **D. Ответ оказался с битыми цитатами.**
@@ -333,9 +333,9 @@ node scripts/kb-critic.mjs --file answer.md --execute # авто-цикл verify
 
 **F. AI плохо следует скиллу.**
 ```bash
-pnpm skill rollout kb-ingest       # 2 из 3 кейсов провалились
-pnpm skill reflect <run-id>        # LLM предлагает правку SKILL.md
-pnpm skill diff <run-id> && pnpm skill apply <run-id>   # human-in-the-loop
+corepack pnpm skill rollout kb-ingest       # 2 из 3 кейсов провалились
+corepack pnpm skill reflect <run-id>        # LLM предлагает правку SKILL.md
+corepack pnpm skill diff <run-id> && corepack pnpm skill apply <run-id>   # human-in-the-loop
 ```
 
 ## Что внутри
@@ -365,7 +365,8 @@ ai-kb-harness-template/
 │   │   └── journal.mjs        ← append-only журнал операций (.context/)
 │   ├── kb-doctor.mjs          ← health-check (+ advisory: stale inbox/answer-cards)
 │   ├── kb-critic.mjs          ← петля verify→critique→revise (N1)
-│   ├── check-decisions.mjs · check-md-frontmatter.mjs · check-provenance.mjs  ← PreToolUse hooks
+│   ├── agent/write-guard.mjs            ← общий PostToolUse guard Claude/Codex
+│   ├── check-decisions.mjs · check-md-frontmatter.mjs · check-provenance.mjs  ← validators guard
 │   ├── dream-cycle.mjs · suggest-links.mjs · session-start-context.mjs · parse-raw.mjs
 │   └── skillopt/              ← самообучение SKILL.md (rollout/reflect/diff/apply) + MCP
 ├── tools/viewer/              ← локальная веб-витрина базы (Vite + React + Tailwind)
@@ -377,12 +378,12 @@ ai-kb-harness-template/
 Для тех, кто не лезет в терминал — локальный веб-интерфейс (`tools/viewer/`):
 
 ```bash
-pnpm viewer:dev     # API на :3001 + клиент на http://localhost:5173
+corepack pnpm viewer:dev     # API на :3001 + клиент на http://localhost:5173
 ```
 
 Главная с обзором слоёв · автогенерируемый sidebar · рендер любого `.md` с дизайн-системой и
 backlinks · поиск (тот же hybrid retrieval) · интерактивный граф связей (Sigma) ·
-open-questions/contradictions · дашборд SkillOpt. Для коллег: `pnpm viewer:build` → статический сайт.
+open-questions/contradictions · дашборд SkillOpt. Для коллег: `corepack pnpm viewer:build` → статический сайт.
 
 ## SkillOpt — самообучение инструкций (опционально)
 
@@ -397,7 +398,7 @@ open-questions/contradictions · дашборд SkillOpt. Для коллег: `
 
 ## Параметризация под свой проект
 
-**Начни с `pnpm kb:init`** — он вписывает цель проекта в `AGENTS.md`/`.remember/core.md`
+**Начни с `corepack pnpm kb:init`** — он вписывает цель проекта в `AGENTS.md`/`.remember/core.md`
 (они подмешиваются в системный промпт агента), по желанию вычищает демо-корпус и walkthrough,
 и включает нужный уровень оснастки (`--level 0..3`). Остальное — руками:
 
@@ -408,7 +409,7 @@ open-questions/contradictions · дашборд SkillOpt. Для коллег: `
 | `CLAUDE.md` | Только Claude adapter; нормативные правила сюда не добавлять |
 | `.remember/core.md` · `preferences.md` | Инвариант проекта и форма ответа |
 | `scripts/semantic/probes.local.mjs` | Свои eval-пробы (создать; см. `probes.mjs`) |
-| `agent-config/mcp-servers.json` | MCP manifest (`command`, `args`, `description`); после изменения запустить `pnpm agent:sync` |
+| `agent-config/mcp-servers.json` | MCP manifest (`command`, `args`, `description`); после изменения запустить `corepack pnpm agent:sync` |
 | `LICENSE` | Copyright holder |
 
 **Не нужно** править ядро (`scripts/semantic/`, `scripts/lib/`) — оно template-owned и обновляется
@@ -425,7 +426,7 @@ KB_ROOT=~/kb/personal node scripts/semantic/search.mjs "запрос"
 ```
 
 Project adapters `.mcp.json` и `.codex/config.toml` генерируются и вручную не редактируются: общие
-серверы меняются через `agent-config/mcp-servers.json` и `pnpm agent:sync`. Manifest v1 поддерживает
+серверы меняются через `agent-config/mcp-servers.json` и `corepack pnpm agent:sync`. Manifest v1 поддерживает
 только `command`, `args` и `description`, поэтому machine-specific `env` для второй внешней KB
 задаётся в user-level MCP config конкретного клиента и не входит в cross-host parity. Если второй
 сервер должен быть общим для Claude Code и Codex, сначала нужно явно расширить schema и оба renderer.
@@ -433,8 +434,8 @@ Project adapters `.mcp.json` и `.codex/config.toml` генерируются и
 ## Как обновляться от upstream
 
 ```bash
-pnpm kb:update            # dry-run: что изменилось в ядре, что конфликтует с локальными правками
-pnpm kb:update --apply    # применить безопасные обновления (только template-owned, чистый tree)
+corepack pnpm kb:update            # dry-run: что изменилось в ядре, что конфликтует с локальными правками
+corepack pnpm kb:update --apply    # применить безопасные обновления (только template-owned, чистый tree)
 ```
 
 Скрипт делает файловый 3-way по границе из `.template-manifest.json`: файлы, изменённые только
@@ -457,7 +458,7 @@ project-owned (`kb.config.mjs`, `AGENTS.md`, слои 00–06…) не трог�
 Code и Codex используют общий контракт, hooks и project skills через host adapters; для других
 клиентов те же scripts можно подключить их собственным lifecycle-конфигом.
 
-**Можно без AI-агента, как поиск по markdown?** Да — `pnpm kb:search` полезнее `grep -r` (смысл +
+**Можно без AI-агента, как поиск по markdown?** Да — `corepack pnpm kb:search` полезнее `grep -r` (смысл +
 термины + связи + цитаты).
 
 **Что за `kb_retain` / `kb_promote` / `.context/inbox/`?** Контролируемые write-path: `kb_retain`

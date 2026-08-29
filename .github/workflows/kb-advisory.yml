@@ -24,9 +24,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Enable corepack (pnpm)
-        run: corepack enable
-
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -38,7 +35,7 @@ jobs:
           key: transformers-cache-e5-small-v1
 
       - name: Install semantic deps
-        run: pnpm -C scripts/semantic install
+        run: corepack pnpm -C scripts/semantic install --frozen-lockfile
 
       - name: Build semantic index
         run: node scripts/semantic/index.mjs

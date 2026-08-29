@@ -18,16 +18,37 @@ run_mode = "concurrent"
 [scripts.run.viewer]
 available_in = ["local"]
 command = "VIEWER_PORT=$CONDUCTOR_PORT VITE_PORT=$((CONDUCTOR_PORT + 1)) corepack pnpm viewer:dev"
+default = true
+icon = "play"
 
 [scripts.run.check]
 available_in = ["local", "cloud"]
 command = "corepack pnpm kb:check"
+icon = "test-tube"
 `;
 const validRootPackage = {
   scripts: {
     setup: 'corepack pnpm -C scripts/semantic install --frozen-lockfile && corepack pnpm -C scripts/skillopt install --frozen-lockfile && corepack pnpm -C tools/viewer install --frozen-lockfile && corepack pnpm -C scripts/whoajor install --frozen-lockfile',
+    'viewer:dev': 'corepack pnpm -C tools/viewer dev',
+    'viewer:test': 'corepack pnpm -C tools/viewer exec tsx --test ports.test.ts',
+    'viewer:build': 'corepack pnpm -C tools/viewer build',
+    'kb:check': 'corepack pnpm agent:check && node scripts/semantic/test-retrieval.mjs && node scripts/semantic/test-control.mjs && node scripts/semantic/test-gate.mjs && node scripts/kb-doctor.mjs && node scripts/semantic/verify.mjs --scan --provenance --no-semantic',
   },
 };
+const validViewerPackage = {
+  scripts: {
+    dev: 'concurrently -n server,client -c blue,magenta "corepack pnpm dev:server" "corepack pnpm dev:client"',
+  },
+};
+const validPrePush = `#!/usr/bin/env bash
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+corepack pnpm kb:check
+`;
+
+function withConductorSettings(transform) {
+  return transform(validConductorSettings);
+}
 
 test.after(async () => {
   await Promise.all(fixtureRoots.map((root) => rm(root, { recursive: true, force: true })));
@@ -62,6 +83,8 @@ async function makeFixture({
   linkSkills = true,
   conductorSettings = validConductorSettings,
   rootPackage = validRootPackage,
+  viewerPackage = validViewerPackage,
+  prePush = validPrePush,
 } = {}) {
   const root = await mkdtemp(join(tmpdir(), 'repository-check-'));
   fixtureRoots.push(root);
@@ -83,6 +106,8 @@ async function makeFixture({
     await write(root, '.conductor/settings.toml', conductorSettings);
   }
   await write(root, 'package.json', JSON.stringify(rootPackage));
+  await write(root, 'tools/viewer/package.json', JSON.stringify(viewerPackage));
+  await write(root, 'scripts/git-hooks/pre-push', prePush);
   if (linkSkills) await linkSharedSkills(root);
   return root;
 }
@@ -124,6 +149,94 @@ command = "pnpm test"
   assert.match(errors, /viewer.*CONDUCTOR_PORT.*VITE_PORT/i);
   assert.match(errors, /check.*available_in.*local.*cloud/i);
   assert.match(errors, /check.*corepack pnpm kb:check/i);
+});
+
+test('rejects trailing garbage in shared Conductor settings', async () => {
+  const root = await makeFixture({
+    conductorSettings: withConductorSettings((settings) => `${settings}\nthis is not TOML\n`),
+  });
+
+  const result = await auditRepository(root);
+
+  assert.equal(result.passed, false);
+  assert.match(result.errors.join('\n'), /canonical Conductor repository contract/i);
+});
+
+test('rejects duplicate Conductor keys even when the last value is valid', async () => {
+  const root = await makeFixture({
+    conductorSettings: withConductorSettings((settings) => settings.replace(
+      'setup = "corepack pnpm run setup',
+      'setup = "pnpm install"\nsetup = "corepack pnpm run setup',
+    )),
+  });
+
+  const result = await auditRepository(root);
+
+  assert.equal(result.passed, false);
+  assert.match(result.errors.join('\n'), /canonical Conductor repository contract/i);
+});
+
+test('rejects malformed TOML quotes and arrays', async (t) => {
+  for (const malformedLine of ['broken = "unterminated', 'broken = ["local"']) {
+    await t.test(malformedLine, async () => {
+      const root = await makeFixture({
+        conductorSettings: withConductorSettings((settings) => `${settings}\n${malformedLine}\n`),
+      });
+
+      const result = await auditRepository(root);
+
+      assert.equal(result.passed, false);
+      assert.match(result.errors.join('\n'), /canonical Conductor repository contract/i);
+    });
+  }
+});
+
+test('allows comments without weakening the canonical Conductor contract', async () => {
+  const root = await makeFixture({
+    conductorSettings: withConductorSettings((settings) => settings
+      .replace('[scripts]', '# shared bootstrap\n[scripts]')
+      .replace('run_mode = "concurrent"', 'run_mode = "concurrent" # isolated ports')),
+  });
+
+  const result = await auditRepository(root);
+
+  assert.deepEqual(result, { passed: true, errors: [] });
+});
+
+test('rejects a syntactically valid near-match outside the bounded Conductor contract', async () => {
+  const root = await makeFixture({
+    conductorSettings: withConductorSettings((settings) => settings.replace('default = true', 'default = false')),
+  });
+
+  const result = await auditRepository(root);
+
+  assert.equal(result.passed, false);
+  assert.match(result.errors.join('\n'), /canonical Conductor repository contract/i);
+});
+
+test('rejects nested package and hook commands that require a global pnpm shim', async () => {
+  const root = await makeFixture({
+    rootPackage: {
+      scripts: {
+        ...validRootPackage.scripts,
+        'viewer:test': 'pnpm -C tools/viewer exec tsx --test ports.test.ts',
+        'kb:check': 'pnpm agent:check',
+      },
+    },
+    viewerPackage: {
+      scripts: { dev: 'concurrently "pnpm dev:server" "pnpm dev:client"' },
+    },
+    prePush: '#!/usr/bin/env bash\npnpm kb:check\n',
+  });
+
+  const result = await auditRepository(root);
+  const errors = result.errors.join('\n');
+
+  assert.equal(result.passed, false);
+  assert.match(errors, /viewer:test.*Corepack/i);
+  assert.match(errors, /kb:check.*Corepack/i);
+  assert.match(errors, /viewer dev.*Corepack/i);
+  assert.match(errors, /pre-push.*Corepack/i);
 });
 
 test('rejects split instructions and divergent shared skills', async () => {
