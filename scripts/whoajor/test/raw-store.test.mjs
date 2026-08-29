@@ -52,13 +52,55 @@ test('storeResponse сохраняет exact body один раз и связы�
 });
 
 test('storeResponse отклоняет повторный request с другим body', async () => {
-  const { snapshot } = await createFixtureSnapshot();
+  const { root, snapshot } = await createFixtureSnapshot();
   await storeResponse(snapshot, responseRecord());
+  const conflictingBody = '{"matches":3}';
 
   await assert.rejects(
-    storeResponse(snapshot, responseRecord({ body: '{"matches":3}' })),
+    storeResponse(snapshot, responseRecord({ body: conflictingBody })),
     /already stored with a different body/i,
   );
+  assert.equal(
+    await readFile(join(root, 'responses', `${sha256Hex(conflictingBody)}.json`), 'utf8'),
+    conflictingBody,
+    'conflicting successful response must remain available for forensic inspection',
+  );
+});
+
+test('storeResponse сохраняет malformed JSON до parse failure и связывает blob с manifest', async () => {
+  const { root, snapshot } = await createFixtureSnapshot();
+  const malformedBody = '{"broken":';
+
+  await assert.rejects(
+    storeResponse(snapshot, responseRecord({ path: '/api/tags', body: malformedBody })),
+    /not valid JSON/i,
+  );
+
+  assert.equal(snapshot.manifest.requests.length, 1);
+  const [entry] = snapshot.manifest.requests;
+  assert.equal(entry.path, '/api/tags');
+  assert.equal(entry.bodySha256, sha256Hex(malformedBody));
+  assert.equal(entry.canonicalSha256, null);
+  assert.equal(await readFile(join(root, entry.blob), 'utf8'), malformedBody);
+});
+
+test('разные boundary bodies одного request key сохраняются и проходят resume', async () => {
+  const { root, snapshot } = await createFixtureSnapshot();
+  await storeResponse(snapshot, responseRecord({ body: '{"matches":2}' }));
+  await storeResponse(
+    snapshot,
+    responseRecord({ body: '{"matches":3}' }),
+    { allowConflict: true },
+  );
+  await finalizeManifest(snapshot, 'unstable');
+
+  const resumed = await loadSnapshot(root);
+  assert.equal(resumed.manifest.requests.length, 2);
+  assert.deepEqual(
+    resumed.manifest.requests.map(({ key }) => key),
+    ['GET /api/meta', 'GET /api/meta'],
+  );
+  assert.equal(new Set(resumed.manifest.requests.map(({ bodySha256 }) => bodySha256)).size, 2);
 });
 
 test('loadSnapshot не возобновляет снимок с усечённым или изменённым blob', async () => {

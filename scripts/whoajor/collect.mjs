@@ -93,6 +93,15 @@ function existingEntry(snapshot, path, query) {
   ));
 }
 
+function matchingEntries(snapshot, path, query) {
+  const queryEntries = Object.entries(query);
+  return snapshot.manifest.requests.filter((entry) => (
+    entry.path === path
+      && Object.keys(entry.query).length === queryEntries.length
+      && queryEntries.every(([key, value]) => String(entry.query[key]) === String(value))
+  ));
+}
+
 async function readEntryBody(snapshot, entry) {
   return readFile(join(snapshot.root, entry.blob), 'utf8');
 }
@@ -112,16 +121,10 @@ async function requestPayload(snapshot, client, name, path, query = {}, { reuse 
 
 async function boundaryPayload(snapshot, client, name, path, query, label) {
   const response = await client.get(path, query);
-  let changed = false;
-  try {
-    await storeResponse(snapshot, response);
-  } catch (error) {
-    if (/already stored with a different body/.test(error.message)) {
-      changed = true;
-    } else {
-      throw error;
-    }
-  }
+  await storeResponse(snapshot, response, { allowConflict: true });
+  const changed = new Set(
+    matchingEntries(snapshot, path, query).map(({ bodySha256 }) => bodySha256),
+  ).size > 1;
   const payload = parsePayload(name, response.body);
   if (changed) return { changed: true, message: `${label} changed during collection` };
   return { changed: false, payload };

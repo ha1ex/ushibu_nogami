@@ -141,12 +141,18 @@ export async function loadSnapshot(root) {
     throw resumeError('manifest has no request list');
   }
 
-  const keys = new Set();
+  const observations = new Set();
   for (const entry of manifest.requests) {
     validateManifestEntry(entry);
-    if (keys.has(entry.key)) throw resumeError(`manifest repeats request ${entry.key}`);
-    keys.add(entry.key);
+    const observation = `${entry.key}\0${entry.bodySha256}`;
+    if (observations.has(observation)) {
+      throw resumeError(`manifest repeats response ${entry.key} with body ${entry.bodySha256}`);
+    }
+    observations.add(observation);
     const body = await readValidBlob(root, entry, { resume: true });
+    if (entry.canonicalSha256 === null) {
+      throw resumeError(`canonical JSON hash is unavailable for ${entry.key}`);
+    }
     const canonicalSha256 = sha256Hex(canonicalStringify(parseJson(body)));
     if (canonicalSha256 !== entry.canonicalSha256) {
       throw resumeError(`canonical JSON hash does not match body blob for ${entry.key}`);
@@ -158,23 +164,12 @@ export async function loadSnapshot(root) {
   return { root, manifestPath, manifest };
 }
 
-export async function storeResponse(snapshot, responseRecord) {
+export async function storeResponse(snapshot, responseRecord, { allowConflict = false } = {}) {
   const { path, query = {}, body, headers, ...rest } = responseRecord;
   const key = requestKey(path, query);
   const exactBody = bodyBuffer(body);
   const bodySha256 = sha256Hex(exactBody);
-  const existing = snapshot.manifest.requests.find((entry) => entry.key === key);
-  if (existing) {
-    if (existing.bodySha256 !== bodySha256) {
-      throw new Error(`request ${key} is already stored with a different body`);
-    }
-    await readValidBlob(snapshot.root, existing);
-    return existing;
-  }
-
-  const payload = parseJson(exactBody);
   const observedHeaders = copyHeaders(headers);
-  const { itemCount, reportedTotal } = deriveCounts(payload, responseRecord);
   const blob = join(RESPONSES_DIR, `${bodySha256}.json`);
   const entry = {
     key,
@@ -189,9 +184,9 @@ export async function storeResponse(snapshot, responseRecord) {
     durationMs: rest.durationMs ?? null,
     bodyBytes: exactBody.byteLength,
     bodySha256,
-    canonicalSha256: sha256Hex(canonicalStringify(payload)),
-    itemCount,
-    reportedTotal,
+    canonicalSha256: null,
+    itemCount: null,
+    reportedTotal: null,
     blob,
   };
 
@@ -202,6 +197,32 @@ export async function storeResponse(snapshot, responseRecord) {
     if (error.code !== 'ENOENT' && !/body blob is missing/.test(error.message)) throw error;
     await writeAtomically(blobPath, exactBody);
   }
+
+  const existing = snapshot.manifest.requests.find((stored) => (
+    stored.key === key && stored.bodySha256 === bodySha256
+  ));
+  if (existing) {
+    await readValidBlob(snapshot.root, existing);
+    if (existing.canonicalSha256 === null) parseJson(exactBody);
+    return existing;
+  }
+  if (!allowConflict && snapshot.manifest.requests.some((stored) => stored.key === key)) {
+    throw new Error(`request ${key} is already stored with a different body`);
+  }
+
+  let payload;
+  try {
+    payload = parseJson(exactBody);
+  } catch (error) {
+    snapshot.manifest.requests.push(entry);
+    snapshot.manifest.rootHash = computeRootHash(snapshot.manifest.requests);
+    await writeAtomically(snapshot.manifestPath, `${JSON.stringify(snapshot.manifest, null, 2)}\n`);
+    throw error;
+  }
+  const { itemCount, reportedTotal } = deriveCounts(payload, responseRecord);
+  entry.canonicalSha256 = sha256Hex(canonicalStringify(payload));
+  entry.itemCount = itemCount;
+  entry.reportedTotal = reportedTotal;
 
   snapshot.manifest.requests.push(entry);
   snapshot.manifest.rootHash = computeRootHash(snapshot.manifest.requests);

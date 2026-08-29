@@ -88,10 +88,22 @@ test('изменение total между страницами завершае�
 
 test('изменение первой страницы на конечной границе помечает snapshot unstable', async () => {
   const fixture = createFixtureApi({ boundaryDrift: true });
-  const { manifest } = await runFixture(fixture);
+  const { manifest, outputDir } = await runFixture(fixture);
 
   assert.equal(manifest.status, 'unstable');
   assert.match(manifest.failure.message, /match head.*changed/i);
+  const headBodies = manifest.requests.filter(({ path, query }) => (
+    path === '/api/matches' && query.limit === 1 && query.offset === 0
+  ));
+  assert.equal(headBodies.length, 2);
+  assert.equal(new Set(headBodies.map(({ bodySha256 }) => bodySha256)).size, 2);
+  const storedBodies = await Promise.all(
+    headBodies.map(({ blob }) => readFile(join(outputDir, blob), 'utf8')),
+  );
+  assert.deepEqual(
+    storedBodies.map((body) => JSON.parse(body).matches[0].id).sort(),
+    ['match-2', 'match-new'],
+  );
 });
 
 test('player matches не получает limit, а by=day endpoints получают только by=day', async () => {
@@ -215,6 +227,10 @@ test('JSON parse failure оставляет staging manifest incomplete', async 
   const manifest = JSON.parse(await readFile(join(outputDir, 'manifest.json'), 'utf8'));
   assert.equal(manifest.status, 'incomplete');
   assert.equal(manifest.failure.type, 'collection-error');
+  const malformedEntry = manifest.requests.find(({ path }) => path === '/api/tags');
+  assert.ok(malformedEntry, 'malformed successful response must be linked from manifest');
+  assert.equal(malformedEntry.canonicalSha256, null);
+  assert.equal(await readFile(join(outputDir, malformedEntry.blob), 'utf8'), '{"broken":');
 });
 
 test('JSON parse failure на повторной boundary-проверке остаётся incomplete, не unstable', async () => {
