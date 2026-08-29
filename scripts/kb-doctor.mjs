@@ -1,0 +1,384 @@
+#!/usr/bin/env node
+// kb-doctor.mjs — health-check KB (по аналогии с gbrain doctor).
+//
+// Использование:
+//   node scripts/kb-doctor.mjs                 # человекочитаемый отчёт
+//   node scripts/kb-doctor.mjs --json          # JSON для CI/pipe
+//   node scripts/kb-doctor.mjs --fix-dryrun    # показать команды для фиксов (не выполняет)
+//
+// Проверки (без LLM, без сети):
+//   1. missing-frontmatter — файлы в значимых слоях без обязательных полей
+//   2. broken-related      — frontmatter related: указывает на несуществующий путь
+//   3. orphan              — файл, на который никто не ссылается (только для wiki/synthesis/decisions)
+//   4. stale-synthesis     — synthesis-файлы старше 60 дней
+//   5. ghost-in-index      — записи в links/files для несуществующих файлов на диске
+//
+// Источник правды: файловая система + indexed links (если БД есть).
+
+import { existsSync, statSync, readdirSync, readFileSync } from 'node:fs';
+import { join, resolve, relative, extname, dirname, normalize as pnormalize } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { appendJournal } from './lib/journal.mjs';
+import { parseFrontmatter, parseRelatedList } from './lib/frontmatter.mjs';
+
+import { KB_ROOT, KB_DB_PATH } from './lib/kb-root.mjs';
+
+// Целевая KB: env KB_ROOT/KB_DB_PATH (мультипроектность) или репо самой оснастки.
+const REPO_ROOT = KB_ROOT;
+const DB_PATH = KB_DB_PATH;
+
+const argv = process.argv.slice(2);
+const asJson = argv.includes('--json');
+const fixDryrun = argv.includes('--fix-dryrun');
+
+const STALE_DAYS = 60;
+const INBOX_STALE_DAYS = 14;  // .context/inbox: needs-review старше этого — залежавшаяся память (advisory)
+const NOW = Date.now();
+
+// Слои и их правила. Подстройте под структуру своего проекта.
+//   requireFm     — должен ли файл иметь YAML frontmatter
+//   requireFields — обязательные поля frontmatter (ругаемся если их нет)
+//   staleCheck    — проверять ли возраст файла (вычислять stale флаг)
+const LAYERS = {
+  '00_context':   { requireFm: false, requireFields: [],                 staleCheck: false },
+  '01_raw':       { requireFm: false, requireFields: [],                 staleCheck: false },
+  '02_sources':   { requireFm: true,  requireFields: ['type'],           staleCheck: false },
+  '03_wiki':      { requireFm: true,  requireFields: ['type'],           staleCheck: false },
+  '04_synthesis': { requireFm: true,  requireFields: ['type'],           staleCheck: true  },
+  '05_decisions': { requireFm: true,  requireFields: ['type'],           staleCheck: false },
+  '06_outputs':   { requireFm: true,  requireFields: ['type', 'version'], staleCheck: false },
+};
+
+const EXEMPT_BASENAMES = new Set(['readme.md', 'index.md', 'nav.md', '_toc.md']);
+
+// Слои, где orphan имеет смысл (если на synthesis/wiki/decisions никто не ссылается — подозрительно).
+const ORPHAN_CHECK_LAYERS = new Set(['03_wiki', '04_synthesis', '05_decisions']);
+
+// ---------- walk ----------
+
+function* walkMd(layer) {
+  const root = join(REPO_ROOT, layer);
+  if (!existsSync(root)) return;
+  yield* walkDir(root);
+}
+
+function* walkDir(dir) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name.startsWith('.')) continue;
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) yield* walkDir(full);
+    else if (entry.isFile() && extname(entry.name) === '.md') yield full;
+  }
+}
+
+// ---------- frontmatter (единый парсер — scripts/lib/frontmatter.mjs, C4) ----------
+
+function parseFrontmatterCompat(text) {
+  const { raw, fields } = parseFrontmatter(text);
+  return { fm: raw, fields };
+}
+
+function parseRelatedFromText(text) {
+  return parseRelatedList(parseFrontmatter(text).raw).map(normalize);
+}
+
+function normalize(p) {
+  return p.replace(/\\/g, '/').replace(/^\.\//, '').replace(/^\/+/, '').trim();
+}
+
+// ---------- сбор фактов ----------
+
+const issues = {
+  missingFrontmatter: [],
+  brokenRelated: [],
+  orphan: [],
+  staleSynthesis: [],
+  ghostInIndex: [],
+  staleInbox: [],   // advisory (L4): не гейтит — .context эфемерна и отсутствует в CI
+  staleAnswers: [], // advisory (N2): verified answer-card, чей источник изменился после verified_at
+  stubCards: [],    // advisory (D3): status stub/deprecated — скрыты из retrieval, дозаполнить или удалить
+};
+
+const allFiles = new Map(); // relPath → { layer, fields, related, mtimeMs }
+const backlinksByDst = new Map(); // dst → Set<src>
+
+for (const layer of Object.keys(LAYERS)) {
+  for (const absPath of walkMd(layer)) {
+    const rel = relative(REPO_ROOT, absPath);
+    const basename = rel.split('/').pop().toLowerCase();
+    if (EXEMPT_BASENAMES.has(basename)) continue;
+
+    const text = readFileSync(absPath, 'utf8');
+    const { fm, fields } = parseFrontmatterCompat(text);
+    const related = parseRelatedFromText(text);
+    const stat = statSync(absPath);
+
+    if (fields.status === 'stub' || fields.status === 'deprecated') {
+      issues.stubCards.push({ file: rel, status: fields.status });
+    }
+    allFiles.set(rel, {
+      layer,
+      fields,
+      related,
+      mtimeMs: stat.mtimeMs,
+    });
+
+    for (const dst of related) {
+      if (!backlinksByDst.has(dst)) backlinksByDst.set(dst, new Set());
+      backlinksByDst.get(dst).add(rel);
+    }
+
+    const rules = LAYERS[layer];
+
+    // 1. missing frontmatter / fields
+    if (rules.requireFm) {
+      if (!fm) {
+        issues.missingFrontmatter.push({ file: rel, layer, missing: ['<frontmatter целиком>'] });
+      } else {
+        const missing = rules.requireFields.filter((f) => !fields[f]);
+        if (missing.length > 0) {
+          issues.missingFrontmatter.push({ file: rel, layer, missing });
+        }
+      }
+    }
+
+    // 4. stale synthesis (sub-checks ниже после полного обхода — нужно знать mtime всех)
+    if (rules.staleCheck) {
+      const ageDays = Math.floor((NOW - stat.mtimeMs) / 86_400_000);
+      if (ageDays >= STALE_DAYS) {
+        issues.staleSynthesis.push({ file: rel, age_days: ageDays });
+      }
+    }
+  }
+}
+
+// 2. broken related — резолвим путь либо от REPO_ROOT (абсолютный),
+//    либо от директории src (относительный). URL'ы помечаем как «url» и
+//    пытаемся вытащить из них путь /blob/<branch>/<path>.
+// 2. broken related — резолвим в порядке:
+//   а) URL → если github.com/.../blob/<branch>/<path> — пробуем как путь от корня; иначе skip (external)
+//   б) Путь с ведущим /  → от REPO_ROOT
+//   в) Иначе:
+//      ① как от REPO_ROOT (для `AGENTS.md`, `tools/...`, `03_wiki/...`);
+//      ② если не нашёлся — как relative от dirname(src).
+//   Берём первый существующий вариант, в репорт пишем оба пробных пути.
+function resolveRelated(src, dst) {
+  if (/^https?:\/\//i.test(dst)) {
+    const m = dst.match(/github\.com\/[^/]+\/[^/]+\/(?:blob|tree)\/[^/]+\/(.+)$/);
+    if (m) return [{ kind: 'github-url', resolved: pnormalize(m[1]) }];
+    return [{ kind: 'external-url', resolved: dst, skip: true }];
+  }
+  if (dst.startsWith('/')) {
+    return [{ kind: 'absolute', resolved: dst.replace(/^\/+/, '') }];
+  }
+  const fromRoot = pnormalize(dst);
+  const fromDir = pnormalize(join(dirname(src), dst));
+  return [
+    { kind: 'from-root', resolved: fromRoot },
+    { kind: 'from-src-dir', resolved: fromDir },
+  ];
+}
+
+for (const [src, meta] of allFiles) {
+  for (const dst of meta.related) {
+    const candidates = resolveRelated(src, dst);
+    if (candidates[0].skip) continue;
+    const hit = candidates.find((c) => existsSync(join(REPO_ROOT, c.resolved)));
+    if (!hit) {
+      issues.brokenRelated.push({
+        src,
+        dst,
+        tried: candidates.map((c) => c.resolved),
+      });
+    }
+  }
+}
+
+// 3. orphan — только для wiki/synthesis/decisions, файл без backlinks И без forward-links
+for (const [rel, meta] of allFiles) {
+  if (!ORPHAN_CHECK_LAYERS.has(meta.layer)) continue;
+  // Living-документы (status: living) — точки входа/журналы (open-questions, contradictions):
+  // на них не обязаны ссылаться, это не осиротевшие узлы.
+  if (String(meta.fields?.status || '').toLowerCase() === 'living') continue;
+  const hasBacklinks = backlinksByDst.has(rel) && backlinksByDst.get(rel).size > 0;
+  const hasForward = meta.related.length > 0;
+  // README/index/_toc уже отфильтрованы выше.
+  if (!hasBacklinks && !hasForward) {
+    issues.orphan.push({ file: rel, layer: meta.layer });
+  }
+}
+
+// 5. ghost-in-index — если есть БД, сверяем files.path с FS
+let ghostCount = 0;
+if (existsSync(DB_PATH)) {
+  try {
+    const Database = (await import('better-sqlite3')).default;
+    const db = new Database(DB_PATH, { readonly: true });
+    const dbFiles = db.prepare('SELECT path FROM files').all().map((r) => r.path);
+    for (const p of dbFiles) {
+      if (!existsSync(join(REPO_ROOT, p))) {
+        issues.ghostInIndex.push({ file: p, source: 'files' });
+        ghostCount++;
+      }
+    }
+    const linkSrcs = db.prepare('SELECT DISTINCT src FROM links').all().map((r) => r.src);
+    for (const p of linkSrcs) {
+      if (!existsSync(join(REPO_ROOT, p))) {
+        issues.ghostInIndex.push({ file: p, source: 'links' });
+      }
+    }
+    db.close();
+  } catch (e) {
+    // БД есть, но не открывается — пропустим.
+  }
+}
+
+// 6. scratch-hygiene (L4) — .context/inbox/*.md со status:needs-review старше N дней.
+//    Это непромоутнутая память от kb_retain: видимость, что её пора разобрать (skill-ingest)
+//    и разложить по слоям или удалить. Advisory: НЕ влияет на exit (см. GATING ниже).
+const inboxDir = join(REPO_ROOT, '.context', 'inbox');
+if (existsSync(inboxDir)) {
+  for (const entry of readdirSync(inboxDir, { withFileTypes: true })) {
+    if (!entry.isFile() || extname(entry.name) !== '.md') continue;
+    const abs = join(inboxDir, entry.name);
+    let fields = {};
+    try { ({ fields } = parseFrontmatter(readFileSync(abs, 'utf8'))); } catch { continue; }
+    if (String(fields.status || '').toLowerCase() !== 'needs-review') continue;
+    const ageDays = Math.floor((NOW - statSync(abs).mtimeMs) / 86_400_000);
+    if (ageDays >= INBOX_STALE_DAYS) issues.staleInbox.push({ file: `.context/inbox/${entry.name}`, age_days: ageDays });
+  }
+}
+
+// 7. stale answer-cards (N2 guardrail) — verified answer-card (type: answer), чей источник
+//    (из related:) изменился ПОСЛЕ verified_at. Сигнал «перепроверь карту». Advisory.
+for (const [rel, meta] of allFiles) {
+  if (String(meta.fields?.type || '').toLowerCase() !== 'answer') continue;
+  const va = String(meta.fields?.verified_at || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}/.test(va)) continue;
+  const vaEpoch = Date.parse(va.slice(0, 10)) + 86_400_000; // +1д буфер: дата без времени
+  const changed = [];
+  for (const src of meta.related) {
+    const abs = join(REPO_ROOT, src);
+    if (!existsSync(abs)) continue; // несуществующий источник ловит broken-related
+    if (statSync(abs).mtimeMs > vaEpoch) changed.push(src);
+  }
+  if (changed.length) issues.staleAnswers.push({ file: rel, verified_at: va.slice(0, 10), changed });
+}
+
+// ---------- вывод ----------
+
+const summary = {
+  total_files: allFiles.size,
+  missing_frontmatter: issues.missingFrontmatter.length,
+  broken_related: issues.brokenRelated.length,
+  orphans: issues.orphan.length,
+  stale_synthesis: issues.staleSynthesis.length,
+  ghost_in_index: issues.ghostInIndex.length,
+  stale_inbox: issues.staleInbox.length,
+  stale_answers: issues.staleAnswers.length,
+  stub_cards: issues.stubCards.length,
+};
+
+await appendJournal({ kind: 'doctor', ts: new Date().toISOString(), summary });
+
+if (asJson) {
+  console.log(JSON.stringify({ summary, issues }, null, 2));
+  process.exit(0);
+}
+
+console.log('');
+console.log('═'.repeat(60));
+console.log('  kb-doctor — health-check KB');
+console.log('═'.repeat(60));
+console.log('');
+console.log(`  Файлов проверено:        ${summary.total_files}`);
+console.log(`  Missing frontmatter:     ${summary.missing_frontmatter}`);
+console.log(`  Broken related:          ${summary.broken_related}`);
+console.log(`  Orphan-страницы:         ${summary.orphans}`);
+console.log(`  Stale synthesis (>${STALE_DAYS}д):  ${summary.stale_synthesis}`);
+console.log(`  Ghost в индексе:         ${summary.ghost_in_index}`);
+console.log(`  Stale inbox (advisory):  ${summary.stale_inbox}`);
+console.log(`  Stale answers (advisory):${summary.stale_answers}`);
+console.log(`  Stub-карточки (advisory):${summary.stub_cards}`);
+console.log('');
+
+// Advisory-секции всегда видны (не влияют на exit).
+if (issues.staleInbox.length > 0) {
+  console.log('─'.repeat(60));
+  console.log(`  ⚠ Залежавшаяся inbox-память (>${INBOX_STALE_DAYS}д, status: needs-review)  (${issues.staleInbox.length})`);
+  console.log('─'.repeat(60));
+  for (const it of issues.staleInbox.slice(0, 20)) console.log(`  • ${it.file}   возраст=${it.age_days}д`);
+  console.log('  → разобрать через skill-ingest: разложить по слоям и закоммитить, либо удалить.');
+  console.log('');
+}
+if (issues.staleAnswers.length > 0) {
+  console.log('─'.repeat(60));
+  console.log(`  ⚠ Устаревшие answer-cards (источник изменился после verified_at)  (${issues.staleAnswers.length})`);
+  console.log('─'.repeat(60));
+  for (const it of issues.staleAnswers.slice(0, 20)) console.log(`  • ${it.file}   verified_at=${it.verified_at}   изменились: ${it.changed.join(', ')}`);
+  console.log('  → перепроверь ответ (kb_promote заново или правка) и обнови verified_at, либо status: stale.');
+  console.log('');
+}
+
+if (issues.stubCards.length > 0) {
+  console.log('─'.repeat(60));
+  console.log(`  ⚠ Stub/deprecated-карточки — скрыты из retrieval (D3)  (${issues.stubCards.length})`);
+  console.log('─'.repeat(60));
+  for (const it of issues.stubCards.slice(0, 20)) console.log(`  • ${it.file}   status=${it.status}`);
+  console.log('  → дозаполни карточку (убери status: stub) или удали файл.');
+  console.log('');
+}
+
+// Гейтят только эти проверки. stale_inbox — advisory (см. L4), total_files — счётчик.
+const GATING = ['missing_frontmatter', 'broken_related', 'orphans', 'stale_synthesis', 'ghost_in_index'];
+const totalIssues = GATING.reduce((s, k) => s + summary[k], 0);
+if (totalIssues === 0) {
+  console.log('  ✓ Все проверки пройдены.');
+  console.log('');
+  process.exit(0);
+}
+
+function section(title, items, render) {
+  if (items.length === 0) return;
+  console.log('─'.repeat(60));
+  console.log(`  ${title}  (${items.length})`);
+  console.log('─'.repeat(60));
+  for (const it of items.slice(0, 20)) console.log('  • ' + render(it));
+  if (items.length > 20) console.log(`  … ещё ${items.length - 20}`);
+  console.log('');
+}
+
+section('Missing frontmatter', issues.missingFrontmatter, (i) =>
+  `${i.file}   missing: ${i.missing.join(', ')}`);
+
+section('Broken related (указывают в никуда)', issues.brokenRelated, (i) =>
+  `${i.src}   →   ${i.dst}   (пробовали: ${i.tried.join(' | ')})`);
+
+section('Orphan-страницы (нет related ни туда, ни оттуда)', issues.orphan, (i) =>
+  `${i.file}   [${i.layer}]`);
+
+section(`Stale synthesis (>${STALE_DAYS} дней)`, issues.staleSynthesis, (i) =>
+  `${i.file}   возраст=${i.age_days}д`);
+
+section('Ghost в индексе (БД помнит, FS — нет)', issues.ghostInIndex, (i) =>
+  `${i.file}   [из ${i.source}]   → запустить: node scripts/semantic/index.mjs`);
+
+if (fixDryrun) {
+  console.log('─'.repeat(60));
+  console.log('  Подсказки по фиксу');
+  console.log('─'.repeat(60));
+  if (issues.ghostInIndex.length > 0) {
+    console.log('  • Ghost в индексе чистится переиндексацией:');
+    console.log('      node scripts/semantic/index.mjs');
+  }
+  if (issues.brokenRelated.length > 0) {
+    console.log('  • Broken related — открой каждый src и поправь путь в frontmatter related:');
+  }
+  if (issues.orphan.length > 0) {
+    console.log('  • Orphans — либо добавь файл в related: соседнего документа,');
+    console.log('    либо удали как устаревший. Для wiki часто нужно встроить в /04_synthesis/.');
+  }
+  console.log('');
+}
+
+process.exit(totalIssues > 0 ? 1 : 0);

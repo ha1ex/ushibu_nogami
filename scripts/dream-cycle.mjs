@@ -1,0 +1,367 @@
+#!/usr/bin/env node
+// dream-cycle.mjs — еженедельный LLM-аудит KB по аналогии с gbrain «dream».
+//
+// Использование:
+//   node scripts/dream-cycle.mjs                # сгенерировать промпт + сохранить в .context/dream-report-YYYY-MM-DD.md
+//   node scripts/dream-cycle.mjs --execute      # дополнительно прогнать через `claude -p` (если CLI в PATH)
+//   node scripts/dream-cycle.mjs --dry-run      # только напечатать промпт в stdout, не сохранять
+//   node scripts/dream-cycle.mjs --days 14      # окно (по умолчанию 7)
+//
+// Что собирает в промпт:
+//   • Список .md-файлов, изменённых в последние N дней (git log)
+//   • Полностью /04_synthesis/open-questions.md и /04_synthesis/contradictions.md
+//   • Tail последнего раздела /log.md (~120 строк)
+//   • Список 10 самых старых synthesis-файлов (потенциально устаревшее)
+//
+// Задаёт LLM три вопроса:
+//   1. Что из open-questions / contradictions могло устареть с учётом последних коммитов?
+//   2. Какие новые противоречия видны в diff'е?
+//   3. Какие synthesis/wiki-файлы стоит обновить (с обоснованием через цитаты)?
+//
+// Никогда не пишет в /03_wiki, /04_synthesis, /05_decisions — только в .context/.
+// Пользователь сам решает, что коммитить.
+
+import { existsSync, statSync, readFileSync, readdirSync, mkdirSync, writeFileSync } from 'node:fs';
+import { join, resolve, relative, extname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
+import { readJournal, summarizeJournal } from './lib/journal.mjs';
+import { openDb, createEmbedder, searchVec, QUERY_PREFIX, DB_PATH as SEM_DB_PATH, docDateToEpochDays } from './semantic/lib.mjs';
+
+import { KB_ROOT } from './lib/kb-root.mjs';
+
+const REPO_ROOT = KB_ROOT;
+
+const argv = process.argv.slice(2);
+const dryRun = argv.includes('--dry-run');
+const execute = argv.includes('--execute');
+const daysIdx = argv.indexOf('--days');
+const days = daysIdx >= 0 ? parseInt(argv[daysIdx + 1], 10) : 7;
+if (!Number.isFinite(days) || days <= 0) {
+  console.error('--days должно быть положительным числом');
+  process.exit(1);
+}
+
+const today = new Date();
+const todayISO = today.toISOString().slice(0, 10);
+const sinceISO = new Date(today.getTime() - days * 86_400_000).toISOString().slice(0, 10);
+
+// Журнал операций KB за окно (search/think/eval/verify/doctor) — фактическое поведение,
+// а не только git-история. Раскрывает пробелы: что искали и не нашли, какие verify провалились.
+const journalRecords = await readJournal({ since: sinceISO, limit: 2000 });
+const journal = summarizeJournal(journalRecords);
+
+// ---------- 1. Изменённые файлы за окно (git log) ----------
+
+function gitLogFiles(sinceDate) {
+  const r = spawnSync('git', [
+    'log',
+    `--since=${sinceDate}`,
+    '--name-only',
+    '--pretty=format:===%h %ad %s',
+    '--date=short',
+  ], { cwd: REPO_ROOT, encoding: 'utf8' });
+  if (r.status !== 0) return { commits: [], files: [] };
+  const blocks = r.stdout.split('\n===').filter(Boolean);
+  const commits = [];
+  const filesSet = new Set();
+  for (const b of blocks) {
+    const lines = b.replace(/^===/, '').split('\n').filter(Boolean);
+    if (lines.length === 0) continue;
+    const [head, ...rest] = lines;
+    commits.push(head);
+    for (const f of rest) {
+      if (f.endsWith('.md')) filesSet.add(f);
+    }
+  }
+  return { commits, files: Array.from(filesSet) };
+}
+
+const { commits, files: changedMd } = gitLogFiles(sinceISO);
+
+// ---------- 2. Ключевые synthesis-файлы ----------
+
+function readSafe(rel) {
+  const abs = join(REPO_ROOT, rel);
+  if (!existsSync(abs)) return null;
+  try { return readFileSync(abs, 'utf8'); } catch { return null; }
+}
+
+const openQuestions = readSafe('04_synthesis/open-questions.md');
+const contradictions = readSafe('04_synthesis/contradictions.md');
+const logTail = (() => {
+  const raw = readSafe('log.md');
+  if (!raw) return null;
+  const all = raw.split('\n');
+  return all.slice(Math.max(0, all.length - 120)).join('\n');
+})();
+
+// ---------- 3. Самые старые synthesis-файлы ----------
+
+function* walkMd(layer) {
+  const root = join(REPO_ROOT, layer);
+  if (!existsSync(root)) return;
+  yield* walkDir(root);
+}
+function* walkDir(dir) {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    if (e.name.startsWith('.')) continue;
+    const full = join(dir, e.name);
+    if (e.isDirectory()) yield* walkDir(full);
+    else if (e.isFile() && extname(e.name) === '.md') yield full;
+  }
+}
+
+const synthesisFiles = [];
+for (const abs of walkMd('04_synthesis')) {
+  const st = statSync(abs);
+  synthesisFiles.push({ rel: relative(REPO_ROOT, abs), mtimeMs: st.mtimeMs });
+}
+synthesisFiles.sort((a, b) => a.mtimeMs - b.mtimeMs);
+const oldestSynthesis = synthesisFiles.slice(0, 10).map((f) => ({
+  file: f.rel,
+  age_days: Math.floor((today.getTime() - f.mtimeMs) / 86_400_000),
+}));
+
+// ---------- 3b. Консолидация фактов (near-duplicate кластеры, on-device) ----------
+//
+// Зеркалит «Observations» Hindsight (дедуп + freshness), но детерминированно и advisory.
+// Находим пары близких чанков ИЗ РАЗНЫХ ФАЙЛОВ человеко-курируемых слоёв (порог сходства высокий)
+// — кандидаты на консолидацию/противоречие. Если у пары разные doc_date — помечаем freshness-конфликт
+// (более новый источник мог переписать старый). Скармливаем LLM как подсказку, сам он решает.
+// Best-effort: если индекс/модель недоступны — секция пропускается (dream-cycle не падает).
+
+const CONSOLIDATION_LAYERS = ['00_context', '02_sources', '03_wiki', '04_synthesis', '05_decisions'];
+const DUP_SIM = 0.90;        // высокий порог — именно near-duplicate, не «просто по теме»
+const MAX_DUP_CHUNKS = 400;  // предел числа исходных чанков (cost-bound); о превышении сообщаем
+
+async function computeConsolidation() {
+  if (!existsSync(SEM_DB_PATH)) return { available: false, reason: 'нет semantic-индекса (node scripts/semantic/index.mjs)' };
+  let db;
+  try {
+    db = openDb(SEM_DB_PATH);
+    const embed = await createEmbedder();
+    const ph = CONSOLIDATION_LAYERS.map(() => '?').join(',');
+    const rows = db.prepare(
+      `SELECT id, file, line_start, text, doc_date FROM chunks WHERE layer IN (${ph}) ORDER BY file, line_start`,
+    ).all(...CONSOLIDATION_LAYERS);
+    const capped = rows.length > MAX_DUP_CHUNKS;
+    const work = rows.slice(0, MAX_DUP_CHUNKS);
+    if (work.length === 0) return { available: true, pairs: [], capped: false, scanned: 0 };
+
+    const embeddings = await embed(work.map((r) => QUERY_PREFIX + r.text));
+    const seenPair = new Set();
+    const pairs = [];
+    for (let i = 0; i < work.length; i++) {
+      const src = work[i];
+      const hits = searchVec(db, embeddings[i], { topK: 6 });
+      for (const h of hits) {
+        if (h.file === src.file) continue;
+        if (h.similarity < DUP_SIM) continue;
+        const key = [src.id, h.id].sort((a, b) => a - b).join(':');
+        if (seenPair.has(key)) continue;
+        seenPair.add(key);
+        const da = docDateToEpochDays(src.doc_date);
+        const dbd = docDateToEpochDays(h.doc_date);
+        let fresher = null;
+        if (da != null && dbd != null && da !== dbd) fresher = da > dbd ? 'A' : 'B';
+        pairs.push({
+          sim: Number(h.similarity.toFixed(3)),
+          a: { file: src.file, line: src.line_start, date: src.doc_date || '?' },
+          b: { file: h.file, line: h.line_start, date: h.doc_date || '?' },
+          freshness_conflict: fresher,
+        });
+      }
+    }
+    pairs.sort((x, y) => y.sim - x.sim);
+    return { available: true, pairs: pairs.slice(0, 40), capped, scanned: work.length };
+  } catch (e) {
+    return { available: false, reason: `ошибка индекса/модели: ${e && e.message}` };
+  } finally {
+    if (db) db.close();
+  }
+}
+
+const consolidation = await computeConsolidation();
+
+// ---------- 4. Собираем промпт ----------
+
+const lines = [];
+lines.push(`# Dream cycle — KB-аудит на ${todayISO}`);
+lines.push('');
+lines.push(`Окно: последние **${days} дней** (с ${sinceISO}). Коммитов: ${commits.length}. Изменённых .md: ${changedMd.length}.`);
+lines.push('');
+lines.push('---');
+lines.push('');
+lines.push('## Системная инструкция');
+lines.push('');
+lines.push('Ты помогаешь поддерживать локальную KB в актуальном состоянии. Отвечай на русском.');
+lines.push('Используй метки утверждений из AGENTS.md: `FACT/INFERENCE/ASSUMPTION/UNKNOWN/RISK/DECISION/RECOMMENDATION`.');
+lines.push('Каждое нетривиальное утверждение — со ссылкой `[source: /path]`.');
+lines.push('');
+lines.push('Твоя задача — провести аудит и выдать структурированный отчёт по трём разделам ниже.');
+lines.push('Это **дроп-зона**: ничего не правится в репозитории. Выводи только аналитику.');
+lines.push('');
+lines.push('## Что нужно сделать');
+lines.push('');
+lines.push('### 1. Что могло устареть');
+lines.push('Сопоставь `04_synthesis/open-questions.md` и `04_synthesis/contradictions.md` с коммитами за окно.');
+lines.push('Найди пункты, которые:');
+lines.push('  - могли быть закрыты новыми источниками (out of date — пометь как `UNKNOWN: проверить, не закрыто ли`);');
+lines.push('  - наоборот, требуют переоценки (пометь как `RISK:`).');
+lines.push('Дай 5–10 конкретных пунктов с цитатами на затронутые файлы.');
+lines.push('');
+lines.push('### 2. Новые противоречия');
+lines.push('Прочитай свежие коммиты и выяви противоречия с уже зафиксированными в `contradictions.md` или внутри новых файлов.');
+lines.push('Формат: «Источник A vs Источник B → природа конфликта → confidence для каждой стороны».');
+lines.push('Если новых противоречий нет — явно скажи `FACT: новых противоречий не обнаружено за окно`.');
+lines.push('');
+lines.push('### 3. Synthesis к обновлению');
+lines.push('Перечисли 3–5 файлов из `/04_synthesis/`, которые с учётом новых коммитов следует обновить.');
+lines.push('Для каждого: какой раздел, что добавить, ссылка на свежий источник.');
+lines.push('');
+lines.push('### 4. Сигналы из операций (kb-journal)');
+lines.push('Посмотри журнал операций ниже (раздел «Контекст: журнал операций»).');
+lines.push('  - Какие запросы часто давали пустую выдачу — это пробелы KB; предложи `UNKNOWN:` пункты в open-questions.');
+lines.push('  - Какие цитаты провалили verify — это риск fabricated citations; пометь `RISK:` и назови файл.');
+lines.push('Если журнал пуст — скажи `FACT: журнал операций пуст за окно`.');
+lines.push('');
+lines.push('### 5. Консолидация фактов (near-duplicate)');
+lines.push('Ниже — раздел «Контекст: кандидаты на консолидацию»: пары близких фрагментов из РАЗНЫХ файлов.');
+lines.push('Для каждой значимой пары реши:');
+lines.push('  - **дубликат** → какой источник канонический, какой свернуть/сослаться (предложи, НЕ правь);');
+lines.push('  - **противоречие** → если у пары `freshness_conflict`, более новый источник мог переписать старый — ');
+lines.push('    пометь `RISK:` и предложи запись в `04_synthesis/contradictions.md` (Источник A vs B → природа → confidence);');
+lines.push('  - **разные факты, ложное совпадение** → игнорируй.');
+lines.push('Если кандидатов нет — скажи `FACT: near-duplicate кандидатов не обнаружено`.');
+lines.push('');
+lines.push('---');
+lines.push('');
+lines.push('## Контекст: коммиты за окно');
+lines.push('');
+lines.push('```');
+for (const c of commits.slice(0, 80)) lines.push(c);
+if (commits.length > 80) lines.push(`... ещё ${commits.length - 80}`);
+lines.push('```');
+lines.push('');
+lines.push('## Контекст: изменённые .md за окно');
+lines.push('');
+if (changedMd.length === 0) {
+  lines.push('_(нет)_');
+} else {
+  for (const f of changedMd) lines.push(`- ${f}`);
+}
+lines.push('');
+lines.push('## Контекст: 10 самых старых synthesis-файлов');
+lines.push('');
+for (const f of oldestSynthesis) lines.push(`- ${f.file}   возраст=${f.age_days}д`);
+lines.push('');
+lines.push('## Контекст: журнал операций (kb-journal)');
+lines.push('');
+if (journal.total === 0) {
+  lines.push('_(журнал пуст за окно — операции search/think/eval/verify ещё не логировались)_');
+} else {
+  const byKind = Object.entries(journal.by_kind)
+    .map(([k, v]) => `${k}=${v.count}${v.avg_timing_ms != null ? ` (avg ${v.avg_timing_ms}ms)` : ''}`)
+    .join(', ');
+  lines.push(`Всего операций за окно: **${journal.total}** — ${byKind}.`);
+  lines.push('');
+  if (journal.top_queries.length) {
+    lines.push('**Топ-запросы:**');
+    for (const q of journal.top_queries.slice(0, 10)) lines.push(`- «${q.query}» ×${q.count}`);
+    lines.push('');
+  }
+  if (journal.empty_queries.length) {
+    lines.push('**Запросы с пустой выдачей (пробелы KB):**');
+    for (const q of journal.empty_queries.slice(0, 15)) lines.push(`- «${q.query}» ×${q.count}`);
+    lines.push('');
+  }
+  if (journal.failed_verify.length) {
+    lines.push('**Проваленные verify (риск fabricated citations):**');
+    for (const v of journal.failed_verify) lines.push(`- ${v.citations_ok}/${v.citations_total} цитат ok @ ${v.ts || '?'}`);
+    lines.push('');
+  }
+}
+lines.push('## Контекст: кандидаты на консолидацию (near-duplicate, on-device)');
+lines.push('');
+if (!consolidation.available) {
+  lines.push(`_(пропущено: ${consolidation.reason})_`);
+} else if (consolidation.pairs.length === 0) {
+  lines.push(`_(near-duplicate пар не найдено; просканировано чанков: ${consolidation.scanned})_`);
+} else {
+  lines.push(`Порог сходства ≥ ${DUP_SIM}. Показано ${consolidation.pairs.length} пар${consolidation.capped ? ` (скан ограничен ${MAX_DUP_CHUNKS} чанками — список неполон)` : ''}.`);
+  lines.push('');
+  for (const p of consolidation.pairs) {
+    const fc = p.freshness_conflict ? `  ⚠️ freshness: новее ${p.freshness_conflict === 'A' ? 'A' : 'B'}` : '';
+    lines.push(`- sim=${p.sim}  A=\`${p.a.file}:${p.a.line}\` (${p.a.date})  ↔  B=\`${p.b.file}:${p.b.line}\` (${p.b.date})${fc}`);
+  }
+}
+lines.push('');
+lines.push('---');
+lines.push('');
+lines.push('## /04_synthesis/open-questions.md');
+lines.push('');
+lines.push(openQuestions ?? '_(файл не найден)_');
+lines.push('');
+lines.push('---');
+lines.push('');
+lines.push('## /04_synthesis/contradictions.md');
+lines.push('');
+lines.push(contradictions ?? '_(файл не найден)_');
+lines.push('');
+lines.push('---');
+lines.push('');
+lines.push('## tail /log.md (последние ~120 строк)');
+lines.push('');
+lines.push(logTail ?? '_(файл не найден)_');
+lines.push('');
+
+const promptText = lines.join('\n');
+
+// ---------- 5. Вывод ----------
+
+if (dryRun) {
+  console.log(promptText);
+  process.exit(0);
+}
+
+const outDir = join(REPO_ROOT, '.context');
+if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
+const outPath = join(outDir, `dream-report-${todayISO}.md`);
+
+if (execute) {
+  // Попробуем через claude CLI.
+  const which = spawnSync('which', ['claude'], { encoding: 'utf8' });
+  if (which.status !== 0) {
+    writeFileSync(outPath, promptText);
+    console.log(`[dream] claude CLI не найден; сохранил промпт в ${relative(REPO_ROOT, outPath)}`);
+    console.log('[dream] скопируйте файл в любой LLM, ответ положите рядом как dream-answer-YYYY-MM-DD.md');
+    process.exit(0);
+  }
+  const res = spawnSync('claude', ['-p', promptText], { encoding: 'utf8', timeout: 300_000, killSignal: 'SIGTERM' });
+  if (res.error || res.signal === 'SIGTERM') {
+    writeFileSync(outPath, promptText);
+    console.log(`[dream] claude не ответил за 5 мин (${res.error?.code || res.signal}); сохранил промпт в ${relative(REPO_ROOT, outPath)}`);
+    process.exit(0);
+  }
+  const answer = res.stdout || '(пусто)';
+  const combined = [
+    `# Dream cycle ${todayISO} — ответ Claude`,
+    '',
+    '> Промпт целиком в нижней секции, ниже — синтез.',
+    '',
+    answer,
+    '',
+    '---',
+    '',
+    '# Использованный промпт',
+    '',
+    promptText,
+  ].join('\n');
+  writeFileSync(outPath, combined);
+  console.log(`[dream] готово, сохранено в ${relative(REPO_ROOT, outPath)}`);
+} else {
+  writeFileSync(outPath, promptText);
+  console.log(`[dream] промпт сохранён в ${relative(REPO_ROOT, outPath)}`);
+  console.log('[dream] скопируйте файл в Claude/любой LLM. Для авто-прогона — флаг --execute (нужен claude CLI).');
+}
