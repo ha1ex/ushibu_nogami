@@ -1,5 +1,8 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, rename, rm } from 'node:fs/promises';
 import { join } from 'node:path';
+
+const defaultFileSystem = { mkdir, readFile, writeFile, rename, rm };
+const tomlBareKey = /^[A-Za-z0-9_-]+$/;
 
 function isPlainObject(value) {
   if (value === null || typeof value !== 'object') return false;
@@ -21,6 +24,9 @@ export function validateManifest(value) {
     if (!isPlainObject(server)) invalid(`server ${index} must be a plain object`);
     if (typeof server.name !== 'string' || server.name.trim() === '') {
       invalid(`server ${index} must have a non-empty name`);
+    }
+    if (!tomlBareKey.test(server.name)) {
+      invalid(`server ${server.name} name must be a TOML bare key`);
     }
     if (names.has(server.name)) invalid(`duplicate server name: ${server.name}`);
     names.add(server.name);
@@ -64,8 +70,51 @@ export function renderCodexConfig(manifest) {
   return `# Generated from agent-config/mcp-servers.json. Do not edit.\n\n${tables.join('\n\n')}\n`;
 }
 
-export async function syncConfigs({ root, write }) {
-  const manifest = validateManifest(JSON.parse(await readFile(join(root, 'agent-config/mcp-servers.json'), 'utf8')));
+async function removeTemporaryFiles(files, fileSystem) {
+  await Promise.all(files.map(async ({ temporary }) => {
+    try {
+      await fileSystem.rm(temporary, { force: true });
+    } catch {
+      // A failed cleanup must not mask the write or rollback error.
+    }
+  }));
+}
+
+async function writeAtomically(files, fileSystem) {
+  try {
+    await Promise.all(files.map(({ temporary, content }) => fileSystem.writeFile(temporary, content)));
+
+    for (const file of files) {
+      if (file.current === undefined) continue;
+      await fileSystem.rename(file.destination, file.backup);
+      file.backedUp = true;
+    }
+
+    for (const file of files) {
+      await fileSystem.rename(file.temporary, file.destination);
+      file.promoted = true;
+    }
+
+    await Promise.all(files
+      .filter(({ backedUp }) => backedUp)
+      .map(({ backup }) => fileSystem.rm(backup)));
+  } catch (error) {
+    await Promise.allSettled(files
+      .filter(({ promoted }) => promoted)
+      .reverse()
+      .map(({ destination }) => fileSystem.rm(destination, { force: true })));
+    await Promise.allSettled(files
+      .filter(({ backedUp }) => backedUp)
+      .reverse()
+      .map(({ backup, destination }) => fileSystem.rename(backup, destination)));
+    throw error;
+  } finally {
+    await removeTemporaryFiles(files, fileSystem);
+  }
+}
+
+export async function syncConfigs({ root, write, fileSystem = defaultFileSystem }) {
+  const manifest = validateManifest(JSON.parse(await fileSystem.readFile(join(root, 'agent-config/mcp-servers.json'), 'utf8')));
   const expected = new Map([
     ['.mcp.json', renderClaudeConfig(manifest)],
     ['.codex/config.toml', renderCodexConfig(manifest)],
@@ -75,7 +124,7 @@ export async function syncConfigs({ root, write }) {
   for (const [path, content] of expected) {
     let current;
     try {
-      current = await readFile(join(root, path), 'utf8');
+      current = await fileSystem.readFile(join(root, path), 'utf8');
     } catch (error) {
       if (error.code !== 'ENOENT') throw error;
     }
@@ -83,8 +132,27 @@ export async function syncConfigs({ root, write }) {
   }
 
   if (write && drift.length > 0) {
-    await mkdir(join(root, '.codex'), { recursive: true });
-    await Promise.all(drift.map((path) => writeFile(join(root, path), expected.get(path))));
+    await fileSystem.mkdir(join(root, '.codex'), { recursive: true });
+    const token = `${process.pid}-${Date.now()}`;
+    const files = drift.map((path, index) => {
+      const destination = join(root, path);
+      return {
+        content: expected.get(path),
+        current: undefined,
+        destination,
+        temporary: `${destination}.tmp-${token}-${index}`,
+        backup: `${destination}.bak-${token}-${index}`,
+      };
+    });
+
+    for (const file of files) {
+      try {
+        file.current = await fileSystem.readFile(file.destination, 'utf8');
+      } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+      }
+    }
+    await writeAtomically(files, fileSystem);
   }
 
   return { drift };
