@@ -127,14 +127,14 @@ pnpm kb:doctor               # health-check (должен быть EXIT 0)
 
 Дальше:
 - **Персонализация:** `pnpm kb:init` уже вписал цель в [`AGENTS.md`](AGENTS.md) и
-  [`.remember/core.md`](.remember/core.md) — проверь руками; язык/workflow в
-  [`CLAUDE.md`](CLAUDE.md), ручки формы ответа — в [`.remember/preferences.md`](.remember/preferences.md).
+  [`.remember/core.md`](.remember/core.md) — проверь руками; язык/workflow меняются только в
+  [`AGENTS.md`](AGENTS.md), ручки формы ответа — в [`.remember/preferences.md`](.remember/preferences.md).
 - **Локальный гейт цитат до CI:** `git config core.hooksPath scripts/git-hooks` — pre-push
   прогонит `verify --scan --provenance` (закрывает запись в слои мимо хуков агента).
 - **Живой пример дисциплины:** сквозной walkthrough «пилот AI-ассистента поддержки» в слоях
   `00_context → 05_decisions` (см. [`index.md`](index.md)); удаляется `kb:init --strip-demo`.
-- **MCP в Claude Code:** `.mcp.json` уже настроен — перезапусти Claude Code в проекте, появятся
-  инструменты `kb_*`.
+- **MCP в Claude Code:** generated `.mcp.json` уже настроен — перезапусти Claude Code в проекте,
+  появятся инструменты `kb_*`. Его source of truth — `agent-config/mcp-servers.json`.
 - **Веб-витрина для коллег:** `pnpm viewer:dev` → `http://localhost:5173` (см. [ниже](#веб-витрина-для-коллег)).
 
 > **Supply chain:** запускай `pnpm audit`. В шаблоне зафиксирован `pnpm.overrides` на
@@ -378,7 +378,8 @@ open-questions/contradictions · дашборд SkillOpt. Для коллег: `
 | `CLAUDE.md` | Только Claude adapter; нормативные правила сюда не добавлять |
 | `.remember/core.md` · `preferences.md` | Инвариант проекта и форма ответа |
 | `scripts/semantic/probes.local.mjs` | Свои eval-пробы (создать; см. `probes.mjs`) |
-| `.mcp.json` · `LICENSE` | Конфиг MCP · copyright holder |
+| `agent-config/mcp-servers.json` | MCP manifest (`command`, `args`, `description`); после изменения запустить `pnpm agent:sync` |
+| `LICENSE` | Copyright holder |
 
 **Не нужно** править ядро (`scripts/semantic/`, `scripts/lib/`) — оно template-owned и обновляется
 от upstream; граница зафиксирована в [`.template-manifest.json`](.template-manifest.json).
@@ -393,8 +394,11 @@ KB_ROOT=~/kb/personal node scripts/semantic/index.mjs     # индекс чуж�
 KB_ROOT=~/kb/personal node scripts/semantic/search.mjs "запрос"
 ```
 
-В `.mcp.json` можно зарегистрировать второй сервер с `"env": {"KB_ROOT": "~/kb/personal"}` —
-имя инструментов возьмётся от basename корня (`kb-personal`).
+Project adapters `.mcp.json` и `.codex/config.toml` генерируются и вручную не редактируются: общие
+серверы меняются через `agent-config/mcp-servers.json` и `pnpm agent:sync`. Manifest v1 поддерживает
+только `command`, `args` и `description`, поэтому machine-specific `env` для второй внешней KB
+задаётся в user-level MCP config конкретного клиента и не входит в cross-host parity. Если второй
+сервер должен быть общим для Claude Code и Codex, сначала нужно явно расширить schema и оба renderer.
 
 ## Как обновляться от upstream
 

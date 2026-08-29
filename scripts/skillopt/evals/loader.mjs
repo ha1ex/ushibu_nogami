@@ -179,19 +179,19 @@ export async function discoverEvals({ skillFilter = null, caseFilter = null } = 
 /**
  * Поверхностный обзор: какие скиллы есть и сколько у них кейсов.
  */
-export async function listSkillsWithEvals() {
-  if (!existsSync(SKILLS_DIR)) return [];
-  const entries = await readdir(SKILLS_DIR, { withFileTypes: true });
+export async function listSkillsWithEvals({ skillsDir = SKILLS_DIR } = {}) {
+  if (!existsSync(skillsDir)) return [];
+  const entries = await readdir(skillsDir, { withFileTypes: true });
   const out = [];
   for (const e of entries) {
     if (!e.isDirectory()) continue;
     if (e.name.startsWith(".") || e.name === "_shared") continue;
     const skillFiles = [
-      join(SKILLS_DIR, `${e.name}.md`),
-      join(SKILLS_DIR, e.name, `${e.name}.md`),
-      join(SKILLS_DIR, e.name, "SKILL.md"),
+      join(skillsDir, `${e.name}.md`),
+      join(skillsDir, e.name, `${e.name}.md`),
+      join(skillsDir, e.name, "SKILL.md"),
     ];
-    const evalsDir = join(SKILLS_DIR, e.name, "evals");
+    const evalsDir = join(skillsDir, e.name, "evals");
     let caseCount = 0;
     if (existsSync(evalsDir)) {
       const files = await readdir(evalsDir);
@@ -220,14 +220,14 @@ export async function listSkillsWithEvals() {
  *   skills/skill-foo/skill-foo.md
  *   skills/skill-foo/SKILL.md      (native формат host skills)
  */
-export async function readSkillFile(skillName) {
+export async function readSkillFile(skillName, { skillsDir = SKILLS_DIR, repoRoot = REPO_ROOT } = {}) {
   const candidates = [
-    join(SKILLS_DIR, `${skillName}.md`),
-    join(SKILLS_DIR, skillName, `${skillName}.md`),
-    join(SKILLS_DIR, skillName, "SKILL.md"),
+    join(skillsDir, `${skillName}.md`),
+    join(skillsDir, skillName, `${skillName}.md`),
+    join(skillsDir, skillName, "SKILL.md"),
   ];
   for (const p of candidates) {
-    if (existsSync(p)) return { path: relative(REPO_ROOT, p), text: await readFile(p, "utf8") };
+    if (existsSync(p)) return { path: relative(repoRoot, p), text: await readFile(p, "utf8") };
   }
   throw new Error(`[skillopt:loader] skill-файл не найден для "${skillName}". Пробовали: ${candidates.join(" | ")}`);
 }

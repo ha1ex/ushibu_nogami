@@ -11,10 +11,17 @@ function withoutHtmlComments(content) {
   return content.replace(/<!--[\s\S]*?-->/g, '');
 }
 
+function commandIsExplicitlyProhibited(prefix) {
+  return /(?:\b(?:do not|don't|must not|never)\s+(?:run|execute|use)|(?:не\s+(?:выполня(?:й|йте|ть)|запуска(?:й|йте|ть)|использ(?:уй|уйте|овать)|пуш(?:ь|ьте|ить))|запрещ(?:ено|ается)\s+(?:выполнять|запускать|использовать)))\s*(?:the\s+command|команду|командой)?[\s`*_"'«»()[\]:-]*$/iu.test(prefix);
+}
+
 function hasMandatoryAutomaticMainPush(content) {
   return withoutHtmlComments(content).split('\n').some((line) => {
-    if (!/git\s+push\s+origin\s+HEAD:main/i.test(line)) return false;
-    return !/(?:\bnever\b|\bdo\s+not\b|\bdon't\b|\bmust\s+not\b|\bwithout\s+explicit\b|\bno\s+automatic\b|\bзапрещ|\bникогда\b|\bбез\s+явн|\bне\s+(?:выполня|пуш|дела))/i.test(line);
+    const commands = line.matchAll(/git\s+push\s+origin\s+HEAD:main/gi);
+    for (const command of commands) {
+      if (!commandIsExplicitlyProhibited(line.slice(0, command.index))) return true;
+    }
+    return false;
   });
 }
 
@@ -27,16 +34,27 @@ async function readText(root, path, errors) {
   }
 }
 
-function hookCommands(value, commands = []) {
-  if (Array.isArray(value)) {
-    for (const item of value) hookCommands(item, commands);
-  } else if (value && typeof value === 'object') {
-    for (const [key, item] of Object.entries(value)) {
-      if (key === 'command' && typeof item === 'string') commands.push(item);
-      else hookCommands(item, commands);
+function eventHookCommands(config, event) {
+  const entries = config?.hooks?.[event];
+  if (!Array.isArray(entries)) return [];
+
+  const commands = [];
+  for (const entry of entries) {
+    if (!entry || !Array.isArray(entry.hooks)) continue;
+    for (const hook of entry.hooks) {
+      if (hook && typeof hook.command === 'string') commands.push(hook.command);
     }
   }
   return commands;
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function commandReferencesScript(command, scriptPath) {
+  const escaped = escapeRegExp(scriptPath);
+  return new RegExp(`(?:^|[\\s"'=/])${escaped}(?=$|[\\s"'\`;|&])`).test(command);
 }
 
 async function auditHooks(root, path, label, errors) {
@@ -51,10 +69,14 @@ async function auditHooks(root, path, label, errors) {
     return;
   }
 
-  const commands = hookCommands(config);
-  for (const script of ['session-start-context.mjs', 'write-guard.mjs']) {
-    if (!commands.some((command) => command.includes(script))) {
-      errors.push(`${label} hooks must reference ${script}.`);
+  const requiredHooks = [
+    { event: 'SessionStart', script: 'scripts/session-start-context.mjs' },
+    { event: 'PostToolUse', script: 'scripts/agent/write-guard.mjs' },
+  ];
+  for (const { event, script } of requiredHooks) {
+    const commands = eventHookCommands(config, event);
+    if (!commands.some((command) => commandReferencesScript(command, script))) {
+      errors.push(`${label} ${event} hooks must reference ${script}.`);
     }
   }
 }
