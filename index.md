@@ -5,30 +5,28 @@
 
 ## Контекст
 
-- [Цель проекта](./00_context/) — собственный контекст проекта (`product.md`, `glossary.md` по мере наполнения)
+- [Контекст проекта](./00_context/product.md) — команда, расписание, пул карт, ограничения данных
 - [Semantic invariant](./.remember/core.md) — цель, контекст, hard rules
-
-## Walkthrough-пример (удаляется `kb:init --strip-demo`)
-
-Сквозной вымышленный мини-проект «пилот AI-ассистента поддержки» — дисциплина слоёв на живом контенте:
-
-- [00_context: контекст](./00_context/walkthrough-product.md) →
-  [01_raw: стенограмма (immutable)](./01_raw/walkthrough/2026-06-30-interview-cto.md) →
-  [02_sources: саммари](./02_sources/2026-06-30-walkthrough-interview-cto.md) →
-  [03_wiki: deflection rate](./03_wiki/walkthrough-deflection-rate.md) →
-  [04_synthesis: гипотезы](./04_synthesis/walkthrough-pilot-hypotheses.md) →
-  [05_decisions: решение](./05_decisions/walkthrough-decision-pilot-scope.md)
 
 ## Источники
 
 - [Все source summaries](./02_sources/)
+- [Снимок whoajor 2026-08-29](./02_sources/2026-08-29-cs2-whoajor-intelligence.md) — статистика пяти составов CS2
 
 ## Wiki (концепты)
 
 - [Все wiki-страницы](./03_wiki/)
+- [Соперники группы](./03_wiki/opponents.md) — профили четырёх составов
+- [Пул карт 2026](./03_wiki/map-pool-2026.md) — голосование, сила, сравнительный сигнал
+- [Раскол T / CT](./03_wiki/t-ct-split.md) — общая болезнь всех пяти составов
+- [`estimated_strength`](./03_wiki/metric-estimated-strength.md) — покартовая оценка силы
+- [`equivalent_team_matches`](./03_wiki/metric-equivalent-team-matches.md) — почему это не «сыгранные вместе матчи»
 
 ## Synthesis
 
+- [Диагностика «Ушибу ногами»](./04_synthesis/cs2-team-diagnostics.md) — сильные стороны и системные провалы
+- [Стратегия вето](./04_synthesis/cs2-veto-strategy.md) — какие карты держать, какие банить
+- [Планы на четыре матча](./04_synthesis/cs2-opponent-plans.md) — пик, бан, что эксплуатируем
 - [Open questions](./04_synthesis/open-questions.md) — известные пробелы, требующие закрытия
 - [Contradictions](./04_synthesis/contradictions.md) — конфликты в источниках, зафиксированные дословно
 

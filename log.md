@@ -43,3 +43,9 @@
 ## 2026-08-29
 
 - (init) kb:init: проект «Ushibu Nogami — личная база знаний», демо вычищено, level=2.
+- 01_raw/whoajor | снимок статистики stats.whoajor.com по пяти составам CS2 (1.4 MB JSON, immutable).
+- 02_sources | саммари снимка: методология, окна recent/long, командные и покартовые агрегаты, 30 игроков.
+- 03_wiki | 5 концептов: opponents, map-pool-2026, t-ct-split, metric-estimated-strength, metric-equivalent-team-matches.
+- 04_synthesis | cs2-team-diagnostics, cs2-veto-strategy, cs2-opponent-plans; open-questions переписаны под домен (Q1–Q5), добавлено противоречие C1 (Dust 2: голос команды против статистики).
+- 00_context | product.md — команда, расписание, пул карт, ограничения данных.
+- (init) домен проекта зафиксирован: скаутинг CS2 для «Ушибу ногами»; walkthrough-пример шаблона удалён.

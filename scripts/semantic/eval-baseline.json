@@ -1,24 +1,48 @@
 {
   "generated_at": "2026-08-29",
-  "probe_count": 6,
+  "probe_count": 20,
   "overall": {
-    "recall_at_3": 1,
-    "recall_at_5": 1,
-    "mrr": 0.9167,
-    "n": 6
+    "recall_at_3": 0.95,
+    "recall_at_5": 0.95,
+    "mrr": 0.7167,
+    "n": 20
   },
   "by_category": {
     "Template": {
       "recall_at_3": 1,
       "recall_at_5": 1,
-      "mrr": 0.75,
+      "mrr": 1,
       "n": 2
     },
-    "Walkthrough": {
+    "Veto": {
+      "recall_at_3": 0.75,
+      "recall_at_5": 0.75,
+      "mrr": 0.5,
+      "n": 4
+    },
+    "Diagnostics": {
       "recall_at_3": 1,
       "recall_at_5": 1,
       "mrr": 1,
       "n": 4
+    },
+    "Opponents": {
+      "recall_at_3": 1,
+      "recall_at_5": 1,
+      "mrr": 0.625,
+      "n": 4
+    },
+    "Methodology": {
+      "recall_at_3": 1,
+      "recall_at_5": 1,
+      "mrr": 0.75,
+      "n": 4
+    },
+    "Context": {
+      "recall_at_3": 1,
+      "recall_at_5": 1,
+      "mrr": 0.4167,
+      "n": 2
     }
   }
 }
