@@ -110,12 +110,18 @@ function isBoundaryRequest(entry) {
 
 function validateObservationGroups(manifest) {
   const groups = new Map();
+  const metaBoundaryKeys = new Set();
+  const matchesHeadBoundaryKeys = new Set();
   manifest.requests.forEach((entry, index) => {
     const rows = groups.get(entry.key) ?? [];
     rows.push({ entry, index });
     groups.set(entry.key, rows);
   });
   for (const [key, rows] of groups) {
+    if (isBoundaryRequest(rows[0].entry)) {
+      if (rows[0].entry.path === '/api/meta') metaBoundaryKeys.add(key);
+      else matchesHeadBoundaryKeys.add(key);
+    }
     const boundaryRows = rows.filter(({ entry }) => entry.boundaryRole !== null);
     if (boundaryRows.length === 0) {
       if (rows.length > 1) throw resumeError(`ordinary request ${key} is duplicated`);
@@ -129,6 +135,12 @@ function validateObservationGroups(manifest) {
     if (starts.length !== 1 || ends.length > 1 || (ends.length === 1 && starts[0].index > ends[0].index)) {
       throw resumeError(`boundary observation sequence is invalid for ${key}`);
     }
+  }
+  if (metaBoundaryKeys.size > 1) {
+    throw resumeError('multiple meta boundary keys violate boundary cardinality');
+  }
+  if (matchesHeadBoundaryKeys.size > 1) {
+    throw resumeError('multiple matches-head boundary keys violate boundary cardinality');
   }
 }
 

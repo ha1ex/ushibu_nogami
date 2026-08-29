@@ -318,6 +318,25 @@ test('boundary audit блокирует end перед start', async () => {
   });
 });
 
+test('boundary audit блокирует вторую complete matches-head группу с другим limit', async () => {
+  await expectHardError('DUPLICATE_PK', async (dir) => {
+    const manifest = await readManifest(dir);
+    const headPair = manifest.requests.filter((entry) => (
+      entry.path === '/api/matches' && entry.query.offset === 0
+    ));
+    assert.deepEqual(headPair.map(({ boundaryRole }) => boundaryRole), ['start', 'end']);
+    const extraKey = requestKey('/api/matches', { limit: 3, offset: 0 });
+    manifest.requests.push(...headPair.map((entry) => ({
+      ...structuredClone(entry),
+      key: extraKey,
+      query: { limit: 3, offset: 0 },
+      url: entry.url.replace('limit=2', 'limit=3'),
+    })));
+    manifest.rootHash = computeRootHash(manifest.requests);
+    await writeManifest(dir, manifest);
+  });
+});
+
 test('обычный duplicate request не маскируется dedup логикой validator', async () => {
   await expectHardError('DUPLICATE_PK', async (dir) => {
     const manifest = await readManifest(dir);

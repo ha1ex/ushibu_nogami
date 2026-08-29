@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import {
   computeRootHash, createSnapshot, finalizeManifest, loadSnapshot, storeResponse,
 } from '../lib/raw-store.mjs';
-import { sha256Hex } from '../lib/canonical-json.mjs';
+import { requestKey, sha256Hex } from '../lib/canonical-json.mjs';
 
 const body = '{"matches":2}';
 
@@ -116,6 +116,32 @@ test('loadSnapshot запрещает boundary end без start', async () => {
   await finalizeManifest(snapshot, 'incomplete');
 
   await assert.rejects(loadSnapshot(root), /boundary observation sequence/i);
+});
+
+test('loadSnapshot запрещает вторую matches-head boundary-группу с другим limit', async () => {
+  const { root, snapshot } = await createFixtureSnapshot();
+  const head = responseRecord({
+    path: '/api/matches',
+    query: { limit: 2, offset: 0 },
+    url: 'https://stats.whoajor.com/api/matches?limit=2&offset=0',
+    body: '{"matches":[],"total":0}',
+  });
+  await storeResponse(snapshot, head, { boundaryRole: 'start' });
+  await storeResponse(snapshot, head, { boundaryRole: 'end', allowConflict: true });
+  await finalizeManifest(snapshot, 'incomplete');
+
+  const extraKey = requestKey('/api/matches', { limit: 3, offset: 0 });
+  const extraPair = snapshot.manifest.requests.map((entry) => ({
+    ...structuredClone(entry),
+    key: extraKey,
+    query: { limit: 3, offset: 0 },
+    url: 'https://stats.whoajor.com/api/matches?limit=3&offset=0',
+  }));
+  snapshot.manifest.requests.push(...extraPair);
+  snapshot.manifest.rootHash = computeRootHash(snapshot.manifest.requests);
+  await writeFile(snapshot.manifestPath, `${JSON.stringify(snapshot.manifest, null, 2)}\n`);
+
+  await assert.rejects(loadSnapshot(root), /matches-head boundary key|boundary cardinality/i);
 });
 
 test('разные boundary bodies одного request key сохраняются и проходят resume', async () => {

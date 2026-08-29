@@ -336,8 +336,8 @@ function validateBoundaries(classified, add) {
     rows.push(row);
     groups.set(row.entry.key, rows);
   }
-  let metaBoundary = false;
-  let headBoundary = false;
+  const metaBoundaryKeys = new Set();
+  const headBoundaryKeys = new Set();
   for (const [key, rows] of groups) {
     const expectedBoundary = rows[0].name === 'meta'
       || (rows[0].name === 'matches' && Number(rows[0].entry.query?.offset) === 0);
@@ -347,8 +347,8 @@ function validateBoundaries(classified, add) {
       }
       continue;
     }
-    if (rows[0].name === 'meta') metaBoundary = true;
-    else headBoundary = true;
+    if (rows[0].name === 'meta') metaBoundaryKeys.add(key);
+    else headBoundaryKeys.add(key);
     const starts = rows.filter((row) => row.entry.boundaryRole === 'start');
     const ends = rows.filter((row) => row.entry.boundaryRole === 'end');
     if (rows.length !== 2 || starts.length !== 1 || ends.length !== 1) {
@@ -371,11 +371,22 @@ function validateBoundaries(classified, add) {
       add('errors', 'SNAPSHOT_BOUNDARY_CHANGED', key, 'start and end boundary bodies differ');
     }
   }
-  if (!metaBoundary) {
+  if (metaBoundaryKeys.size === 0) {
     add('errors', 'SNAPSHOT_BOUNDARY_CHANGED', '/api/meta', 'meta start/end observations are missing');
+  } else if (metaBoundaryKeys.size > 1) {
+    add('errors', 'DUPLICATE_PK', '/api/meta', 'multiple meta boundary request keys are present');
+    add('errors', 'SNAPSHOT_BOUNDARY_CHANGED', '/api/meta', 'exactly one meta boundary request key is required');
   }
-  if (!headBoundary) {
+  if (headBoundaryKeys.size === 0) {
     add('errors', 'SNAPSHOT_BOUNDARY_CHANGED', '/api/matches?offset=0', 'matches head start/end observations are missing');
+  } else if (headBoundaryKeys.size > 1) {
+    add('errors', 'DUPLICATE_PK', '/api/matches?offset=0', 'multiple matches-head boundary request keys are present');
+    add(
+      'errors',
+      'SNAPSHOT_BOUNDARY_CHANGED',
+      '/api/matches?offset=0',
+      'exactly one matches-head boundary request key is required',
+    );
   }
 }
 

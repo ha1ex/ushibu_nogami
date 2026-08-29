@@ -75,6 +75,11 @@ test('match pagination делает overlap, удаляет дубль ID и з�
       '/api/matches?limit=2&offset=0',
     ],
   );
+  const headObservations = manifest.requests.filter(({ path, query }) => (
+    path === '/api/matches' && query.offset === 0
+  ));
+  assert.equal(new Set(headObservations.map(({ key }) => key)).size, 1);
+  assert.deepEqual(headObservations.map(({ boundaryRole }) => boundaryRole), ['start', 'end']);
   for (const id of ['match-1', 'match-2', 'match-3']) {
     assert.equal(fixture.routeCounts.get(`/api/matches/${id}`), 1);
   }
