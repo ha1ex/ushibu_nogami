@@ -80,6 +80,18 @@ async function removeTemporaryFiles(files, fileSystem) {
   }));
 }
 
+async function removeBackupFiles(files, fileSystem) {
+  await Promise.all(files
+    .filter(({ backedUp }) => backedUp)
+    .map(async ({ backup }) => {
+      try {
+        await fileSystem.rm(backup);
+      } catch {
+        // Published adapters stay committed even if backup cleanup fails.
+      }
+    }));
+}
+
 async function writeAtomically(files, fileSystem) {
   try {
     await Promise.all(files.map(({ temporary, content }) => fileSystem.writeFile(temporary, content)));
@@ -94,10 +106,6 @@ async function writeAtomically(files, fileSystem) {
       await fileSystem.rename(file.temporary, file.destination);
       file.promoted = true;
     }
-
-    await Promise.all(files
-      .filter(({ backedUp }) => backedUp)
-      .map(({ backup }) => fileSystem.rm(backup)));
   } catch (error) {
     await Promise.allSettled(files
       .filter(({ promoted }) => promoted)
@@ -111,6 +119,8 @@ async function writeAtomically(files, fileSystem) {
   } finally {
     await removeTemporaryFiles(files, fileSystem);
   }
+
+  await removeBackupFiles(files, fileSystem);
 }
 
 export async function syncConfigs({ root, write, fileSystem = defaultFileSystem }) {

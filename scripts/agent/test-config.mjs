@@ -102,3 +102,24 @@ test('restores both adapters when the second promotion fails', async () => {
   await assert.rejects(syncConfigs({ root, write: true, fileSystem }), /second promotion failed/);
   assert.deepEqual(await readAdapters(root), ['stale claude\n', 'stale codex\n']);
 });
+
+test('keeps promoted adapters when the second backup cleanup fails', async () => {
+  const root = await createAdapterRoot();
+  let backupRemovals = 0;
+  const fileSystem = {
+    mkdir,
+    readFile,
+    writeFile,
+    rename,
+    rm: async (path, options) => {
+      if (path.includes('.bak-')) {
+        backupRemovals += 1;
+        if (backupRemovals === 2) throw new Error('second backup cleanup failed');
+      }
+      return rm(path, options);
+    },
+  };
+
+  await assert.doesNotReject(syncConfigs({ root, write: true, fileSystem }));
+  assert.deepEqual(await readAdapters(root), [renderClaudeConfig(fixture), renderCodexConfig(fixture)]);
+});
