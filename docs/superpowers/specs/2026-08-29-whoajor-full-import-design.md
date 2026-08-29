@@ -156,10 +156,10 @@ SteamID хранится только как `TEXT`. Денормализова�
 Публичные команды:
 
 ```bash
-pnpm whoajor:collect
-pnpm whoajor:validate -- <snapshot-dir>
-pnpm whoajor:build-db -- <snapshot-dir>
-pnpm whoajor:sync
+corepack pnpm whoajor:collect
+corepack pnpm whoajor:validate -- <snapshot-dir>
+corepack pnpm whoajor:build-db -- <snapshot-dir>
+corepack pnpm whoajor:sync
 ```
 
 `whoajor:sync` выполняет полный безопасный pipeline и возвращает non-zero до публикации при любой
@@ -172,5 +172,6 @@ pnpm whoajor:sync
 3. SQLite открывается стандартным клиентом и содержит согласованные counts/FK без потерь полей.
 4. Повторная сборка SQLite из raw воспроизводит те же данные.
 5. Source summary сообщает точные counts, временной диапазон, root hash, ограничения и конфликты.
-6. `pnpm whoajor:test`, `pnpm kb:doctor`, citation/provenance gate и `pnpm kb:eval` зелёные.
+6. `corepack pnpm whoajor:test`, `corepack pnpm kb:doctor`, citation/provenance gate и
+   `corepack pnpm kb:eval` зелёные.
 7. Изменение закоммичено и отправлено в `main` с инструкцией проверки без чтения кода.
