@@ -68,6 +68,13 @@ function isRetryableStatus(status) {
   return status === 429 || status === 503;
 }
 
+function validateMaxRetries(maxRetries) {
+  if (!Number.isInteger(maxRetries) || maxRetries < 0 || maxRetries > RETRY_BACKOFF_MS.length) {
+    throw new RangeError(`maxRetries must be an integer from 0 to ${RETRY_BACKOFF_MS.length}`);
+  }
+  return maxRetries;
+}
+
 export function createHttpClient({
   baseUrl,
   fetchImpl = globalThis.fetch,
@@ -76,6 +83,7 @@ export function createHttpClient({
   sleep = defaultSleep,
   userAgent = DEFAULT_USER_AGENT,
 } = {}) {
+  const retryLimit = validateMaxRetries(maxRetries);
   let queue = Promise.resolve();
   let previousRequestSucceeded = false;
 
@@ -98,7 +106,7 @@ export function createHttpClient({
           throw new TypeError('fetch returned an invalid response');
         }
       } catch (error) {
-        if (attempts > maxRetries) {
+        if (attempts > retryLimit) {
           throw requestError({
             url: url.href,
             status: null,
@@ -120,7 +128,22 @@ export function createHttpClient({
             reason: 'expected JSON content-type',
           });
         }
-        const body = await response.text();
+        let body;
+        try {
+          body = await response.text();
+        } catch (error) {
+          if (attempts > retryLimit) {
+            throw requestError({
+              url: url.href,
+              status: response.status,
+              attempts,
+              cause: error,
+              reason: 'network error while reading response body',
+            });
+          }
+          await sleep(backoffMs(attempts - 1));
+          continue;
+        }
         return {
           path,
           query: { ...query },
@@ -132,7 +155,7 @@ export function createHttpClient({
         };
       }
 
-      if (!isRetryableStatus(response.status) || attempts > maxRetries) {
+      if (!isRetryableStatus(response.status) || attempts > retryLimit) {
         throw requestError({
           url: url.href,
           status: response.status,
