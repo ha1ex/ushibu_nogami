@@ -16,6 +16,11 @@ test('requestKey не зависит от порядка query params', () => {
     'GET /api/matches?limit=50&offset=100');
 });
 
+test('normalizeQuery канонизирует порядок значений у дублирующихся ключей', () => {
+  assert.equal(normalizeQuery([['tag', 'b'], ['tag', 'a']]), 'tag=a&tag=b');
+  assert.equal(normalizeQuery([['tag', 'a'], ['tag', 'b']]), 'tag=a&tag=b');
+});
+
 test('sha256Hex воспроизводим', () => {
   assert.equal(sha256Hex('abc'),
     'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');

@@ -15,8 +15,14 @@ export const sha256Hex = (data) => createHash('sha256').update(data).digest('hex
 export const normalizeQuery = (entries) => new URLSearchParams(
   [...entries]
     .filter(([, value]) => value !== undefined && value !== null)
-    .map(([key, value]) => [key, String(value)])
-    .sort(([left], [right]) => left.localeCompare(right)),
+    .map(([key, value]) => [String(key), String(value)])
+    .sort(([leftKey, leftValue], [rightKey, rightValue]) => {
+      if (leftKey < rightKey) return -1;
+      if (leftKey > rightKey) return 1;
+      if (leftValue < rightValue) return -1;
+      if (leftValue > rightValue) return 1;
+      return 0;
+    }),
 ).toString();
 export const requestKey = (path, query = {}) => {
   const normalized = normalizeQuery(Object.entries(query));
