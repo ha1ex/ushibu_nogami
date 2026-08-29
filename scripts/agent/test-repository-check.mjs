@@ -203,6 +203,38 @@ test('allows comments without weakening the canonical Conductor contract', async
   assert.deepEqual(result, { passed: true, errors: [] });
 });
 
+test('rejects TOML-disallowed controls before whitespace and comment normalization', async (t) => {
+  const cases = [
+    { name: 'standalone vertical tab', settings: `${validConductorSettings}\u000b` },
+    { name: 'vertical tab inside comment', settings: `${validConductorSettings}# comment\u000b\n` },
+    { name: 'form feed inside comment', settings: `${validConductorSettings}# comment\u000c\n` },
+    { name: 'lone carriage return', settings: `${validConductorSettings}# comment\r` },
+  ];
+
+  for (const fixture of cases) {
+    await t.test(fixture.name, async () => {
+      const root = await makeFixture({ conductorSettings: fixture.settings });
+
+      const result = await auditRepository(root);
+
+      assert.equal(result.passed, false);
+      assert.match(result.errors.join('\n'), /invalid TOML lexical input/i);
+    });
+  }
+});
+
+test('allows CRLF plus TOML space and tab around comments', async () => {
+  const root = await makeFixture({
+    conductorSettings: validConductorSettings
+      .replace('[scripts]', '\t# comment with tab\n\t[scripts]\t')
+      .replaceAll('\n', '\r\n'),
+  });
+
+  const result = await auditRepository(root);
+
+  assert.deepEqual(result, { passed: true, errors: [] });
+});
+
 test('rejects a syntactically valid near-match outside the bounded Conductor contract', async () => {
   const root = await makeFixture({
     conductorSettings: withConductorSettings((settings) => settings.replace('default = true', 'default = false')),

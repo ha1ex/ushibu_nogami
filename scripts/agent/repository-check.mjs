@@ -154,10 +154,23 @@ function stripTomlComment(line) {
   return line;
 }
 
+function hasInvalidTomlLexicalInput(content) {
+  for (let index = 0; index < content.length; index += 1) {
+    const code = content.charCodeAt(index);
+    if (code === 0x0d) {
+      if (content.charCodeAt(index + 1) !== 0x0a) return true;
+    } else if ((code <= 0x1f && code !== 0x09 && code !== 0x0a) || code === 0x7f) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function canonicalTomlLines(content) {
   return content
+    .replaceAll('\r\n', '\n')
     .split('\n')
-    .map((line) => stripTomlComment(line).trim())
+    .map((line) => stripTomlComment(line).replace(/^[ \t]+|[ \t]+$/g, ''))
     .filter(Boolean);
 }
 
@@ -203,10 +216,14 @@ async function auditConductor(root, errors) {
   }
 
   if (settings !== undefined) {
-    const lines = canonicalTomlLines(settings);
-    if (lines.length !== canonicalConductorLines.length
-      || lines.some((line, index) => line !== canonicalConductorLines[index])) {
-      errors.push('Shared settings must match the bounded canonical Conductor repository contract; duplicate, unknown, malformed, reordered, and non-canonical lines are not allowed. TOML comments are allowed.');
+    if (hasInvalidTomlLexicalInput(settings)) {
+      errors.push('Shared Conductor settings contain invalid TOML lexical input: control characters and lone carriage returns are not allowed.');
+    } else {
+      const lines = canonicalTomlLines(settings);
+      if (lines.length !== canonicalConductorLines.length
+        || lines.some((line, index) => line !== canonicalConductorLines[index])) {
+        errors.push('Shared settings must match the bounded canonical Conductor repository contract; duplicate, unknown, malformed, reordered, and non-canonical lines are not allowed. TOML comments are allowed.');
+      }
     }
 
     const config = parseTomlContractForDiagnostics(settings);
