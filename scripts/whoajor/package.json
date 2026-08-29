@@ -1,0 +1,11 @@
+{
+  "name": "whoajor-import",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.10.0"
+  }
+}

@@ -8,7 +8,7 @@
     "node": ">=20 <23"
   },
   "scripts": {
-    "setup": "pnpm -C scripts/semantic install && pnpm -C scripts/skillopt install && pnpm -C tools/viewer install",
+    "setup": "pnpm -C scripts/semantic install && pnpm -C scripts/skillopt install && pnpm -C tools/viewer install && pnpm -C scripts/whoajor install",
     "skill": "node scripts/skillopt/cli.mjs",
     "kb:index": "node scripts/semantic/index.mjs",
     "kb:search": "node scripts/semantic/search.mjs",
@@ -23,6 +23,11 @@
     "kb:init": "node scripts/kb-init.mjs",
     "kb:update": "node scripts/kb-update.mjs",
     "kb:metrics": "node scripts/kb-metrics.mjs",
-    "kb:digest": "node scripts/kb-digest.mjs"
+    "kb:digest": "node scripts/kb-digest.mjs",
+    "whoajor:test": "pnpm -C scripts/whoajor test",
+    "whoajor:collect": "node scripts/whoajor/collect.mjs",
+    "whoajor:validate": "node scripts/whoajor/validate.mjs",
+    "whoajor:build-db": "node scripts/whoajor/normalize.mjs",
+    "whoajor:sync": "node scripts/whoajor/sync.mjs"
   }
 }
