@@ -9,7 +9,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { collectSnapshot } from '../collect.mjs';
-import { canonicalStringify, sha256Hex } from '../lib/canonical-json.mjs';
+import { canonicalStringify, requestKey, sha256Hex } from '../lib/canonical-json.mjs';
 import { createHttpClient } from '../lib/http-client.mjs';
 import { computeRootHash } from '../lib/raw-store.mjs';
 import { validateSnapshot } from '../lib/validation.mjs';
@@ -82,7 +82,7 @@ async function buildCollectedFixture() {
   await collectSnapshot({ outputDir: dir, client, now: NOW, pageSize: 2 });
   await rewritePayload(dir, (entry) => entry.path === '/api/meta', (meta) => {
     meta.maps[0].n -= 1;
-  });
+  }, { all: true });
   return dir;
 }
 
@@ -107,7 +107,7 @@ test('валидный fixture проходит и фиксирует небло
   assert.ok(hasCode(report, 'discrepancies', 'META_MAP_SUM_MISMATCH'));
   assert.ok(hasCode(report, 'warnings', 'INDEX_DETAIL_NAMING_DIFFERENCE'));
   assert.deepEqual(report.counts, {
-    requests: 30,
+    requests: 32,
     matches: 3,
     matchDetails: 3,
     players: 3,
@@ -202,6 +202,31 @@ test('INVALID_STEAMID блокирует malformed SteamID', async () => {
   ));
 });
 
+test('INVALID_STEAMID блокирует полностью согласованный короткий numeric ID', async () => {
+  const dir = await buildCollectedFixture();
+  const replaceSteamid = (value) => {
+    if (Array.isArray(value)) return value.forEach(replaceSteamid);
+    if (!value || typeof value !== 'object') return;
+    for (const [field, nested] of Object.entries(value)) {
+      if (nested === PLAYER_1) value[field] = '1';
+      else replaceSteamid(nested);
+    }
+  };
+  await rewritePayload(dir, () => true, replaceSteamid, { all: true });
+  const manifest = await readManifest(dir);
+  for (const entry of manifest.requests) {
+    entry.path = entry.path.replace(PLAYER_1, '1');
+    entry.key = requestKey(entry.path, entry.query);
+    if (typeof entry.url === 'string') entry.url = entry.url.replace(PLAYER_1, '1');
+  }
+  manifest.rootHash = computeRootHash(manifest.requests);
+  await writeManifest(dir, manifest);
+
+  const report = await validateSnapshot(dir);
+  assert.equal(report.status, 'incomplete');
+  assert.ok(hasCode(report, 'errors', 'INVALID_STEAMID'));
+});
+
 test('REQUIRED_FIELD_MISSING блокирует required-field schema drift', async () => {
   await expectHardError('REQUIRED_FIELD_MISSING', (dir) => rewritePayload(
     dir,
@@ -218,6 +243,42 @@ test('FIELD_TYPE_MISMATCH блокирует required type drift', async () => {
   ));
 });
 
+test('FIELD_TYPE_MISMATCH блокирует несуществующую календарную ISO-дату', async () => {
+  await expectHardError('FIELD_TYPE_MISMATCH', (dir) => rewritePayload(
+    dir,
+    (entry) => entry.path === '/api/meta',
+    (meta) => { meta.min_date = '2026-02-30'; },
+    { all: true },
+  ));
+});
+
+test('FIELD_TYPE_MISMATCH требует RFC3339 time у timestamp field', async () => {
+  await expectHardError('FIELD_TYPE_MISMATCH', (dir) => rewritePayload(
+    dir,
+    (entry) => entry.path === '/api/draft-config',
+    (draft) => { draft.publishedAt = '2026-08-29'; },
+  ));
+});
+
+test('строгая дата принимает live date-only, local time, SQL time и RFC3339 offset', async () => {
+  const dir = await buildCollectedFixture();
+  await rewritePayload(dir, (entry) => entry.path === '/api/meta', (meta) => {
+    meta.min_date = '2023-11-16T19:08:00';
+    meta.max_date = '2026-08-27T20:04:00';
+  }, { all: true });
+  await rewritePayload(dir, (entry) => entry.path === '/api/draft-config', (draft) => {
+    draft.publishedAt = '2026-08-02 10:01:29';
+  });
+  await rewritePayload(dir, (entry) => (
+    entry.path === `/api/players/${PLAYER_1}/matches`
+  ), (rows) => {
+    rows[0].started_at = '2026-08-28T18:00:00.123+03:00';
+  });
+  const report = await validateSnapshot(dir);
+  assert.equal(report.status, 'complete');
+  assert.equal(report.errors.length, 0);
+});
+
 test('WEAPON_AGGREGATE_MISMATCH блокирует расхождение index и detail сумм', async () => {
   await expectHardError('WEAPON_AGGREGATE_MISMATCH', (dir) => rewritePayload(
     dir,
@@ -227,23 +288,41 @@ test('WEAPON_AGGREGATE_MISMATCH блокирует расхождение index 
 });
 
 test('SNAPSHOT_BOUNDARY_CHANGED блокирует различающиеся start/end bodies', async () => {
+  await expectHardError('SNAPSHOT_BOUNDARY_CHANGED', (dir) => rewritePayload(
+    dir,
+    (entry) => entry.path === '/api/meta' && entry.boundaryRole === 'end',
+    (meta) => { meta.max_date = '2026-08-30'; },
+  ));
+});
+
+test('boundary audit требует ровно start/end для meta и matches head', async () => {
+  await expectHardError('SNAPSHOT_BOUNDARY_CHANGED', (dir) => removeRequests(
+    dir,
+    (entry) => entry.path === '/api/meta' && entry.boundaryRole === 'end',
+  ));
+});
+
+test('boundary audit блокирует end перед start', async () => {
   await expectHardError('SNAPSHOT_BOUNDARY_CHANGED', async (dir) => {
     const manifest = await readManifest(dir);
-    const original = manifest.requests.find(({ path }) => path === '/api/meta');
-    const payload = JSON.parse(await readFile(join(dir, original.blob), 'utf8'));
-    payload.max_date = '2026-08-30';
-    const body = JSON.stringify(payload);
-    const bodySha256 = sha256Hex(body);
-    const entry = {
-      ...structuredClone(original),
-      bodyBytes: Buffer.byteLength(body),
-      bodySha256,
-      canonicalSha256: sha256Hex(canonicalStringify(payload)),
-      blob: join('responses', `${bodySha256}.json`),
-      fetchedAt: '2026-08-29T07:05:00.000Z',
-    };
-    await writeFile(join(dir, entry.blob), body);
-    manifest.requests.push(entry);
+    const startIndex = manifest.requests.findIndex((entry) => (
+      entry.path === '/api/meta' && entry.boundaryRole === 'start'
+    ));
+    const endIndex = manifest.requests.findIndex((entry) => (
+      entry.path === '/api/meta' && entry.boundaryRole === 'end'
+    ));
+    [manifest.requests[startIndex], manifest.requests[endIndex]] = [
+      manifest.requests[endIndex], manifest.requests[startIndex],
+    ];
+    await writeManifest(dir, manifest);
+  });
+});
+
+test('обычный duplicate request не маскируется dedup логикой validator', async () => {
+  await expectHardError('DUPLICATE_PK', async (dir) => {
+    const manifest = await readManifest(dir);
+    const tags = manifest.requests.find(({ path }) => path === '/api/tags');
+    manifest.requests.push(structuredClone(tags));
     manifest.rootHash = computeRootHash(manifest.requests);
     await writeManifest(dir, manifest);
   });

@@ -9,6 +9,10 @@ import { createHttpClient } from '../lib/http-client.mjs';
 import { createFixtureApi } from './fixture-api.mjs';
 
 const NOW = () => new Date('2026-08-29T07:00:00Z');
+const ID_1 = '76561198000000001';
+const ID_2 = '76561198000000002';
+const ID_3 = '76561198000000003';
+const ID_4 = '76561198000000004';
 
 async function runFixture(fixture, options = {}) {
   const outputDir = await mkdtemp(join(tmpdir(), 'whoajor-collect-'));
@@ -38,6 +42,16 @@ test('collector обходит все конечные сущности ровн
     '76561198000000001', '76561198000000002', '76561198000000003',
   ]);
   assert.deepEqual(manifest.discovered.weapons, ['ak47', 'awp']);
+  assert.deepEqual(
+    manifest.requests.filter(({ path }) => path === '/api/meta').map(({ boundaryRole }) => boundaryRole),
+    ['start', 'end'],
+  );
+  assert.deepEqual(
+    manifest.requests.filter(({ path, query }) => (
+      path === '/api/matches' && query.offset === 0
+    )).map(({ boundaryRole }) => boundaryRole),
+    ['start', 'end'],
+  );
   assert.ok(manifest.requests.some((row) => (
     row.key.includes('/api/players/76561198000000003/maps')
   )));
@@ -121,25 +135,49 @@ test('player matches не получает limit, а by=day endpoints получ
 
 test('players объединяются из leaderboard, draft, match details и round rosters', () => {
   assert.deepEqual(discoverPlayers({
-    leaderboard: [{ steamid: '4' }, { steamid: '1' }],
-    draftConfig: { players: [{ steamid: '3' }] },
+    leaderboard: [{ steamid: ID_4 }, { steamid: ID_1 }, { steamid: '1' }],
+    draftConfig: { players: [{ steamid: ID_3 }] },
     matchDetails: [{
-      players: [{ steamid: '2' }],
-      rounds: [{ tSteamids: ['5'], ctSteamids: ['6', '1'] }],
+      players: [{ steamid: ID_2 }],
+      rounds: [{
+        tSteamids: ['76561198000000005'],
+        ctSteamids: ['76561198000000006', ID_1],
+      }],
     }],
-  }), ['1', '2', '3', '4', '5', '6']);
+  }), [
+    ID_1, ID_2, ID_3, ID_4, '76561198000000005', '76561198000000006',
+  ]);
+});
+
+test('collector блокирует короткий numeric SteamID до detail discovery', async () => {
+  const fixture = createFixtureApi({ leaderboardPlayers: ['1'] });
+  const outputDir = await mkdtemp(join(tmpdir(), 'whoajor-collect-short-steamid-'));
+  const client = createHttpClient({
+    baseUrl: fixture.baseUrl,
+    fetchImpl: fixture.fetch,
+    delayMs: 0,
+    maxRetries: 0,
+  });
+
+  await assert.rejects(
+    collectSnapshot({ outputDir, client, now: NOW, pageSize: 1 }),
+    /17-digit SteamID64/i,
+  );
+  const manifest = JSON.parse(await readFile(join(outputDir, 'manifest.json'), 'utf8'));
+  assert.equal(manifest.status, 'incomplete');
+  assert.ok(!manifest.requests.some(({ path }) => path.startsWith('/api/players/1/')));
 });
 
 test('collector запрашивает player endpoints для SteamID из каждого discovery source', async () => {
   const fixture = createFixtureApi({
-    leaderboardPlayers: ['4'],
-    draftPlayers: ['3'],
-    detailPlayers: ['2'],
-    roundPlayers: ['1', '4'],
+    leaderboardPlayers: [ID_4],
+    draftPlayers: [ID_3],
+    detailPlayers: [ID_2],
+    roundPlayers: [ID_1, ID_4],
   });
   const { manifest } = await runFixture(fixture);
 
-  assert.deepEqual(manifest.discovered.players, ['1', '2', '3', '4']);
+  assert.deepEqual(manifest.discovered.players, [ID_1, ID_2, ID_3, ID_4]);
   fixture.assertNoUnexpectedCalls();
 });
 
@@ -154,10 +192,12 @@ test('weapons объединяются из индекса, player payloads и m
 test('match и player detail queues сортируются независимо от порядка discovery', async () => {
   const fixture = createFixtureApi({
     matchIds: ['match-z', 'match-a'],
-    leaderboardPlayers: ['30', '10', '20'],
+    leaderboardPlayers: [
+      '76561198000000030', '76561198000000010', '76561198000000020',
+    ],
     draftPlayers: [],
     detailPlayers: [],
-    roundPlayers: ['20', '10'],
+    roundPlayers: ['76561198000000020', '76561198000000010'],
     weapons: ['zeta', 'alpha'],
   });
   await runFixture(fixture);
@@ -171,9 +211,9 @@ test('match и player detail queues сортируются независимо 
     .map(({ key }) => key)
     .filter((key) => key.endsWith('/summary'));
   assert.deepEqual(summaries, [
-    '/api/players/10/summary',
-    '/api/players/20/summary',
-    '/api/players/30/summary',
+    '/api/players/76561198000000010/summary',
+    '/api/players/76561198000000020/summary',
+    '/api/players/76561198000000030/summary',
   ]);
 
   const weaponDetails = fixture.calls
@@ -288,6 +328,16 @@ test('resume проверяет partial snapshot и не повторяет уж
   });
   assert.equal(manifest.status, 'collected');
   assert.equal(fixture.routeCounts.get('/api/tags'), 1);
+  assert.deepEqual(
+    manifest.requests.filter(({ path }) => path === '/api/meta').map(({ boundaryRole }) => boundaryRole),
+    ['start', 'end'],
+  );
+  assert.deepEqual(
+    manifest.requests.filter(({ path, query }) => (
+      path === '/api/matches' && query.offset === 0
+    )).map(({ boundaryRole }) => boundaryRole),
+    ['start', 'end'],
+  );
   fixture.assertNoUnexpectedCalls();
 });
 

@@ -45,7 +45,7 @@ test('storeResponse сохраняет exact body один раз и связы�
     body,
   );
   assert.deepEqual(Object.keys(manifest.requests[0]), [
-    'key', 'path', 'query', 'url', 'status', 'contentType', 'contentLength',
+    'key', 'path', 'query', 'boundaryRole', 'url', 'status', 'contentType', 'contentLength',
     'observedHeaders', 'fetchedAt', 'durationMs', 'bodyBytes', 'bodySha256',
     'canonicalSha256', 'itemCount', 'reportedTotal', 'blob',
   ]);
@@ -84,13 +84,51 @@ test('storeResponse сохраняет malformed JSON до parse failure и св
   assert.equal(await readFile(join(root, entry.blob), 'utf8'), malformedBody);
 });
 
+test('одинаковые boundary start/end сохраняются отдельно и проходят resume', async () => {
+  const { root, snapshot } = await createFixtureSnapshot();
+  await storeResponse(snapshot, responseRecord(), { boundaryRole: 'start' });
+  await storeResponse(snapshot, responseRecord(), { boundaryRole: 'end', allowConflict: true });
+  await finalizeManifest(snapshot, 'complete');
+
+  const resumed = await loadSnapshot(root);
+  assert.equal(resumed.manifest.requests.length, 2);
+  assert.deepEqual(resumed.manifest.requests.map(({ boundaryRole }) => boundaryRole), ['start', 'end']);
+  assert.equal(new Set(resumed.manifest.requests.map(({ bodySha256 }) => bodySha256)).size, 1);
+});
+
+test('loadSnapshot разрешает start-only boundary для безопасного resume', async () => {
+  const { root, snapshot } = await createFixtureSnapshot();
+  await storeResponse(snapshot, responseRecord(), { boundaryRole: 'start' });
+  await finalizeManifest(snapshot, 'incomplete');
+
+  const resumed = await loadSnapshot(root);
+  assert.deepEqual(
+    resumed.manifest.requests.map(({ boundaryRole }) => boundaryRole),
+    ['start'],
+  );
+});
+
+test('loadSnapshot запрещает boundary end без start', async () => {
+  const { root, snapshot } = await createFixtureSnapshot();
+  await storeResponse(snapshot, responseRecord(), { boundaryRole: 'start' });
+  snapshot.manifest.requests[0].boundaryRole = 'end';
+  snapshot.manifest.rootHash = computeRootHash(snapshot.manifest.requests);
+  await finalizeManifest(snapshot, 'incomplete');
+
+  await assert.rejects(loadSnapshot(root), /boundary observation sequence/i);
+});
+
 test('разные boundary bodies одного request key сохраняются и проходят resume', async () => {
   const { root, snapshot } = await createFixtureSnapshot();
-  await storeResponse(snapshot, responseRecord({ body: '{"matches":2}' }));
+  await storeResponse(
+    snapshot,
+    responseRecord({ body: '{"matches":2}' }),
+    { boundaryRole: 'start' },
+  );
   await storeResponse(
     snapshot,
     responseRecord({ body: '{"matches":3}' }),
-    { allowConflict: true },
+    { allowConflict: true, boundaryRole: 'end' },
   );
   await finalizeManifest(snapshot, 'unstable');
 
@@ -101,6 +139,18 @@ test('разные boundary bodies одного request key сохраняютс
     ['GET /api/meta', 'GET /api/meta'],
   );
   assert.equal(new Set(resumed.manifest.requests.map(({ bodySha256 }) => bodySha256)).size, 2);
+  assert.deepEqual(resumed.manifest.requests.map(({ boundaryRole }) => boundaryRole), ['start', 'end']);
+});
+
+test('loadSnapshot отклоняет обычный дубль request даже с одинаковым body', async () => {
+  const { root, snapshot } = await createFixtureSnapshot();
+  await storeResponse(snapshot, responseRecord());
+  await finalizeManifest(snapshot, 'incomplete');
+  snapshot.manifest.requests.push(structuredClone(snapshot.manifest.requests[0]));
+  snapshot.manifest.rootHash = computeRootHash(snapshot.manifest.requests);
+  await writeFile(snapshot.manifestPath, `${JSON.stringify(snapshot.manifest, null, 2)}\n`);
+
+  await assert.rejects(loadSnapshot(root), /ordinary request.*duplicate|repeats response/i);
 });
 
 test('loadSnapshot не возобновляет снимок с усечённым или изменённым blob', async () => {

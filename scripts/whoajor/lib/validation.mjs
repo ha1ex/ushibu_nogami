@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { canonicalStringify, requestKey, sha256Hex } from './canonical-json.mjs';
 import { CONTRACT } from './contract.mjs';
-import { discoverPlayers, discoverWeapons } from './discovery.mjs';
+import { discoverPlayers, discoverWeapons, isSteamId64 } from './discovery.mjs';
 import { computeRootHash } from './raw-store.mjs';
 
 const EMPTY_ROOT_HASH = computeRootHash([]);
@@ -16,6 +16,7 @@ const WEAPON_ENDPOINTS = ['weaponDetail', 'weaponDetailByDay'];
 const DATE_FIELDS = new Set([
   'min_date', 'max_date', 'publishedAt', 'started_at', 'startedAt', 'day',
 ]);
+const DATE_VALUE_FIELDS = new Set(['min_date', 'max_date', 'day']);
 
 function actualType(value) {
   if (Array.isArray(value)) return 'array';
@@ -94,8 +95,34 @@ function makeReporter(report) {
   };
 }
 
-function validDate(value) {
-  return typeof value === 'string' && value.length > 0 && Number.isFinite(Date.parse(value));
+function validDate(value, field) {
+  if (typeof value !== 'string') return false;
+  const match = value.match(
+    /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(Z|[+-]\d{2}:\d{2})?)?$/,
+  );
+  if (!match) return false;
+  const [, yearText, monthText, dayText, hourText, minuteText, secondText, zone] = match;
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const calendar = new Date(Date.UTC(year, month - 1, day));
+  if (
+    calendar.getUTCFullYear() !== year
+      || calendar.getUTCMonth() !== month - 1
+      || calendar.getUTCDate() !== day
+  ) return false;
+  if (hourText === undefined) return DATE_VALUE_FIELDS.has(field);
+  if (field === 'day') return false;
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+  const second = Number(secondText);
+  if (hour > 23 || minute > 59 || second > 59) return false;
+  if (zone !== undefined && zone !== 'Z') {
+    const offsetHour = Number(zone.slice(1, 3));
+    const offsetMinute = Number(zone.slice(4, 6));
+    if (offsetHour > 14 || offsetMinute > 59 || (offsetHour === 14 && offsetMinute !== 0)) return false;
+  }
+  return true;
 }
 
 function matchesType(value, expected) {
@@ -122,7 +149,7 @@ function validateObject(value, required, location, add, { unknownFields = true }
         fieldLocation,
         `expected ${expected}, got ${actualType(value[field])}`,
       );
-    } else if (DATE_FIELDS.has(field) && !validDate(value[field])) {
+    } else if (DATE_FIELDS.has(field) && !validDate(value[field], field)) {
       add('errors', 'FIELD_TYPE_MISMATCH', fieldLocation, 'expected a valid date string');
     }
   }
@@ -168,8 +195,8 @@ function scanSteamids(value, location, add, validSteamids) {
   for (const [field, nested] of Object.entries(value)) {
     const fieldLocation = `${location}.${field}`;
     if (field === 'steamid') {
-      if (typeof nested !== 'string' || !/^\d+$/.test(nested)) {
-        add('errors', 'INVALID_STEAMID', fieldLocation, 'SteamID must be a string of digits');
+      if (!isSteamId64(nested)) {
+        add('errors', 'INVALID_STEAMID', fieldLocation, 'SteamID64 must be exactly 17 digits');
       } else {
         validSteamids.add(nested);
       }
@@ -177,8 +204,8 @@ function scanSteamids(value, location, add, validSteamids) {
       if (Array.isArray(nested)) {
         nested.forEach((steamid, index) => {
           const itemLocation = `${fieldLocation}[${index}]`;
-          if (typeof steamid !== 'string' || !/^\d+$/.test(steamid)) {
-            add('errors', 'INVALID_STEAMID', itemLocation, 'SteamID must be a string of digits');
+          if (!isSteamId64(steamid)) {
+            add('errors', 'INVALID_STEAMID', itemLocation, 'SteamID64 must be exactly 17 digits');
           } else {
             validSteamids.add(steamid);
           }
@@ -305,17 +332,50 @@ function requireSingletons(classified, add) {
 function validateBoundaries(classified, add) {
   const groups = new Map();
   for (const row of classified) {
-    const isMeta = row.name === 'meta';
-    const isHead = row.name === 'matches' && Number(row.entry.query?.offset) === 0;
-    if (!isMeta && !isHead) continue;
-    const hashes = groups.get(row.entry.key) ?? new Set();
-    hashes.add(row.actualSha256 ?? `missing:${row.location}`);
-    groups.set(row.entry.key, hashes);
+    const rows = groups.get(row.entry.key) ?? [];
+    rows.push(row);
+    groups.set(row.entry.key, rows);
   }
-  for (const [key, hashes] of groups) {
-    if (hashes.size > 1) {
+  let metaBoundary = false;
+  let headBoundary = false;
+  for (const [key, rows] of groups) {
+    const expectedBoundary = rows[0].name === 'meta'
+      || (rows[0].name === 'matches' && Number(rows[0].entry.query?.offset) === 0);
+    if (!expectedBoundary) {
+      if (rows.length > 1 || rows.some((row) => row.entry.boundaryRole !== null)) {
+        add('errors', 'DUPLICATE_PK', key, 'ordinary request observation is duplicated');
+      }
+      continue;
+    }
+    if (rows[0].name === 'meta') metaBoundary = true;
+    else headBoundary = true;
+    const starts = rows.filter((row) => row.entry.boundaryRole === 'start');
+    const ends = rows.filter((row) => row.entry.boundaryRole === 'end');
+    if (rows.length !== 2 || starts.length !== 1 || ends.length !== 1) {
+      add(
+        'errors',
+        'SNAPSHOT_BOUNDARY_CHANGED',
+        key,
+        'exactly one explicit start and one explicit end observation are required',
+      );
+      if (rows.length > 2 || starts.length > 1 || ends.length > 1
+        || rows.some((row) => row.entry.boundaryRole === null)) {
+        add('errors', 'DUPLICATE_PK', key, 'boundary observation identity is duplicated or ordinary');
+      }
+      continue;
+    }
+    if (starts[0].manifestIndex > ends[0].manifestIndex) {
+      add('errors', 'SNAPSHOT_BOUNDARY_CHANGED', key, 'boundary end precedes boundary start');
+    }
+    if (starts[0].actualSha256 !== ends[0].actualSha256) {
       add('errors', 'SNAPSHOT_BOUNDARY_CHANGED', key, 'start and end boundary bodies differ');
     }
+  }
+  if (!metaBoundary) {
+    add('errors', 'SNAPSHOT_BOUNDARY_CHANGED', '/api/meta', 'meta start/end observations are missing');
+  }
+  if (!headBoundary) {
+    add('errors', 'SNAPSHOT_BOUNDARY_CHANGED', '/api/matches?offset=0', 'matches head start/end observations are missing');
   }
 }
 
@@ -464,8 +524,8 @@ function validateMatchDetails(classified, matchRows, matchIds, add) {
 function validatePlayerRequests(classified, validSteamids, matchIds, add) {
   for (const row of classified) {
     if (row.context?.steamid !== undefined) {
-      if (!/^\d+$/.test(row.context.steamid)) {
-        add('errors', 'INVALID_STEAMID', row.entry.path, 'SteamID path segment must contain digits');
+      if (!isSteamId64(row.context.steamid)) {
+        add('errors', 'INVALID_STEAMID', row.entry.path, 'SteamID64 path segment must be exactly 17 digits');
       } else {
         validSteamids.add(row.context.steamid);
       }
@@ -598,7 +658,7 @@ async function readObservations(dir, manifest, report, add) {
       body = await readFile(join(dir, String(entry.blob)));
     } catch {
       add('errors', 'BODY_HASH_MISMATCH', location, 'exact response blob is missing');
-      observations.push({ entry, location, actualSha256: null, payload: undefined });
+      observations.push({ entry, location, manifestIndex: index, actualSha256: null, payload: undefined });
       continue;
     }
     const actualSha256 = sha256Hex(body);
@@ -626,11 +686,12 @@ async function readObservations(dir, manifest, report, add) {
     if (entry.status !== 200) {
       add('errors', 'REQUEST_MISSING', location, `successful response status is required, got ${entry.status}`);
     }
-    observations.push({ entry, location, actualSha256, payload });
+    observations.push({ entry, location, manifestIndex: index, actualSha256, payload });
   }
   report.rootHash = computeRootHash(observations.map((row) => ({
     key: row.entry?.key ?? row.location,
     bodySha256: row.actualSha256 ?? 'MISSING',
+    boundaryRole: row.entry?.boundaryRole ?? null,
   })));
   if (manifest.rootHash !== report.rootHash) {
     add('errors', 'ROOT_HASH_MISMATCH', 'manifest.rootHash', 'root hash differs from exact response blobs');
@@ -684,7 +745,7 @@ export async function validateSnapshot(dir) {
     matchDetails: classified
       .filter((row) => row.name === 'matchDetail')
       .map((row) => row.payload),
-  }).filter((steamid) => /^\d+$/.test(steamid)));
+  }).filter(isSteamId64));
   for (const row of classified) scanSteamids(row.payload, row.location, add, validSteamids);
   requireSingletons(classified, add);
   validateBoundaries(classified, add);

@@ -5,7 +5,7 @@ import { canonicalStringify, requestKey, sha256Hex } from './canonical-json.mjs'
 const MANIFEST_FILE = 'manifest.json';
 const RESPONSES_DIR = 'responses';
 const REQUEST_FIELDS = [
-  'key', 'path', 'query', 'url', 'status', 'contentType', 'contentLength',
+  'key', 'path', 'query', 'boundaryRole', 'url', 'status', 'contentType', 'contentLength',
   'observedHeaders', 'fetchedAt', 'durationMs', 'bodyBytes', 'bodySha256',
   'canonicalSha256', 'itemCount', 'reportedTotal', 'blob',
 ];
@@ -95,11 +95,48 @@ function validateManifestEntry(entry) {
   if (entry.key !== requestKey(entry.path, entry.query)) {
     throw resumeError(`request key does not match path and query for ${entry.key}`);
   }
+  if (![null, 'start', 'end'].includes(entry.boundaryRole)) {
+    throw resumeError(`request entry has an invalid boundary role for ${entry.key}`);
+  }
+}
+
+function isBoundaryRequest(entry) {
+  if (entry.path === '/api/meta' && Object.keys(entry.query).length === 0) return true;
+  return entry.path === '/api/matches'
+    && Number.isInteger(Number(entry.query.limit))
+    && Number(entry.query.limit) > 0
+    && Number(entry.query.offset) === 0;
+}
+
+function validateObservationGroups(manifest) {
+  const groups = new Map();
+  manifest.requests.forEach((entry, index) => {
+    const rows = groups.get(entry.key) ?? [];
+    rows.push({ entry, index });
+    groups.set(entry.key, rows);
+  });
+  for (const [key, rows] of groups) {
+    const boundaryRows = rows.filter(({ entry }) => entry.boundaryRole !== null);
+    if (boundaryRows.length === 0) {
+      if (rows.length > 1) throw resumeError(`ordinary request ${key} is duplicated`);
+      continue;
+    }
+    if (boundaryRows.length !== rows.length || !rows.every(({ entry }) => isBoundaryRequest(entry))) {
+      throw resumeError(`boundary observations are invalid for ${key}`);
+    }
+    const starts = rows.filter(({ entry }) => entry.boundaryRole === 'start');
+    const ends = rows.filter(({ entry }) => entry.boundaryRole === 'end');
+    if (starts.length !== 1 || ends.length > 1 || (ends.length === 1 && starts[0].index > ends[0].index)) {
+      throw resumeError(`boundary observation sequence is invalid for ${key}`);
+    }
+  }
 }
 
 export function computeRootHash(requests) {
   const lines = requests
-    .map(({ key, bodySha256 }) => `${key}\0${bodySha256}\n`)
+    .map(({ key, bodySha256, boundaryRole = null }) => (
+      `${key}\0${bodySha256}\0${boundaryRole ?? ''}\n`
+    ))
     .sort()
     .join('');
   return sha256Hex(lines);
@@ -144,7 +181,7 @@ export async function loadSnapshot(root) {
   const observations = new Set();
   for (const entry of manifest.requests) {
     validateManifestEntry(entry);
-    const observation = `${entry.key}\0${entry.bodySha256}`;
+    const observation = `${entry.key}\0${entry.bodySha256}\0${entry.boundaryRole ?? ''}`;
     if (observations.has(observation)) {
       throw resumeError(`manifest repeats response ${entry.key} with body ${entry.bodySha256}`);
     }
@@ -158,13 +195,21 @@ export async function loadSnapshot(root) {
       throw resumeError(`canonical JSON hash does not match body blob for ${entry.key}`);
     }
   }
+  validateObservationGroups(manifest);
   if (manifest.rootHash !== computeRootHash(manifest.requests)) {
     throw resumeError('manifest root hash does not match request list');
   }
   return { root, manifestPath, manifest };
 }
 
-export async function storeResponse(snapshot, responseRecord, { allowConflict = false } = {}) {
+export async function storeResponse(
+  snapshot,
+  responseRecord,
+  { allowConflict = false, boundaryRole = null } = {},
+) {
+  if (![null, 'start', 'end'].includes(boundaryRole)) {
+    throw new TypeError('boundaryRole must be start, end, or null');
+  }
   const { path, query = {}, body, headers, ...rest } = responseRecord;
   const key = requestKey(path, query);
   const exactBody = bodyBuffer(body);
@@ -175,6 +220,7 @@ export async function storeResponse(snapshot, responseRecord, { allowConflict = 
     key,
     path,
     query: { ...query },
+    boundaryRole,
     url: rest.url ?? null,
     status: rest.status ?? null,
     contentType: headerValue(observedHeaders, 'content-type'),
@@ -199,14 +245,33 @@ export async function storeResponse(snapshot, responseRecord, { allowConflict = 
   }
 
   const existing = snapshot.manifest.requests.find((stored) => (
-    stored.key === key && stored.bodySha256 === bodySha256
+    stored.key === key
+      && stored.bodySha256 === bodySha256
+      && stored.boundaryRole === boundaryRole
   ));
   if (existing) {
     await readValidBlob(snapshot.root, existing);
     if (existing.canonicalSha256 === null) parseJson(exactBody);
     return existing;
   }
-  if (!allowConflict && snapshot.manifest.requests.some((stored) => stored.key === key)) {
+  const sameKey = snapshot.manifest.requests.filter((stored) => stored.key === key);
+  if (boundaryRole !== null) {
+    if (!isBoundaryRequest(entry)) throw new Error(`request ${key} cannot be a boundary observation`);
+    if (sameKey.some((stored) => stored.boundaryRole === boundaryRole)) {
+      throw new Error(`request ${key} already has boundary role ${boundaryRole}`);
+    }
+    if (sameKey.some((stored) => stored.boundaryRole === null)) {
+      throw new Error(`request ${key} mixes ordinary and boundary observations`);
+    }
+    if (boundaryRole === 'end' && (
+      !allowConflict || !sameKey.some((stored) => stored.boundaryRole === 'start')
+    )) {
+      throw new Error(`request ${key} boundary end requires an explicit start`);
+    }
+    if (boundaryRole === 'start' && sameKey.length > 0) {
+      throw new Error(`request ${key} boundary start must be the first observation`);
+    }
+  } else if (sameKey.length > 0) {
     throw new Error(`request ${key} is already stored with a different body`);
   }
 

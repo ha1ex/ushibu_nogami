@@ -7,7 +7,7 @@ import { createHttpClient } from './lib/http-client.mjs';
 import {
   createSnapshot, finalizeManifest, loadSnapshot, storeResponse,
 } from './lib/raw-store.mjs';
-import { discoverPlayers, discoverWeapons } from './lib/discovery.mjs';
+import { discoverPlayers, discoverWeapons, isSteamId64 } from './lib/discovery.mjs';
 import { WHOAJOR_BASE_URL, DEFAULT_DELAY_MS } from './config.mjs';
 
 function actualType(value) {
@@ -27,6 +27,9 @@ function validateRequired(value, required, label) {
   for (const [field, expected] of Object.entries(required)) {
     if (!typeMatches(value[field], expected)) {
       throw new Error(`${label}.${field} must be ${expected}; got ${actualType(value[field])}`);
+    }
+    if (field === 'steamid' && !isSteamId64(value[field])) {
+      throw new Error(`${label}.${field} must be a 17-digit SteamID64`);
     }
   }
 }
@@ -63,6 +66,17 @@ function validatePayload(name, payload) {
         `matchDetail.players[${playerIndex}].perRound`,
       );
     });
+    payload.rounds.forEach((round, roundIndex) => {
+      for (const field of ['tSteamids', 'ctSteamids']) {
+        round[field].forEach((steamid, steamidIndex) => {
+          if (!isSteamId64(steamid)) {
+            throw new Error(
+              `matchDetail.rounds[${roundIndex}].${field}[${steamidIndex}] must be a 17-digit SteamID64`,
+            );
+          }
+        });
+      }
+    });
   }
   return payload;
 }
@@ -84,10 +98,11 @@ function renderPath(template, values) {
   );
 }
 
-function existingEntry(snapshot, path, query) {
+function existingEntry(snapshot, path, query, boundaryRole = null) {
   const queryEntries = Object.entries(query);
   return snapshot.manifest.requests.find((entry) => (
     entry.path === path
+      && entry.boundaryRole === boundaryRole
       && Object.keys(entry.query).length === queryEntries.length
       && queryEntries.every(([key, value]) => String(entry.query[key]) === String(value))
   ));
@@ -106,14 +121,21 @@ async function readEntryBody(snapshot, entry) {
   return readFile(join(snapshot.root, entry.blob), 'utf8');
 }
 
-async function requestPayload(snapshot, client, name, path, query = {}, { reuse = false } = {}) {
-  const stored = reuse ? existingEntry(snapshot, path, query) : null;
+async function requestPayload(
+  snapshot,
+  client,
+  name,
+  path,
+  query = {},
+  { reuse = false, boundaryRole = null } = {},
+) {
+  const stored = reuse ? existingEntry(snapshot, path, query, boundaryRole) : null;
   let body;
   if (stored) {
     body = await readEntryBody(snapshot, stored);
   } else {
     const response = await client.get(path, query);
-    await storeResponse(snapshot, response);
+    await storeResponse(snapshot, response, { boundaryRole });
     body = response.body;
   }
   return parsePayload(name, body);
@@ -121,7 +143,7 @@ async function requestPayload(snapshot, client, name, path, query = {}, { reuse 
 
 async function boundaryPayload(snapshot, client, name, path, query, label) {
   const response = await client.get(path, query);
-  await storeResponse(snapshot, response, { allowConflict: true });
+  await storeResponse(snapshot, response, { allowConflict: true, boundaryRole: 'end' });
   const changed = new Set(
     matchingEntries(snapshot, path, query).map(({ bodySha256 }) => bodySha256),
   ).size > 1;
@@ -171,7 +193,12 @@ export async function collectSnapshot({
 
   try {
     const meta = await requestPayload(
-      snapshot, client, 'meta', CONTRACT.endpoints.meta.path, {}, { reuse: resume },
+      snapshot,
+      client,
+      'meta',
+      CONTRACT.endpoints.meta.path,
+      {},
+      { reuse: resume, boundaryRole: 'start' },
     );
     const tags = await requestPayload(
       snapshot, client, 'tags', CONTRACT.endpoints.tags.path, {}, { reuse: resume },
@@ -186,7 +213,12 @@ export async function collectSnapshot({
     while (true) {
       const query = { limit, offset };
       const page = await requestPayload(
-        snapshot, client, 'matches', CONTRACT.endpoints.matches.path, query, { reuse: resume },
+        snapshot,
+        client,
+        'matches',
+        CONTRACT.endpoints.matches.path,
+        query,
+        { reuse: resume, boundaryRole: offset === 0 ? 'start' : null },
       );
       if (stableTotal === null) stableTotal = page.total;
       if (page.total !== stableTotal) {
