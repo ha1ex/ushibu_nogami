@@ -17,7 +17,7 @@
         "-lc",
         "cd \"$(git rev-parse --show-toplevel)\" && exec node scripts/skillopt/mcp-server.mjs"
       ],
-      "description": "SkillOpt observability (read-only). Tools: skill_list_runs, skill_get_trace, skill_get_proposal, skill_list_evals, skill_get_eval. Мутации (rollout/reflect/apply) — только через CLI: pnpm skill <verb>."
+      "description": "SkillOpt observability (read-only). Tools: skill_list_runs, skill_get_trace, skill_get_proposal, skill_list_evals, skill_get_eval. Мутации (rollout/reflect/apply) — только через CLI: corepack pnpm skill <verb>."
     }
   ]
 }

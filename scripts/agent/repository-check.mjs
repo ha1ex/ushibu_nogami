@@ -204,6 +204,28 @@ async function auditHarness(root, errors) {
   return value.level;
 }
 
+async function auditMcpManifest(root, errors) {
+  const content = await readText(root, 'agent-config/mcp-servers.json', errors);
+  if (content === null) return;
+
+  let manifest;
+  try {
+    manifest = JSON.parse(content);
+  } catch (error) {
+    errors.push(`MCP manifest agent-config/mcp-servers.json must be valid JSON: ${error.message}`);
+    return;
+  }
+
+  const skillopt = Array.isArray(manifest?.servers)
+    ? manifest.servers.find((server) => server?.name === 'skillopt-local')
+    : undefined;
+  const description = typeof skillopt?.description === 'string' ? skillopt.description : '';
+  if (!description.includes('corepack pnpm skill <verb>')
+    || /(?<!corepack )\bpnpm\s+skill\b/.test(description)) {
+    errors.push('MCP server skillopt-local must document mutations through corepack pnpm skill <verb>.');
+  }
+}
+
 async function auditSharedSkills(root, errors) {
   for (const skill of sharedSkills) {
     const canonicalPath = join(root, 'skills', skill, 'SKILL.md');
@@ -428,6 +450,7 @@ export async function auditRepository(root) {
   const claude = await readText(root, 'CLAUDE.md', errors);
   const agents = await readText(root, 'AGENTS.md', errors);
   const level = await auditHarness(root, errors);
+  await auditMcpManifest(root, errors);
 
   if (claude !== null) {
     const firstContentLine = withoutHtmlComments(claude)

@@ -73,6 +73,15 @@ jobs:
       - name: Verify Corepack bootstrap without recursion
         run: node --test scripts/agent/test-corepack-bootstrap.mjs
 `;
+const validMcpManifest = {
+  version: 1,
+  servers: [{
+    name: 'skillopt-local',
+    command: 'node',
+    args: ['scripts/skillopt/mcp-server.mjs'],
+    description: 'Мутации выполняются через CLI: corepack pnpm skill <verb>.',
+  }],
+};
 
 function withConductorSettings(transform) {
   return transform(validConductorSettings);
@@ -114,6 +123,7 @@ async function makeFixture({
   viewerPackage = validViewerPackage,
   prePush = validPrePush,
   harness = { version: 1, level: 2 },
+  mcpManifest = validMcpManifest,
   workflows = { ci: validWorkflow, kbCi: validWorkflow },
 } = {}) {
   const root = await mkdtemp(join(tmpdir(), 'repository-check-'));
@@ -134,6 +144,7 @@ async function makeFixture({
     },
   }));
   if (harness !== null) await write(root, 'agent-config/harness.json', `${JSON.stringify(harness, null, 2)}\n`);
+  if (mcpManifest !== null) await write(root, 'agent-config/mcp-servers.json', `${JSON.stringify(mcpManifest, null, 2)}\n`);
   if (conductorSettings !== null) {
     await write(root, '.conductor/settings.toml', conductorSettings);
   }
@@ -231,6 +242,22 @@ test('rejects stale bare-pnpm Claude permissions and accepts required Corepack w
   assert.match(errors, /corepack pnpm agent/i);
   assert.match(errors, /corepack pnpm viewer/i);
   assert.match(errors, /corepack pnpm skill/i);
+});
+
+test('rejects a bare pnpm SkillOpt command in the shared MCP description', async () => {
+  const root = await makeFixture({
+    mcpManifest: {
+      ...validMcpManifest,
+      servers: [{
+        ...validMcpManifest.servers[0],
+        description: 'Мутации выполняются через CLI: pnpm skill <verb>.',
+      }],
+    },
+  });
+
+  const result = await auditRepository(root);
+  assert.equal(result.passed, false);
+  assert.match(result.errors.join('\n'), /skillopt-local.*corepack pnpm skill/i);
 });
 
 test('rejects non-canonical SessionStart quoting and a Codex matcher missing clear', async () => {
