@@ -38,3 +38,6 @@ scripts/semantic/.transformers-cache/
 .vscode/
 .idea/
 *.swp
+
+# TS incremental build info (генерируется pnpm viewer:build)
+tools/viewer/tsconfig.tsbuildinfo
