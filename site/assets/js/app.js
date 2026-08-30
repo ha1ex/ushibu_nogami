@@ -521,6 +521,19 @@
     }
 
     kids.push(el('div', { class: 'team__notes' }, notes));
+    if (!t.us && /^(pocelui|takahuli|rassadnik|smoke)$/.test(t.id)) {
+      var planIds = { pocelui: 'm01', takahuli: 'm02', rassadnik: 'm09', smoke: 'm10' };
+      kids.push(el('a', {
+        class: 'stats-brief-link',
+        href: '#/statistika/sopernik/' + t.id,
+        text: 'Статистика / открыть профиль ' + t.name
+      }));
+      kids.push(el('a', {
+        class: 'stats-brief-link',
+        href: '#/statistika/match/' + planIds[t.id],
+        text: 'Полный план против ' + t.name
+      }));
+    }
     return el('article', { class: 'team' + (t.us ? ' team--us' : '') }, kids);
   }
 
@@ -553,7 +566,9 @@
         el('ol', { class: 'route__items' }, ours.map(function (m) {
           return el('li', { class: 'route__item' }, [
             el('time', { datetime: m.date, text: U.fmtShort(m.date) }),
-            el('span', { text: m.away })
+            el('span', { text: m.away }),
+            el('span', { class: 'chip chip--ok', text: 'готов' }),
+            el('a', { class: 'stats-brief-link', href: '#/statistika/match/' + m.id, text: 'Полный план ' + m.away })
           ]);
         }))
       ]),
@@ -582,7 +597,11 @@
               el('span', { class: 'match__rating', text: 'avg ' + m.awayRating })
             ]),
             m.tag ? el('em', { class: 'chip chip--signal match__tag', text: m.tag })
-              : (m.why && m.why !== '—' ? el('em', { class: 'chip chip--ghost match__tag', text: m.why }) : null)
+              : (m.why && m.why !== '—' ? el('em', { class: 'chip chip--ghost match__tag', text: m.why }) : null),
+            m.ours ? el('div', { class: 'stats-match-brief' }, [
+              el('span', { class: 'chip chip--ok', text: 'план готов' }),
+              el('a', { class: 'stats-brief-link', href: '#/statistika/match/' + m.id, text: 'Полный план ' + m.away })
+            ]) : null
           ]);
         }))
       ]),
@@ -590,13 +609,14 @@
       el('section', { class: 'section' }, [
         sectionHead('Счёт', 'Результаты — вписываем после игр'),
         el('div', { class: 'table-wrap' }, el('table', { class: 'data' }, [
-          el('thead', {}, el('tr', {}, [el('th', { text: 'Дата' }), el('th', { text: 'Соперник' }), el('th', { text: 'Счёт' }), el('th', { text: 'Сыграно' })])),
+          el('thead', {}, el('tr', {}, [el('th', { text: 'Дата' }), el('th', { text: 'Соперник' }), el('th', { text: 'Счёт' }), el('th', { text: 'Сыграно' }), el('th', { text: 'Разбор' })])),
           el('tbody', {}, ours.map(function (m) {
             return el('tr', { class: 'is-ours' }, [
               el('td', { class: 'when', text: m.wd + ' ' + U.fmtShort(m.date) }),
               el('td', {}, el('b', { text: m.away })),
               el('td', { class: 'cell-score' }, U.noteField('score-' + m.id, '', '—:—', 'input')),
-              el('td', {}, U.check('played-' + m.id, ''))
+              el('td', {}, U.check('played-' + m.id, '')),
+              el('td', {}, el('a', { class: 'stats-brief-link', href: '#/statistika/match/' + m.id, text: 'Полный план ' + m.away }))
             ]);
           }))
         ]))
@@ -719,7 +739,8 @@
     { id: 'opponents', slug: 'soperniki', render: renderOpponents },
     { id: 'matches', slug: 'matchi', render: renderMatches },
     { id: 'regulations', slug: 'reglament', render: renderRegulations },
-    { id: 'polls', slug: 'golosovanie', render: renderPolls }
+    { id: 'polls', slug: 'golosovanie', render: renderPolls },
+    { id: 'statistics', slug: 'statistika', render: null }
   ];
 
   var rendered = {};
@@ -733,10 +754,50 @@
     return null;
   }
 
-  function activate(id, pushHash, moveFocus) {
-    var tab = byId(id) || TABS[0];
+  var statsPromise = null;
 
-    if (!rendered[tab.id]) {
+  function loadStatsScript(src) {
+    return new Promise(function (resolve, reject) {
+      var script = document.createElement('script');
+      script.src = src;
+      script.onload = resolve;
+      script.onerror = function () { reject(new Error('Не удалось загрузить ' + src)); };
+      document.head.appendChild(script);
+    });
+  }
+
+  function ensureStats() {
+    if (window.Stats && window.StatsCore) return Promise.resolve(window.Stats);
+    if (!statsPromise) {
+      statsPromise = loadStatsScript('/assets/js/stats-core.js')
+        .then(function () { return loadStatsScript('/assets/js/stats.js'); })
+        .then(function () {
+          if (!window.Stats) throw new Error('Модуль статистики не запустился');
+          return window.Stats;
+        })
+        .catch(function (error) { statsPromise = null; throw error; });
+    }
+    return statsPromise;
+  }
+
+  function renderStatsScriptError(error) {
+    var retry = el('button', { type: 'button', class: 'stats-retry', text: 'Повторить загрузку' });
+    retry.addEventListener('click', function () {
+      statsPromise = null;
+      activateRoute(routeFromHash(), { pushHash: false, moveFocus: false });
+    });
+    U.mount('#statistics', el('div', { class: 'stats-state stats-state--error' }, [
+      el('h1', { tabindex: '-1', text: 'Статистика недоступна' }),
+      el('p', { text: String(error && error.message || 'Ошибка загрузки') }), retry,
+      el('p', { class: 'sr-only', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true', text: 'Ошибка: статистика недоступна' })
+    ]));
+  }
+
+  function activateRoute(route, options) {
+    options = options || {};
+    var tab = byId(route.tab) || TABS[0];
+
+    if (tab.render && !rendered[tab.id]) {
       U.mount('#' + tab.id, tab.render());
       rendered[tab.id] = true;
     }
@@ -751,12 +812,13 @@
       }
     });
 
-    if (pushHash && window.location.hash !== '#/' + tab.slug) {
-      window.location.hash = '#/' + tab.slug;
-    }
-    if (moveFocus) {
+    if (options.moveFocus) {
       var b = document.querySelector('[data-tab="' + tab.id + '"]');
       if (b) b.focus();
+    }
+    if (options.pushHash && window.location.hash !== route.path) {
+      window.location.hash = route.path;
+      return;
     }
     var btnEl = document.querySelector('[data-tab="' + tab.id + '"]');
     var label = 'Штаб';
@@ -769,12 +831,27 @@
     }
     document.title = label + ' — Штаб CS2 «Ушибу ногами»';
     updateProgressChips();
+
+    if (tab.id === 'statistics') {
+      ensureStats().then(function () {
+        var normalized = window.StatsCore.parseHash(route.rawHash || route.path);
+        window.Stats.open(normalized, { moveFocus: false });
+      }).catch(renderStatsScriptError);
+    }
   }
 
-  function fromHash() {
-    var m = /^#\/([a-z-]+)/.exec(window.location.hash || '');
+  function routeFromHash() {
+    var hash = window.location.hash || '';
+    var m = /^#\/([a-z-]+)(?:\/|$)/.exec(hash);
+    if (m && m[1] === 'statistika') return { tab: 'statistics', path: hash || '#/statistika', rawHash: hash };
     var tab = m ? bySlug(m[1]) : null;
-    return tab ? tab.id : TABS[0].id;
+    tab = tab || TABS[0];
+    return { tab: tab.id, path: '#/' + tab.slug };
+  }
+
+  function activate(id, pushHash, moveFocus) {
+    var tab = byId(id) || TABS[0];
+    activateRoute({ tab: tab.id, path: '#/' + tab.slug }, { pushHash: !!pushHash, moveFocus: !!moveFocus });
   }
 
   function initTabs() {
@@ -782,7 +859,8 @@
     buttons.forEach(function (btn, index) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
-        activate(btn.getAttribute('data-tab'), true);
+        var tab = byId(btn.getAttribute('data-tab')) || TABS[0];
+        activateRoute({ tab: tab.id, path: '#/' + tab.slug }, { pushHash: true, moveFocus: false });
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
       btn.addEventListener('keydown', function (e) {
@@ -793,12 +871,13 @@
         else if (e.key === 'End') next = buttons.length - 1;
         if (next === null) return;
         e.preventDefault();
-        activate(buttons[next].getAttribute('data-tab'), true, true);
+        var nextTab = byId(buttons[next].getAttribute('data-tab')) || TABS[0];
+        activateRoute({ tab: nextTab.id, path: '#/' + nextTab.slug }, { pushHash: true, moveFocus: true });
       });
     });
 
-    window.addEventListener('hashchange', function () { activate(fromHash(), false); });
-    activate(fromHash(), false);
+    window.addEventListener('hashchange', function () { activateRoute(routeFromHash(), { pushHash: false, moveFocus: false }); });
+    activateRoute(routeFromHash(), { pushHash: false, moveFocus: false });
   }
 
   /* Проценты готовности карт живут в сводке и в шапках плейбуков */
@@ -866,5 +945,5 @@
       ]));
     });
 
-  window.__hq = { activate: activate, mapProgress: mapProgress, allMapsProgress: allMapsProgress };
+  window.__hq = { activate: activate, activateRoute: activateRoute, routeFromHash: routeFromHash, mapProgress: mapProgress, allMapsProgress: allMapsProgress };
 })();

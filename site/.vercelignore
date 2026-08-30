@@ -2,3 +2,6 @@
 README.md
 node_modules
 .vercel
+test/
+test-results/
+playwright.config.js

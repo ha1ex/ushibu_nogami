@@ -241,7 +241,7 @@
   .nav__item {
     grid-template-columns: auto;
     min-width: max-content;
-    min-height: 40px;
+    min-height: 44px;
     padding: 0 var(--s3);
     border-left: 0;
     border-bottom: 2px solid transparent;
@@ -274,8 +274,8 @@
 .tools-toggle {
   display: none;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   color: var(--text-dim);
