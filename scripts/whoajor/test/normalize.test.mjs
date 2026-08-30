@@ -320,6 +320,36 @@ test('fingerprint читается из всех semantic SQLite rows', async ()
   assert.notEqual(afterDroppedRow, built.dataFingerprint);
 });
 
+test('fingerprint потоково читает строки в PK-порядке без materializing all rows', async () => {
+  const { computeDataFingerprint } = await import('../lib/normalize.mjs');
+  const preparedSql = [];
+  const fakeDb = {
+    pragma(statement) {
+      if (statement === 'table_list') return [{ schema: 'main', name: 'synthetic' }];
+      if (statement === 'table_info("synthetic")') {
+        return [
+          { cid: 0, name: 'entity_id', pk: 1 },
+          { cid: 1, name: 'source_json', pk: 0 },
+        ];
+      }
+      throw new Error(`unexpected pragma ${statement}`);
+    },
+    prepare(sql) {
+      preparedSql.push(sql);
+      return {
+        all() { throw new Error('fingerprint must not materialize rows with all()'); },
+        *iterate() {
+          yield { entity_id: 'a', source_json: '{"value":1}' };
+          yield { entity_id: 'b', source_json: '{"value":2}' };
+        },
+      };
+    },
+  };
+
+  assert.match(computeDataFingerprint(fakeDb), /^[a-f0-9]{64}$/);
+  assert.match(preparedSql[0], /ORDER BY "entity_id"/);
+});
+
 test('изменение source discrepancy меняет fingerprint при тех же raw responses', async () => {
   const snapshotDir = await buildValidatedFixture();
   const first = await buildDatabase(snapshotDir, join(snapshotDir, 'before-discrepancy.sqlite'));

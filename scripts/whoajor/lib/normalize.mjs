@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readFile, mkdir, rename, rm } from 'node:fs/promises';
 import { basename, dirname, join } from 'node:path';
 import Database from 'better-sqlite3';
@@ -579,28 +580,36 @@ function sanitizedSourceJson(table, sourceJson) {
 }
 
 export function computeDataFingerprint(db) {
-  const rows = [];
+  const hash = createHash('sha256');
   const tables = db.pragma('table_list')
     .filter((row) => row.schema === 'main' && !row.name.startsWith('sqlite_'))
     .map(({ name }) => name)
     .sort(compareText);
   for (const table of tables) {
-    const columns = db.pragma(`table_info(${quoteIdentifier(table)})`)
-      .sort((left, right) => left.cid - right.cid)
+    const columnInfo = db.pragma(`table_info(${quoteIdentifier(table)})`)
+      .sort((left, right) => left.cid - right.cid);
+    const columns = columnInfo.map(({ name }) => name);
+    const primaryKey = columnInfo
+      .filter(({ pk }) => pk > 0)
+      .sort((left, right) => left.pk - right.pk)
       .map(({ name }) => name);
+    const orderColumns = primaryKey.length > 0 ? primaryKey : columns;
     const projection = columns.map(quoteIdentifier).join(', ');
-    for (const dbRow of db.prepare(`SELECT ${projection} FROM ${quoteIdentifier(table)}`).all()) {
+    const orderBy = orderColumns.map(quoteIdentifier).join(', ');
+    hash.update(`${json({ columns, table })}\n`);
+    for (const dbRow of db.prepare(
+      `SELECT ${projection} FROM ${quoteIdentifier(table)} ORDER BY ${orderBy}`,
+    ).iterate()) {
       const logicalRow = {};
       for (const column of columns) {
         logicalRow[column] = column === 'source_json'
           ? sanitizedSourceJson(table, dbRow[column])
           : dbRow[column];
       }
-      rows.push({ row: logicalRow, table });
+      hash.update(`${json({ row: logicalRow, table })}\n`);
     }
   }
-  rows.sort((left, right) => compareText(json(left), json(right)));
-  return sha256Hex(rows.map((row) => `${json(row)}\n`).join(''));
+  return hash.digest('hex');
 }
 
 async function cleanupTemporary(path) {
