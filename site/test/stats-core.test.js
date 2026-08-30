@@ -149,6 +149,10 @@ test('validateRecommendation requires reviewed root freshness and complete evide
   assert.throws(() => Core.validateRecommendation({ ...rec, dataThrough: '2026-08-26' }, manifest, evidence), /устарел/i);
   assert.throws(() => Core.validateRecommendation({ ...rec, mapEvidence: ['missing'] }, manifest, evidence), /evidence/i);
   assert.throws(() => Core.validateRecommendation({ ...rec, threats: [{ id: 'missing-embedded' }] }, manifest, evidence), /evidence/i);
+  assert.throws(() => Core.validateRecommendation({
+    ...rec,
+    mapOverrides: [{ action: 'ban', map: 'de_dust2', rationale: 'Manual override', evidenceIds: ['missing-override'] }]
+  }, manifest, evidence), /evidence/i);
 });
 
 test('dataset selection uses manifest entries and readiness keys are controlled', () => {
@@ -163,6 +167,18 @@ test('sortRows is deterministic and does not mutate source rows', () => {
   const rows = [{ name: 'Zed', rating: 1 }, { name: 'Alpha', rating: 1 }, { name: 'Beta', rating: 2 }];
   assert.deepEqual(Core.sortRows(rows, 'rating', 'descending').map((row) => row.name), ['Beta', 'Zed', 'Alpha']);
   assert.deepEqual(rows.map((row) => row.name), ['Zed', 'Alpha', 'Beta']);
+});
+
+test('schedule selection chooses the first non-past plan and labels a most-recent fallback', () => {
+  const plans = [
+    { matchId: 'm09', date: '2026-10-21' },
+    { matchId: 'm01', date: '2026-09-30' },
+    { matchId: 'm10', date: '2026-10-22' },
+    { matchId: 'm02', date: '2026-10-01' }
+  ];
+  const plain = (value) => JSON.parse(JSON.stringify(value));
+  assert.deepEqual(plain(Core.selectSchedulePlan(plans, '2026-10-01')), { plan: plans[3], completedFallback: false });
+  assert.deepEqual(plain(Core.selectSchedulePlan(plans, '2026-10-23')), { plan: plans[2], completedFallback: true });
 });
 
 test('data client performs no request until explicitly opened', async () => {

@@ -153,6 +153,9 @@
     ['maps', 'threats', 'weaknesses'].forEach(function (key) {
       (rec[key] || []).forEach(function (item) { if (item && item.id) ids.push(item.id); });
     });
+    (rec.mapOverrides || []).forEach(function (item) {
+      if (item && Array.isArray(item.evidenceIds)) ids = ids.concat(item.evidenceIds);
+    });
     (rec.caveats || []).forEach(function (item) { if (item && item.evidenceId) ids.push(item.evidenceId); });
     return ids;
   }
@@ -179,6 +182,14 @@
       var cmp = typeof av === 'number' && typeof bv === 'number' ? av - bv : String(av == null ? '' : av).localeCompare(String(bv == null ? '' : bv), 'ru');
       return cmp === 0 ? a.index - b.index : cmp * sign;
     }).map(function (item) { return item.row; });
+  }
+
+  function selectSchedulePlan(plans, today) {
+    var sorted = (plans || []).slice().sort(function (a, b) { return a.date.localeCompare(b.date); });
+    for (var i = 0; i < sorted.length; i++) {
+      if (sorted[i].date >= today) return { plan: sorted[i], completedFallback: false };
+    }
+    return { plan: sorted.length ? sorted[sorted.length - 1] : null, completedFallback: sorted.length > 0 };
   }
 
   function datasetsForRoute(route) {
@@ -272,6 +283,7 @@
     recommendationEvidenceIds: recommendationEvidenceIds,
     scoutKey: scoutKey,
     sortRows: sortRows,
+    selectSchedulePlan: selectSchedulePlan,
     datasetsForRoute: datasetsForRoute,
     createClient: createClient,
     taskIds: TASK_IDS.slice()

@@ -180,12 +180,15 @@
     var plans = validatePlans(data.recommendations, data.evidence, manifest).slice().sort(function (a, b) { return a.date.localeCompare(b.date); });
     rosters.forEach(function (row) { knownTeams[row.teamId] = true; });
     plans.forEach(function (row) { knownMatches[row.matchId] = true; });
-    var nearest = plans[0];
+    var now = new Date();
+    var today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+    var scheduleSelection = Core.selectSchedulePlan(plans, today);
+    var nearest = scheduleSelection.plan;
     var ready = nearest ? readiness(nearest.matchId) : { done: 0, total: 0 };
     var main = el('div', { class: 'stats-stack' }, [
       el('p', { class: 'lead stats-caveat', text: 'Проекция из индивидуальной статистики. Сыгранность пятёрок не измерена.' }),
       el('div', { class: 'stats-hero-grid' }, [
-        card('Ближайший матч', nearest ? el('div', {}, [
+        card(scheduleSelection.completedFallback ? 'Последний матч · расписание завершено' : 'Ближайший матч', nearest ? el('div', {}, [
           chip('reviewed', 'ok'), el('p', { class: 'stats-big', text: rosterName(rosters, nearest.opponentTeamId) }),
           el('time', { datetime: nearest.date, text: U.fmtFull(nearest.date) }),
           routeLink(Core.href('match', nearest.matchId), 'Открыть полный план ' + rosterName(rosters, nearest.opponentTeamId))
@@ -278,7 +281,7 @@
   }
 
   function edgeTable(rows) {
-    return el('section', { class: 'section' }, [el('h2', { text: 'Map edges' }), el('div', { class: 'table-wrap', 'aria-label': 'Таблица map edges: прокрутите по горизонтали' }, el('table', { class: 'data' }, [
+    return el('section', { class: 'section' }, [el('h2', { text: 'Map edges' }), el('div', { class: 'table-wrap', 'aria-label': 'Таблица map edges: прокрутите по горизонтали' }, el('table', { class: 'data', 'aria-label': 'Map edges' }, [
       el('thead', {}, el('tr', {}, [el('th', { text: 'Карта' }), el('th', { text: 'Edge' }), el('th', { text: 'Мы n' }), el('th', { text: 'Они n' }), el('th', { text: 'Confidence' })])),
       el('tbody', {}, rows.map(function (row) { return el('tr', {}, [el('td', { text: mapName(row.map) }), el('td', { text: number(row.edge, 3) }), el('td', { text: String(row.us.playerRounds) }), el('td', { text: String(row.opponent.playerRounds) }), el('td', { text: confidence(row.confidence) })]); }))
     ]))]);
@@ -307,7 +310,7 @@
     var name = metric ? metric.displayName : raw.displayName;
     var roster = null;
     data.rosters.forEach(function (team) { if (findBy(team.players, 'steamid', route.steamid)) roster = team; });
-    var maps = metric ? Object.keys(metric.maps || {}).map(function (key) { return { map: key, value: metric.maps[key] }; }) : data.playerMapStats.filter(function (row) { return row.steamid === route.steamid; }).map(function (row) { return { map: row.map, value: row }; });
+    var maps = (data.playerMapStats || []).filter(function (row) { return row.steamid === route.steamid; }).map(function (row) { return { map: row.map, value: row }; });
     var weapons = data.playerWeaponStats.filter(function (row) { return row.steamid === route.steamid; }).slice(0, 20);
     var trends = data.trendMatches.filter(function (row) { return row.steamid === route.steamid; }).slice(-20);
     var body = el('div', { class: 'stats-stack' }, [
@@ -380,8 +383,16 @@
       el('p', { class: 'lead stats-caveat', text: 'План read-only. Командные числа — проекция игроков; сыгранность не измерена.' }),
       el('div', { class: 'stats-veto-strip' }, [veto('Pick', plan.pick, 'ct'), veto('Ban', plan.ban, 'signal'), veto('Backup', (plan.backup || []).map(mapName).join(' / '), 'ghost')]),
       card('Contingency', el('p', { text: plan.contingency })),
+      simpleTableSection('Цифры по картам', ['Карта', 'Edge', 'Наш Rating', 'Их Rating', 'Наши раунды', 'Их раунды', 'Confidence'], (plan.maps || []).map(function (row) {
+        return [mapName(row.map), number(row.edge, 3), number(row.us && row.us.adjustedRating, 3), number(row.opponent && row.opponent.adjustedRating, 3), text(row.us && row.us.playerRounds), text(row.opponent && row.opponent.playerRounds), confidence(row.confidence)];
+      })),
+      (plan.mapOverrides || []).length ? simpleTableSection('Ручные решения по картам', ['Решение', 'Карта', 'Обоснование', 'Evidence'], plan.mapOverrides.map(function (row) {
+        return [text(row.action), mapName(row.map), text(row.rationale), (row.evidenceIds || []).join(', ')];
+      })) : null,
       el('div', { class: 'stats-hero-grid' }, [card('Угрозы', evidenceList(plan.threats, data.rosters)), card('Уязвимости', evidenceList(plan.weaknesses, data.rosters)), card('Confidence', el('div', {}, [el('p', { class: 'stats-big', text: confidence(plan.confidence) }), el('p', { text: 'reviewed ' + plan.reviewedAt + ' · data through ' + plan.dataThrough })]))]),
       el('div', { class: 'stats-hero-grid' }, [listCard('Делать', plan.do), listCard('Не делать', plan.dont), listCard('Ограничения', (plan.caveats || []).map(function (row) { return row.text; }))]),
+      el('section', { class: 'section' }, [el('h2', { text: 'Чеклист тренировки' }), simpleList(plan.trainingChecklist || [])]),
+      el('section', { class: 'section' }, [el('h2', { text: 'Чеклист матч-дня' }), simpleList(plan.matchdayChecklist || [])]),
       el('section', { class: 'section' }, [el('h2', { text: 'Общие задачи' }), tasks, el('p', { class: 'stats-sync-note', text: 'Сохраняется в командное состояние; одновременное редактирование одной заметки — last write wins.' })]),
       el('section', { class: 'section' }, [el('h2', { text: 'Личные задачи в плане (read-only)' }), simpleList((plan.personalTasks || []).map(function (task) { return task.draftName + ': ' + task.task; }))]),
       el('section', { class: 'section', 'data-evidence': 'true' }, [el('h2', { text: 'Evidence IDs' }), simpleList(Core.recommendationEvidenceIds(plan))])
@@ -394,32 +405,54 @@
   function simpleList(rows) { return rows.length ? el('ul', { class: 'stats-list' }, rows.map(function (row) { return el('li', { text: text(row) }); })) : el('p', { text: 'Нет данных' }); }
 
   function sourceMatchView(source) {
-    var host = el('div', { id: 'stats-source-match-detail', class: 'stats-directory', 'data-detail-readonly': 'true' });
+    var detailHosts = [el('div'), el('div'), el('div')];
+    var host = el('div', { id: 'stats-source-match-detail', class: 'stats-directory', 'data-detail-readonly': 'true' }, detailHosts);
     var load = el('button', { type: 'button', class: 'stats-detail-button', text: 'Загрузить детали матча' });
+    var status;
     load.addEventListener('click', async function () {
-      load.disabled = true; host.textContent = 'Загрузка…';
-      try {
-        var details = await Promise.all([
-          client.datasetForKey('matchPlayers', 'matchId', source.matchId),
-          client.datasetForKey('matchRounds', 'matchId', source.matchId),
-          client.datasetForKey('matchPlayerWeapons', 'matchId', source.matchId)
-        ]);
-        U.mount(host, el('div', { class: 'stats-stack' }, [
-          simpleTableSection('Игроки матча', ['SteamID', 'Имя', 'Rating', 'Результат'], details[0].map(function (row) {
+      load.disabled = true; load.textContent = 'Загрузка деталей матча…';
+      detailHosts.forEach(function (detailHost) { detailHost.textContent = 'Загрузка…'; });
+      var loaders = [
+        { dataset: 'matchPlayers', label: 'игроки', render: function (rows) {
+          return simpleTableSection('Игроки матча', ['SteamID', 'Имя', 'Rating', 'Результат'], rows.map(function (row) {
             return [row.steamid, row.name, number(row.rating2), row.matchResult];
-          })),
-          simpleTableSection('Раунды матча', ['Раунд', 'Победитель', 'Причина', 'Бомба'], details[1].map(function (row) {
+          }));
+        } },
+        { dataset: 'matchRounds', label: 'раунды', render: function (rows) {
+          return simpleTableSection('Раунды матча', ['Раунд', 'Победитель', 'Причина', 'Бомба'], rows.map(function (row) {
             return [row.round, row.winner, row.reason, row.bombPlanted ? 'Установлена' : 'Нет'];
-          })),
-          simpleTableSection('Оружие матча', ['SteamID', 'Оружие', 'Убийства', 'Урон', 'Выстрелы'], details[2].map(function (row) {
+          }));
+        } },
+        { dataset: 'matchPlayerWeapons', label: 'оружие', render: function (rows) {
+          return simpleTableSection('Оружие матча', ['SteamID', 'Оружие', 'Убийства', 'Урон', 'Выстрелы'], rows.map(function (row) {
             return [row.steamid, row.weapon, row.kills, row.damage, row.shots];
-          }))
-        ]));
-      } catch (error) { host.textContent = 'Нет данных: ' + error.message; }
+          }));
+        } }
+      ];
+      var results = await Promise.all(loaders.map(async function (definition, index) {
+        try {
+          var rows = await client.datasetForKey(definition.dataset, 'matchId', source.matchId);
+          U.mount(detailHosts[index], definition.render(rows));
+          return null;
+        } catch (error) {
+          detailHosts[index].textContent = 'Нет данных: ' + error.message;
+          return definition.label;
+        }
+      }));
+      var failed = results.filter(Boolean);
+      if (failed.length) {
+        load.disabled = false; load.textContent = 'Повторить детали матча';
+        status.textContent = 'Ошибка деталей: ' + failed.join(', ') + '. Успешные таблицы сохранены.';
+      } else {
+        load.textContent = 'Детали матча загружены';
+        status.textContent = 'Детали матча загружены';
+      }
     });
-    return shell('Исходный матч · ' + mapName(source.map), source.startedAt + ' / ' + source.matchId, el('div', { class: 'stats-stack' }, [
+    var view = shell('Исходный матч · ' + mapName(source.map), source.startedAt + ' / ' + source.matchId, el('div', { class: 'stats-stack' }, [
       card('Матч', el('dl', { class: 'stats-dl' }, [el('dt', { text: 'Раунды' }), el('dd', { text: String(source.roundsPlayed) }), el('dt', { text: 'Режим' }), el('dd', { text: text(source.mode) }), el('dt', { text: 'Server' }), el('dd', { text: text(source.serverName) })])), load, host
     ]), 'Готово: исходный матч');
+    status = view.node.querySelector('[role="status"]');
+    return view;
   }
 
   function sortableView(title, eyebrow, rows, config, detailLoader) {
@@ -449,7 +482,7 @@
         if (detailLoader) {
           var host = el('div', { class: 'stats-row-detail' });
           var button = el('button', { type: 'button', class: 'stats-detail-button', text: 'Открыть ' + config.name(row) });
-          button.addEventListener('click', function () { detailLoader(row, host, button); });
+          button.addEventListener('click', function () { detailLoader(row, host, button, status); });
           cells.push(el('td', {}, [button, host]));
         }
         tbody.appendChild(el('tr', {}, cells));
@@ -469,18 +502,32 @@
   function mapsView(rows) {
     return sortableView('Карты', '46 карт / aggregate', rows, { defaultKey: 'n', search: function (row) { return row.map; }, name: function (row) { return mapName(row.map); }, columns: [
       { key: 'map', label: 'Карта', value: function (row) { return mapName(row.map); } }, { key: 'n', label: 'Матчам', value: function (row) { return row.n; } }
-    ] }, async function (row, host, button) {
+    ] }, async function (row, host, button, status) {
       button.disabled = true; host.textContent = 'Загрузка…';
-      try { var details = (await client.datasetForKey('playerMapStats', 'map', row.map)).slice(0, 10); U.mount(host, simpleList(details.map(function (item) { return text(item.name || item.steamid) + ' · Rating ' + number(item.rating2 || item.rating); }))); } catch (error) { host.textContent = 'Нет данных: ' + error.message; }
+      try {
+        var details = (await client.datasetForKey('playerMapStats', 'map', row.map)).slice(0, 10);
+        U.mount(host, simpleList(details.map(function (item) { return text(item.name || item.steamid) + ' · Rating ' + number(item.rating2 || item.rating); })));
+        status.textContent = 'Детали карты ' + mapName(row.map) + ' загружены';
+      } catch (error) {
+        host.textContent = 'Нет данных: ' + error.message; button.disabled = false;
+        status.textContent = 'Ошибка деталей карты ' + mapName(row.map) + '. Можно повторить.';
+      }
     });
   }
 
   function weaponsView(rows) {
     return sortableView('Оружие', '39 видов оружия / aggregate', rows, { defaultKey: 'kills', search: function (row) { return row.weapon; }, name: function (row) { return row.weapon; }, columns: [
       { key: 'weapon', label: 'Оружие', value: function (row) { return row.weapon; } }, { key: 'kills', label: 'Убийствам', value: function (row) { return row.kills; } }, { key: 'shots', label: 'Выстрелам', value: function (row) { return row.shots; } }, { key: 'players', label: 'Игрокам', value: function (row) { return row.players; } }
-    ] }, async function (row, host, button) {
+    ] }, async function (row, host, button, status) {
       button.disabled = true; host.textContent = 'Загрузка…';
-      try { var details = (await client.datasetForKey('playerWeaponStats', 'weapon', row.weapon)).slice(0, 10); U.mount(host, simpleList(details.map(function (item) { return text(item.name || item.steamid) + ' · ' + text(item.kills) + ' убийств'; }))); } catch (error) { host.textContent = 'Нет данных: ' + error.message; }
+      try {
+        var details = (await client.datasetForKey('playerWeaponStats', 'weapon', row.weapon)).slice(0, 10);
+        U.mount(host, simpleList(details.map(function (item) { return text(item.name || item.steamid) + ' · ' + text(item.kills) + ' убийств'; })));
+        status.textContent = 'Детали оружия ' + text(row.weapon) + ' загружены';
+      } catch (error) {
+        host.textContent = 'Нет данных: ' + error.message; button.disabled = false;
+        status.textContent = 'Ошибка деталей оружия ' + text(row.weapon) + '. Можно повторить.';
+      }
     });
   }
 
@@ -541,7 +588,10 @@
       if (token !== requestToken) return;
       mountView(view, shouldFocus);
     } catch (error) {
-      if (token !== requestToken || error && error.name === 'AbortError') return;
+      if (token !== requestToken) return;
+      if (error && error.name === 'AbortError' && !(options && options.abortRetry)) {
+        return open(route, { moveFocus: shouldFocus, abortRetry: true });
+      }
       mountView(errorView(error), shouldFocus);
     }
   }

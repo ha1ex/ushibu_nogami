@@ -248,6 +248,130 @@ test('player drill-down loads an indexed clutch shard and exposes a labelled rea
   await expect(table.locator('input, textarea, button')).toHaveCount(0);
 });
 
+test('real player map table uses keyed map rows with actual map, rating and rounds', async ({ page }) => {
+  await page.goto('/#/statistika/igrok/76561198050158798');
+  const table = page.getByRole('table', { name: 'Карты игрока' });
+  const anubis = table.locator('tbody tr').filter({ hasText: 'Anubis' });
+  await expect(anubis).toHaveCount(1);
+  await expect(anubis).toContainText('1.03');
+  await expect(anubis).toContainText('280');
+  await expect(table.locator('tbody tr').filter({ hasText: /Recent|AllTime/ })).toHaveCount(0);
+});
+
+test('aborted pointer load retries the newest statistics route instead of leaving loading stuck', async ({ page }) => {
+  let currentRequests = 0;
+  let firstStarted;
+  const started = new Promise((resolve) => { firstStarted = resolve; });
+  await page.route('**/assets/data/whoajor/current.json', async (route) => {
+    currentRequests += 1;
+    if (currentRequests === 1) {
+      firstStarted();
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+    await route.continue();
+  });
+  await page.goto('/#/statistika', { waitUntil: 'domcontentloaded' });
+  await started;
+  await page.evaluate(() => { window.location.hash = '#/statistika/maps'; });
+  await expect(page.getByRole('heading', { level: 1, name: 'Карты' })).toBeVisible();
+  await expect(page.locator('#statistics [role=status]')).toContainText(/46|показано/i);
+  expect(currentRequests).toBeGreaterThanOrEqual(2);
+});
+
+test('aborted shared dataset load is evicted and retried for the newest route', async ({ page }) => {
+  let rosterRequests = 0;
+  let firstStarted;
+  const started = new Promise((resolve) => { firstStarted = resolve; });
+  await page.route('**/data/rosters-000.json', async (route) => {
+    rosterRequests += 1;
+    if (rosterRequests === 1) {
+      firstStarted();
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+    await route.continue();
+  });
+  await page.goto('/#/statistika', { waitUntil: 'domcontentloaded' });
+  await started;
+  await page.evaluate(() => { window.location.hash = '#/statistika/sopernik/pocelui'; });
+  await expect(page.getByRole('heading', { level: 1, name: 'Поцелуй всадницу' })).toBeVisible();
+  await expect(page.locator('#statistics [role=status]')).toContainText(/готово/i);
+  expect(rosterRequests).toBeGreaterThanOrEqual(2);
+});
+
+test('match plans expose map figures, checklists and manual override evidence', async ({ page }) => {
+  await page.goto('/#/statistika/match/m01');
+  await expect(page.getByRole('table', { name: 'Цифры по картам' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Чеклист тренировки' })).toBeVisible();
+  await expect(page.getByText('Повторить два Anubis-выхода и один Ancient contingency.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Чеклист матч-дня' })).toBeVisible();
+  await expect(page.getByText('Подтвердить пятёрку до вето.')).toBeVisible();
+
+  for (const [matchId, rationale, evidenceId] of [
+    ['m02', /нейтральный Dust2 убираем/i, 'map-edge:takahuli:de_cache'],
+    ['m09', /Cache имеет минимальный отрицательный разрыв/i, 'map-edge:rassadnik:de_anubis']
+  ]) {
+    await page.goto(`/#/statistika/match/${matchId}`);
+    await expect(page.getByRole('heading', { name: 'Ручные решения по картам' })).toBeVisible();
+    await expect(page.getByText(rationale)).toBeVisible();
+    await expect(page.getByText(evidenceId, { exact: true })).toBeVisible();
+  }
+});
+
+test('source match isolates a failed detail shard, announces it and retries without hiding successful tables', async ({ page }) => {
+  const matchId = 'auto-20231116-1908-de_anubis-Whoajor';
+  let failures = 0;
+  await page.route('**/data/matchRounds-000.json', async (route) => {
+    if (failures++ === 0) return route.fulfill({ status: 503, body: 'transient' });
+    await route.continue();
+  });
+  await page.goto(`/#/statistika/match/${matchId}`);
+  const load = page.getByRole('button', { name: /детали матча/i });
+  await load.click();
+  await expect(page.getByRole('table', { name: 'Игроки матча' })).toBeVisible();
+  await expect(page.getByRole('table', { name: 'Оружие матча' })).toBeVisible();
+  await expect(page.getByRole('table', { name: 'Раунды матча' })).toHaveCount(0);
+  await expect(page.locator('#statistics [role=status]')).toContainText(/ошибка.*раунды/i);
+  await expect(load).toBeEnabled();
+  await load.click();
+  await expect(page.getByRole('table', { name: 'Раунды матча' })).toBeVisible();
+  await expect(page.locator('#statistics [role=status]')).toContainText(/детали матча загружены/i);
+});
+
+test('map detail transient failure is announced and retryable', async ({ page }) => {
+  let failures = 0;
+  await page.route('**/data/playerMapStats-000.json', async (route) => {
+    if (failures++ === 0) return route.fulfill({ status: 503, body: 'transient' });
+    await route.continue();
+  });
+  await page.goto('/#/statistika/maps');
+  const button = page.locator('#statistics tbody .stats-detail-button').first();
+  await button.click();
+  await expect(page.locator('#statistics [role=status]')).toContainText(/ошибка деталей/i);
+  await expect(button).toBeEnabled();
+  await button.click();
+  await expect(button.locator('xpath=following-sibling::*[1]')).not.toContainText(/нет данных|загрузка/i);
+});
+
+test('weapon detail transient failure is announced and retryable', async ({ page }) => {
+  let failures = 0;
+  await page.route('**/data/playerWeaponStats-000.json', async (route) => {
+    if (failures++ === 0) return route.fulfill({ status: 503, body: 'transient' });
+    await route.continue();
+  });
+  await page.goto('/#/statistika/weapons');
+  const button = page.locator('#statistics tbody .stats-detail-button').first();
+  await button.click();
+  await expect(page.locator('#statistics [role=status]')).toContainText(/ошибка деталей/i);
+  await expect(button).toBeEnabled();
+  await button.click();
+  await expect(button.locator('xpath=following-sibling::*[1]')).not.toContainText(/нет данных|загрузка/i);
+});
+
+test('team map-edge table has its own accessible name', async ({ page }) => {
+  await page.goto('/#/statistika/sopernik/pocelui');
+  await expect(page.getByRole('table', { name: 'Map edges' })).toBeVisible();
+});
+
 for (const [route, count, detailDataset] of [
   ['maps', 46, 'playerMapStats-000.json'],
   ['weapons', 39, 'playerWeaponStats-000.json'],
