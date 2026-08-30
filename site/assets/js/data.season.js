@@ -12,9 +12,11 @@ window.SEASON = {
     tagline: 'CS2 / штаб подготовки',
     league: 'Любительская лига · 5 команд · круговая',
     season: '09—10 / 2026',
-    buildDate: '2026-08-29',
+    buildDate: '2026-08-30',
     // Точка отсчёта «сегодня» для роадмапа и дорожки.
-    today: '2026-08-29'
+    today: '2026-08-30',
+    // Заметка на карточке «Ресурс до старта». Правится после каждой тренировки.
+    resourceNote: 'Inferno закрыта 29 августа — первая из шести новых карт. Следующая обязательная — Mirage, среда 2 сентября.'
   },
 
   firstMatch: {
@@ -49,6 +51,8 @@ window.SEASON = {
   sessions: [
     {
       id: 's01', n: '01', date: '2026-08-30', slot: 'ВС · 21:00', kind: 'основа', map: 'Inferno', mapId: 'inferno',
+      // Проведена на день раньше плана, в субботу 29.08.
+      done: true, doneDate: '2026-08-29',
       focus: 'Роли и единые названия позиций, дефолты T/CT, контроль банана, базовые раскидки, выход B и сплит A.',
       goals: [
         { id: 's01-roles', text: 'Назначить роли и позиции' },
@@ -220,14 +224,14 @@ window.SEASON = {
       limit: 'до 3 голосов',
       rows: [
         { rank: '01', map: 'Dust 2', votes: 5, pct: 83, done: true },
-        { rank: '02', map: 'Inferno', votes: 4, pct: 66 },
+        { rank: '02', map: 'Inferno', votes: 4, pct: 66, done: true },
         { rank: '03', map: 'Mirage', votes: 3, pct: 50 },
         { rank: '04', map: 'Nuke', votes: 3, pct: 50 },
         { rank: '05', map: 'Anubis', votes: 2, pct: 33 },
         { rank: '06', map: 'Ancient', votes: 1, pct: 16 },
         { rank: '07', map: 'Cache', votes: 1, pct: 16 }
       ],
-      decision: 'Dust 2 уже отработана. Остальные карты идут по убыванию результата: Inferno → Mirage → Nuke → Anubis → Ancient → Cache.'
+      decision: 'Dust 2 и Inferno отработаны. Остальные карты идут по убыванию результата: Mirage → Nuke → Anubis → Ancient → Cache.'
     },
     days: [
       { day: 'Пятница', answers: '4 ответа', rows: [

@@ -102,7 +102,7 @@
 
   function nextEvent() {
     var items = [];
-    S.sessions.forEach(function (s) {
+    S.sessions.filter(function (s) { return !s.done; }).forEach(function (s) {
       items.push({ date: s.date, kind: 'тренировка', title: s.map, slot: s.slot });
     });
     S.matches.filter(function (m) { return m.ours; }).forEach(function (m) {
@@ -120,7 +120,10 @@
     var next = nextEvent();
     var maps = allMapsProgress();
     var rules = rulesProgress();
-    var upcomingSession = S.sessions.filter(function (s) { return U.daysUntil(s.date) >= 0; })[0] || S.sessions[S.sessions.length - 1];
+    var upcomingSession = S.sessions.filter(function (s) { return !s.done && U.daysUntil(s.date) >= 0; })[0] || S.sessions[S.sessions.length - 1];
+    var doneMaps = PB.maps.filter(function (m) { return m.order === 'done'; });
+    var openMaps = PB.maps.filter(function (m) { return m.order !== 'done'; });
+    var many = doneMaps.length > 1;
 
     var head = panelHeader(
       'Операция / первая игра',
@@ -177,15 +180,15 @@
         el('div', { class: 'stat-row', style: 'margin:var(--s5) 0' }, [
           statBlock(String(S.sessions.length), 'основных<br>сессий'),
           statBlock(String(S.optional.length), 'доп.<br>слота'),
-          statBlock('6', 'карт<br>в работе')
+          statBlock(String(openMaps.length), 'карт<br>в работе')
         ]),
-        el('p', { class: 'card__body', style: 'font-size:var(--fs-sm)', text: '29 августа не считаем полноценной тренировкой: день уже идёт. Первый надёжный слот — воскресенье, 30 августа.' })
+        el('p', { class: 'card__body', style: 'font-size:var(--fs-sm)', text: S.meta.resourceNote })
       ]),
 
       /* Приоритет карт */
       el('article', { class: 'module col-7' }, [
         el('div', { class: 'card__head' }, [el('span', { text: 'Приоритет карт' }), el('span', { text: 'по голосованию' })]),
-        el('div', { class: 'meter-list' }, PB.maps.filter(function (m) { return m.order !== 'done'; }).map(function (m) {
+        el('div', { class: 'meter-list' }, openMaps.map(function (m) {
           return el('div', { class: 'meter meter--accent' }, [
             el('div', { class: 'meter__name' }, [
               el('span', { class: 'meter__rank', text: m.order }),
@@ -195,10 +198,10 @@
             el('span', { class: 'meter__value', text: m.votePct + '%' })
           ]);
         })),
-        el('div', { class: 'note note--plain', style: 'margin-top:var(--s4)' }, [
-          el('span', { class: 'note__title', text: 'Dust 2 готова' }),
-          el('p', { class: 'note__body', text: 'Отработана раньше остальных. Возвращаемся к ней на закреплении 20.09 и генеральной 27.09.' })
-        ])
+        doneMaps.length ? el('div', { class: 'note note--plain', style: 'margin-top:var(--s4)' }, [
+          el('span', { class: 'note__title', text: doneMaps.map(function (m) { return m.name; }).join(' и ') + (many ? ' готовы' : ' готова') }),
+          el('p', { class: 'note__body', text: (many ? 'Отработаны' : 'Отработана') + ' раньше остальных. Возвращаемся к ' + (many ? 'ним' : 'ней') + ' на закреплении 20.09 и генеральной 27.09.' })
+        ]) : null
       ]),
 
       /* Прогресс — новый блок, которого не было в исходниках */
@@ -218,10 +221,12 @@
       sectionHead('Маршрут', 'Девять точек до сервера', goLink('training', 'Все задачи')),
       el('ol', { class: 'timeline' }, S.sessions.map(function (s) {
         var past = U.daysUntil(s.date) < 0;
-        return el('li', { class: 'timeline__step' + (s.final ? ' timeline__step--final' : '') + (past && !s.final ? ' timeline__step--past' : '') }, [
-          el('time', { class: 'timeline__date', datetime: s.date, text: U.fmtShort(s.date) }),
+        var when = s.doneDate || s.date;
+        var mod = s.final ? ' timeline__step--final' : (s.done ? ' timeline__step--done' : (past ? ' timeline__step--past' : ''));
+        return el('li', { class: 'timeline__step' + mod }, [
+          el('time', { class: 'timeline__date', datetime: when, text: U.fmtShort(when) }),
           el('span', { class: 'timeline__map', text: s.final ? 'Репетиция' : s.map }),
-          el('small', { class: 'timeline__kind', text: s.kind === 'генеральная' ? 'match day' : s.kind })
+          el('small', { class: 'timeline__kind', text: s.done ? '✓ проведена' : (s.kind === 'генеральная' ? 'match day' : s.kind) })
         ]);
       }))
     ]);
@@ -294,11 +299,12 @@
   /* ---------------- 02 Тренировки ---------------- */
 
   function sessionCard(s, optional) {
-    return el('article', { class: 'session' + (s.final ? ' session--final' : '') + (optional ? ' session--optional' : '') }, [
-      el('div', { class: 'session__index', text: s.n }),
+    var when = s.doneDate || s.date;
+    return el('article', { class: 'session' + (s.final ? ' session--final' : '') + (optional ? ' session--optional' : '') + (s.done ? ' session--done' : '') }, [
+      el('div', { class: 'session__index', text: s.done ? '✓' : s.n }),
       el('div', { class: 'session__when' }, [
-        el('time', { class: 'session__date', datetime: s.date, text: U.fmtShort(s.date) }),
-        el('span', { class: 'session__slot', text: s.slot })
+        el('time', { class: 'session__date', datetime: when, text: U.fmtShort(when) }),
+        el('span', { class: 'session__slot', text: s.done ? 'проведена' : s.slot })
       ]),
       el('div', { class: 'session__topic' }, [
         el('span', { class: 'label', text: optional ? 'Опционально' : (s.kind || 'Карта') }),

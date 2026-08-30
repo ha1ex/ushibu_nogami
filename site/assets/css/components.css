@@ -333,6 +333,10 @@ table.data tr.is-ours td.when { color: var(--accent); font-weight: 700; }
 .timeline__step--final .timeline__date,
 .timeline__step--final .timeline__kind { color: color-mix(in srgb, var(--accent-ink) 78%, transparent); }
 .timeline__step--past { opacity: 0.55; }
+.timeline__step--done { background: color-mix(in srgb, var(--ok) 7%, var(--surface-1)); }
+.timeline__step--done:hover { background: color-mix(in srgb, var(--ok) 12%, var(--surface-1)); }
+.timeline__step--done .timeline__date,
+.timeline__step--done .timeline__kind { color: var(--ok); }
 
 /* ---------- Слоты и протокол ---------- */
 .slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); }
@@ -369,6 +373,10 @@ table.data tr.is-ours td.when { color: var(--accent); font-weight: 700; }
 .session__focus { margin: 0; color: var(--text-dim); font-size: var(--fs-sm); }
 .session__goals { display: grid; align-content: center; padding: var(--s3) var(--s4); }
 .session--final { border-color: var(--accent-line); background: linear-gradient(90deg, var(--accent-soft), var(--surface-1) 46%); }
+.session--done { border-color: color-mix(in srgb, var(--ok) 38%, var(--line)); }
+.session--done .session__index { color: var(--ok); }
+.session--done .session__date,
+.session--done .session__slot { color: var(--ok); }
 .session--optional { border-style: dashed; }
 .session--optional .session__date { color: var(--text); }
 .session-list { display: grid; gap: var(--s2); }
