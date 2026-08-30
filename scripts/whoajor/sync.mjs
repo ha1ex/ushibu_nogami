@@ -1,7 +1,10 @@
 #!/usr/bin/env node
-import { lstat, mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
+import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { promisify } from 'node:util';
 import Database from 'better-sqlite3';
 import { collectSnapshot as collectSnapshotDefault } from './collect.mjs';
 import { WHOAJOR_BASE_URL, DEFAULT_DELAY_MS } from './config.mjs';
@@ -17,10 +20,12 @@ import { validateSnapshot as validateSnapshotDefault } from './lib/validation.mj
 
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(MODULE_DIR, '..', '..');
+const RENAME_NOREPLACE_HELPER = join(MODULE_DIR, 'rename-noreplace.py');
 const REQUIRED_ARTIFACTS = Object.freeze([
   'manifest.json', 'validation-report.json', 'contract.json', 'whoajor.sqlite', 'source-summary.md',
 ]);
 let temporarySequence = 0;
+const execFileAsync = promisify(execFile);
 
 function transformContract(value) {
   if (typeof value === 'function') {
@@ -178,14 +183,27 @@ async function readJson(path, label) {
   }
 }
 
-async function assertTargetAbsent(rawDir) {
+function deterministicReport(report) {
+  const { checkedAt, ...deterministic } = report;
+  return deterministic;
+}
+
+async function cleanupDatabaseArtifacts(path) {
+  await Promise.all([
+    rm(path, { force: true }),
+    rm(`${path}-wal`, { force: true }),
+    rm(`${path}-shm`, { force: true }),
+    rm(`${path}-journal`, { force: true }),
+  ]);
+}
+
+async function renameNoReplace(source, target) {
   try {
-    await lstat(rawDir);
+    await execFileAsync('python3', [RENAME_NOREPLACE_HELPER, source, target]);
   } catch (error) {
-    if (error.code === 'ENOENT') return;
-    throw error;
+    const detail = String(error.stderr ?? error.message).trim();
+    throw new Error(`atomic no-clobber publication failed: ${detail}`, { cause: error });
   }
-  throw new Error(`raw target already exists: ${rawDir}`);
 }
 
 async function assertRequiredArtifacts(stagingDir) {
@@ -204,7 +222,6 @@ export async function publishSnapshot(stagingDir, rawDir) {
   const stagingPath = resolve(stagingDir);
   const rawPath = resolve(rawDir);
   if (stagingPath === rawPath) throw new Error('stagingDir and rawDir must differ');
-  await assertTargetAbsent(rawPath);
   const [stagingMetadata, parentMetadata] = await Promise.all([
     stat(stagingPath),
     stat(dirname(rawPath)),
@@ -230,20 +247,49 @@ export async function publishSnapshot(stagingDir, rawDir) {
   if (report.rootHash !== manifest.rootHash) {
     throw new Error('validation report root does not match manifest root');
   }
+  const freshReport = await validateSnapshotDefault(stagingPath);
+  if (
+    freshReport.status !== 'complete'
+      || !Array.isArray(freshReport.errors)
+      || freshReport.errors.length !== 0
+  ) throw new Error('independent validation did not produce a complete report without errors');
+  if (
+    canonicalStringify(deterministicReport(freshReport))
+      !== canonicalStringify(deterministicReport(report))
+  ) throw new Error('persisted report differs from fresh validation report');
 
   const contractContents = await readFile(join(stagingPath, 'contract.json'), 'utf8');
   if (contractContents !== serializeContract()) {
     throw new Error('contract.json is stale, incomplete, or non-canonical');
   }
-  const summaryInput = await createSummaryInput(stagingPath, rawPath);
+  const persistedDatabase = readDatabaseResult(
+    join(stagingPath, 'whoajor.sqlite'),
+    manifest.rootHash,
+  );
+  const verificationDatabasePath = join(
+    stagingPath,
+    `whoajor.sqlite.publish-verify-${process.pid}-${randomUUID()}.sqlite`,
+  );
+  let independentDatabase;
+  try {
+    independentDatabase = await buildDatabaseDefault(stagingPath, verificationDatabasePath);
+  } finally {
+    await cleanupDatabaseArtifacts(verificationDatabasePath);
+  }
+  if (
+    canonicalStringify(independentDatabase.counts)
+      !== canonicalStringify(persistedDatabase.counts)
+      || independentDatabase.dataFingerprint !== persistedDatabase.dataFingerprint
+  ) throw new Error('persisted database differs from independent SQLite rebuild dataFingerprint/counts');
+
+  const summaryInput = await createSummaryInput(stagingPath, rawPath, persistedDatabase);
   const expectedSummary = renderSourceSummary(summaryInput);
   const summary = await readFile(join(stagingPath, 'source-summary.md'), 'utf8');
   if (summary !== expectedSummary) {
     throw new Error('source-summary.md is stale or does not describe the publication target');
   }
 
-  await assertTargetAbsent(rawPath);
-  await rename(stagingPath, rawPath);
+  await renameNoReplace(stagingPath, rawPath);
   return rawPath;
 }
 

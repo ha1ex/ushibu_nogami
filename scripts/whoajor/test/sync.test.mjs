@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import {
-  access, mkdtemp, readFile, readdir, rm, writeFile,
+  access, mkdir, mkdtemp, readFile, readdir, rm, writeFile,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
@@ -16,8 +16,8 @@ import { buildDatabase } from '../lib/normalize.mjs';
 import { renderSourceSummary } from '../lib/summary.mjs';
 import { validateSnapshot } from '../lib/validation.mjs';
 import {
-  contractDocument, defaultRawTarget, parseSyncCliArgs, publishSnapshot, rawCitationPath,
-  serializeContract, sync,
+  contractDocument, createSummaryInput, defaultRawTarget, parseSyncCliArgs, publishSnapshot,
+  rawCitationPath, serializeContract, sync,
 } from '../sync.mjs';
 import { createFixtureApi } from './fixture-api.mjs';
 
@@ -25,6 +25,7 @@ const execFileAsync = promisify(execFile);
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SYNC_CLI = join(HERE, '..', 'sync.mjs');
 const SUMMARIZE_CLI = join(HERE, '..', 'summarize.mjs');
+const RENAME_NOREPLACE = join(HERE, '..', 'rename-noreplace.py');
 const NOW = () => new Date('2026-08-30T07:00:00Z');
 
 async function exists(path) {
@@ -35,6 +36,10 @@ async function exists(path) {
     if (error.code === 'ENOENT') return false;
     throw error;
   }
+}
+
+async function publishVerificationArtifacts(dir) {
+  return (await readdir(dir)).filter((name) => name.includes('.publish-verify-'));
 }
 
 async function buildCollectedFixture(prefix = 'whoajor-sync-') {
@@ -108,6 +113,7 @@ test('publishSnapshot делает проверенный rename и сохран
 
   assert.equal(published, rawDir);
   assert.equal(await exists(stagingDir), false);
+  assert.deepEqual(await publishVerificationArtifacts(rawDir), []);
   for (const artifact of [
     'manifest.json', 'validation-report.json', 'contract.json', 'whoajor.sqlite', 'source-summary.md',
   ]) assert.equal(await exists(join(rawDir, artifact)), true, artifact);
@@ -126,6 +132,7 @@ test('publishSnapshot не перезаписывает существующий
 
   assert.equal(await readFile(rawDir, 'utf8'), 'immutable-existing-target');
   assert.equal(await exists(stagingDir), true);
+  assert.deepEqual(await publishVerificationArtifacts(stagingDir), []);
 });
 
 test('publishSnapshot блокирует incomplete report, errors и stale report root', async () => {
@@ -208,6 +215,89 @@ test('publishSnapshot повторно проверяет SQLite integrity, FK �
     assert.equal(await exists(rawDir), false);
     assert.equal(await exists(stagingDir), true);
   }
+});
+
+test('publishSnapshot независимо отклоняет tampered discrepancy даже с regenerated summary', async () => {
+  const { stagingDir, rawDir } = await buildReadyFixture('whoajor-tampered-discrepancy-');
+  const reportPath = join(stagingDir, 'validation-report.json');
+  const report = JSON.parse(await readFile(reportPath, 'utf8'));
+  report.discrepancies.push({
+    code: 'TAMPERED_DISCREPANCY',
+    location: '/api/meta',
+    message: 'tampered but internally consistent discrepancy',
+  });
+  await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+  await writeFile(
+    join(stagingDir, 'source-summary.md'),
+    renderSourceSummary(await createSummaryInput(stagingDir, rawDir)),
+  );
+
+  await assert.rejects(publishSnapshot(stagingDir, rawDir), /fresh validation report|independent validation/i);
+
+  assert.equal(await exists(rawDir), false);
+  assert.equal(await exists(stagingDir), true);
+  assert.deepEqual(await publishVerificationArtifacts(stagingDir), []);
+});
+
+test('publishSnapshot независимо пересобирает SQLite и отклоняет modified semantic row', async () => {
+  const { stagingDir, rawDir } = await buildReadyFixture('whoajor-tampered-database-');
+  const db = new Database(join(stagingDir, 'whoajor.sqlite'));
+  db.prepare('update players set display_name = ? where steamid = ?')
+    .run('Tampered Player', '76561198000000001');
+  db.close();
+  await writeFile(
+    join(stagingDir, 'source-summary.md'),
+    renderSourceSummary(await createSummaryInput(stagingDir, rawDir)),
+  );
+
+  await assert.rejects(publishSnapshot(stagingDir, rawDir), /independent SQLite|dataFingerprint/i);
+
+  assert.equal(await exists(rawDir), false);
+  assert.equal(await exists(stagingDir), true);
+  assert.deepEqual(await publishVerificationArtifacts(stagingDir), []);
+});
+
+test('rename-noreplace process атомарно перемещает каталог и никогда не затирает target', async () => {
+  const parent = await mkdtemp(join(tmpdir(), 'whoajor-rename-noreplace-'));
+  const existingSource = join(parent, 'existing-source');
+  const existingTarget = join(parent, 'existing-target');
+  await mkdir(existingSource);
+  await mkdir(existingTarget);
+  await writeFile(join(existingSource, 'source-marker'), 'source');
+
+  await assert.rejects(
+    execFileAsync('python3', [RENAME_NOREPLACE, existingSource, existingTarget]),
+    ({ code, stderr }) => code === 1 && /EEXIST \(errno 17\): target already exists/.test(stderr),
+  );
+  assert.equal(await readFile(join(existingSource, 'source-marker'), 'utf8'), 'source');
+  assert.deepEqual(await readdir(existingTarget), []);
+
+  const successSource = join(parent, 'success-source');
+  const successTarget = join(parent, 'success-target');
+  await mkdir(successSource);
+  await writeFile(join(successSource, 'winner'), 'success');
+  await execFileAsync('python3', [RENAME_NOREPLACE, successSource, successTarget]);
+  assert.equal(await exists(successSource), false);
+  assert.equal(await readFile(join(successTarget, 'winner'), 'utf8'), 'success');
+
+  const firstSource = join(parent, 'concurrent-first');
+  const secondSource = join(parent, 'concurrent-second');
+  const concurrentTarget = join(parent, 'concurrent-target');
+  await mkdir(firstSource);
+  await mkdir(secondSource);
+  await writeFile(join(firstSource, 'identity'), 'first');
+  await writeFile(join(secondSource, 'identity'), 'second');
+  const results = await Promise.allSettled([
+    execFileAsync('python3', [RENAME_NOREPLACE, firstSource, concurrentTarget]),
+    execFileAsync('python3', [RENAME_NOREPLACE, secondSource, concurrentTarget]),
+  ]);
+  assert.equal(results.filter(({ status }) => status === 'fulfilled').length, 1);
+  const rejected = results.find(({ status }) => status === 'rejected');
+  assert.match(rejected.reason.stderr, /EEXIST \(errno 17\): target already exists/);
+  const winner = await readFile(join(concurrentTarget, 'identity'), 'utf8');
+  assert.ok(['first', 'second'].includes(winner));
+  const loserSource = winner === 'first' ? secondSource : firstSource;
+  assert.equal(await readFile(join(loserSource, 'identity'), 'utf8'), winner === 'first' ? 'second' : 'first');
 });
 
 test('sync выполняет полный offline-injected pipeline и публикует только после сборки', async () => {
