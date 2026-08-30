@@ -1,0 +1,118 @@
+/* ============================================================
+   Печать / PDF. Светлая инверсия, всё раскрыто, разрывы по разделам.
+   Раскрытие <details> делает app.js по событию beforeprint.
+   ============================================================ */
+
+@media print {
+  :root {
+    --bg: #fff;
+    --bg-deep: #fff;
+    --surface-1: #fff;
+    --surface-2: #f6f6f2;
+    --surface-3: #e6e6e0;
+    --surface-raised: #fff;
+    --text: #111311;
+    --text-dim: #3a3d39;
+    --text-mute: #5c605b;
+    --line: #c3c6c1;
+    --line-soft: #dcdfda;
+    --line-strong: #9aa096;
+    --accent: #a3005c;
+    --accent-ink: #fff;
+    --accent-soft: #fdeaf3;
+    --accent-line: #d488ad;
+    --accent-glow: transparent;
+    --signal: #5b21a8;
+    --signal-soft: #f0eafb;
+    --signal-line: #b096d8;
+    --t-side: #8a5200;
+    --t-soft: #fbf1e3;
+    --ct-side: #12467e;
+    --ct-soft: #e8f0fa;
+    --ok: #14705a;
+    --warn: #7a5600;
+    --idle: #6f746d;
+    --shadow-card: none;
+    --shadow-raised: none;
+    --shadow-glow: none;
+    --page-bg: #fff;
+    --fx-opacity: 0;
+    --density: 0.86;
+  }
+
+  @page { margin: 14mm 12mm; }
+
+  html, body { background: #fff !important; }
+  body { font-size: 10.5pt; }
+  body::after { display: none !important; }
+
+  .sidebar,
+  .skip-link,
+  .toast,
+  .sidebar__foot,
+  .whoami,
+  .syncbar,
+  .filterbar,
+  .btn-text,
+  .field__saved { display: none !important; }
+
+  .shell { display: block; }
+  .main { display: block; }
+
+  /* Все вкладки печатаются подряд, каждая с новой страницы */
+  .panel,
+  .panel[hidden] {
+    display: block !important;
+    min-height: 0;
+    max-width: none;
+    padding: 0 0 12mm;
+    animation: none;
+    break-after: page;
+  }
+  .panel:last-child { break-after: auto; }
+
+  .panel__header h1 { font-size: 30pt; }
+  h2 { font-size: 17pt; }
+  h3 { font-size: 13pt; }
+
+  .card,
+  .module,
+  .session,
+  .match,
+  .team,
+  .playbook,
+  .rule,
+  .commandment,
+  .essay,
+  .ladder__step,
+  .note,
+  .decision,
+  .exec,
+  .quote { break-inside: avoid; box-shadow: none !important; }
+
+  .card::before, .card::after,
+  .module::before, .module::after { display: none !important; }
+
+  .module--feature { clip-path: none !important; }
+
+  .grid--dash { display: block; }
+  .grid--dash > * { margin-bottom: 4mm; }
+  .rules, .commandments { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  /* Раскрытые details */
+  .playbook__summary::after,
+  .essay__summary::after { display: none; }
+
+  textarea,
+  input[type='text'] {
+    min-height: 0;
+    color: #111 !important;
+    background: #fff !important;
+    border-color: #b6b9b3 !important;
+  }
+  textarea { height: auto; }
+
+  a { color: inherit; text-decoration: none; }
+  .sources li a { border-color: var(--line); }
+  .sources li a::after { content: ' — ' attr(href); color: var(--text-mute); font-size: 8pt; word-break: break-all; }
+}

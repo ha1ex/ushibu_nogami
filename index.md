@@ -16,6 +16,7 @@
 - [Полный снимок whoajor v2 2026-08-30](./02_sources/2026-08-30-whoajor-full-snapshot.md) — 864 ответа,
   368 карточек матчей, trends и проверенная SQLite с 29 таблицами
 - [Снимок whoajor 2026-08-29](./02_sources/2026-08-29-cs2-whoajor-intelligence.md) — статистика пяти составов CS2
+- [Тренировка Inferno 2026-08-29](./02_sources/2026-08-29-inferno-training-report.md) — сессия 01 проведена, что осталось неизвестным
 
 ## Wiki (концепты)
 
