@@ -1,4 +1,6 @@
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import {
+  mkdir, readFile, rename, rm, writeFile,
+} from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { canonicalStringify, sha256Hex } from './canonical-json.mjs';
 import { CONTRACT } from './contract.mjs';
@@ -8,6 +10,11 @@ import { DEFAULT_DELAY_MS, WHOAJOR_BASE_URL } from '../config.mjs';
 
 export const DEFAULT_MINIMUM_SAMPLE_SIZE = 30;
 export const ENDPOINT_FAMILIES = Object.freeze(Object.keys(CONTRACT.endpoints));
+export const SAMPLING_SELECTION_ALGORITHM = Object.freeze({
+  mandatoryCoverage: 'all CONTRACT endpoint families + first/last match pages + oldest/newest/lexicographic-first/lexicographic-last match detail + map + non-empty relationship',
+  score: 'sha256(snapshotId + identity)',
+  target: 'max(30, ceil((matches + players + weapons) * 0.01))',
+});
 
 let temporaryReportSequence = 0;
 
@@ -193,6 +200,59 @@ async function detailBoundaries(snapshot, details, issues) {
   };
 }
 
+function hasMapEvidence(family, payload) {
+  if (family === 'meta') {
+    return Array.isArray(payload?.maps)
+      && payload.maps.some((row) => typeof row?.map === 'string' && row.map.length > 0);
+  }
+  if (family === 'matches') {
+    return Array.isArray(payload?.matches)
+      && payload.matches.some((row) => typeof row?.map === 'string' && row.map.length > 0);
+  }
+  if (family === 'matchDetail') return typeof payload?.map === 'string' && payload.map.length > 0;
+  if (['playerMaps', 'playerMatches'].includes(family)) {
+    return Array.isArray(payload)
+      && payload.some((row) => typeof row?.map === 'string' && row.map.length > 0);
+  }
+  return false;
+}
+
+function hasNonEmptyRelationshipEvidence(family, payload) {
+  if (family !== 'matchDetail') return false;
+  return Array.isArray(payload?.players)
+    && payload.players.length > 0
+    && Array.isArray(payload?.rounds)
+    && payload.rounds.length > 0
+    && payload.players.some((player) => (
+      (Array.isArray(player?.perRound) && player.perRound.length > 0)
+        || (Array.isArray(player?.weapons) && player.weapons.length > 0)
+    ));
+}
+
+async function dataEvidenceCandidates(snapshot, candidates, issues) {
+  const maps = [];
+  const relationships = [];
+  for (const candidate of candidates) {
+    let payload;
+    try {
+      payload = JSON.parse(await readFile(join(snapshot.root, candidate.blob), 'utf8'));
+    } catch (error) {
+      issues.push(selectionIssue(
+        'INVALID_EVIDENCE_BODY',
+        `cannot read candidate needed for data-evidence sampling: ${candidate.identity}`,
+        { identity: candidate.identity, detail: error.message },
+      ));
+      continue;
+    }
+    if (hasMapEvidence(candidate.family, payload)) maps.push(candidate);
+    if (hasNonEmptyRelationshipEvidence(candidate.family, payload)) relationships.push(candidate);
+  }
+  return {
+    map: lowestScored(maps),
+    nonEmptyRelationship: lowestScored(relationships),
+  };
+}
+
 export async function selectSampleEntries(snapshot, {
   minimumSampleSize = DEFAULT_MINIMUM_SAMPLE_SIZE,
 } = {}) {
@@ -263,6 +323,22 @@ export async function selectSampleEntries(snapshot, {
     );
   }
 
+  const evidenceCandidates = await dataEvidenceCandidates(snapshot, candidates, issues);
+  const dataEvidence = {
+    map: requireCandidate(
+      evidenceCandidates.map,
+      'data-evidence:map',
+      'MISSING_MAP_EVIDENCE',
+      'snapshot has no non-empty map-bearing candidate',
+    ),
+    nonEmptyRelationship: requireCandidate(
+      evidenceCandidates.nonEmptyRelationship,
+      'data-evidence:non-empty-relationship',
+      'MISSING_RELATIONSHIP_EVIDENCE',
+      'snapshot has no match detail with non-empty player/round relationship evidence',
+    ),
+  };
+
   if (candidates.length < sampleTarget) {
     issues.push(selectionIssue(
       'INSUFFICIENT_CANDIDATES',
@@ -291,18 +367,77 @@ export async function selectSampleEntries(snapshot, {
       requiredEndpointFamilies: [...ENDPOINT_FAMILIES],
       endpointFamilies,
       missingEndpointFamilies: ENDPOINT_FAMILIES.filter((family) => !endpointFamilies[family]),
+      dataEvidence,
       matchIndexPages,
       matchDetails,
     },
   };
 }
 
+export async function assertSamplingReport(snapshot, report) {
+  if (!report || typeof report !== 'object' || Array.isArray(report)) {
+    throw new Error('sampling report must be an object');
+  }
+  const selection = await selectSampleEntries(snapshot);
+  if (selection.issues.length > 0) {
+    throw new Error(`sampling selection is incomplete: ${canonicalStringify(selection.issues)}`);
+  }
+  const checked = new Date(report.checkedAt);
+  if (
+    typeof report.checkedAt !== 'string'
+      || Number.isNaN(checked.getTime())
+      || checked.toISOString() !== report.checkedAt
+  ) throw new Error('sampling report checkedAt must be an exact ISO timestamp');
+
+  const expectedChecks = selection.selected.map((item) => ({
+    identity: item.identity,
+    family: item.family,
+    path: item.path,
+    query: item.query,
+    score: item.score,
+    selectionReasons: item.mandatoryReasons,
+    expectedCanonicalSha256: item.expectedCanonicalSha256,
+    actualCanonicalSha256: item.expectedCanonicalSha256,
+    status: 'match',
+    reason: null,
+  }));
+  const expected = {
+    version: 1,
+    snapshotId: snapshot.manifest.snapshotId,
+    contractVersion: snapshot.manifest.contractVersion,
+    rootHash: snapshot.manifest.rootHash,
+    snapshotStatus: snapshot.manifest.status,
+    status: 'complete',
+    entityCount: selection.entityCount,
+    sampleTarget: selection.sampleTarget,
+    candidateCount: selection.candidateCount,
+    selectedCount: selection.selected.length,
+    selectionAlgorithm: SAMPLING_SELECTION_ALGORITHM,
+    coverage: selection.coverage,
+    reasons: [],
+    checks: expectedChecks,
+  };
+  const { checkedAt: _checkedAt, ...actual } = report;
+  if (canonicalStringify(actual) !== canonicalStringify(expected)) {
+    throw new Error('sampling report differs from fresh offline deterministic selection or hashes');
+  }
+  if (report.selectedCount < report.sampleTarget) {
+    throw new Error('sampling report selectedCount is below sampleTarget');
+  }
+  return selection;
+}
+
 async function writeReportAtomically(snapshotDir, report) {
   const destination = join(snapshotDir, 'sampling-report.json');
   await mkdir(dirname(destination), { recursive: true });
   const temporary = `${destination}.tmp-${process.pid}-${temporaryReportSequence += 1}`;
-  await writeFile(temporary, `${JSON.stringify(report, null, 2)}\n`);
-  await rename(temporary, destination);
+  try {
+    await writeFile(temporary, `${JSON.stringify(report, null, 2)}\n`, { flag: 'wx' });
+    await rename(temporary, destination);
+  } catch (error) {
+    await rm(temporary, { force: true });
+    throw error;
+  }
 }
 
 function checkedAt(now) {
@@ -408,11 +543,7 @@ export async function verifySample({
     sampleTarget: selection.sampleTarget,
     candidateCount: selection.candidateCount,
     selectedCount: selection.selected.length,
-    selectionAlgorithm: {
-      mandatoryCoverage: 'all CONTRACT endpoint families + first/last match pages + oldest/newest/lexicographic-first/lexicographic-last match detail',
-      score: 'sha256(snapshotId + identity)',
-      target: 'max(30, ceil((matches + players + weapons) * 0.01))',
-    },
+    selectionAlgorithm: SAMPLING_SELECTION_ALGORITHM,
     coverage: selection.coverage,
     reasons,
     checks,

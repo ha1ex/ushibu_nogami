@@ -52,6 +52,7 @@ function fixtureSummaryInput() {
       },
       dataFingerprint: DATA_FINGERPRINT,
       artifact: 'whoajor.sqlite.gz',
+      artifactSha256: 'e'.repeat(64),
       decompressedSha256: 'd'.repeat(64),
     },
   };
@@ -68,6 +69,7 @@ test('summary содержит полный frontmatter, provenance, exact count
   assert.match(markdown, new RegExp(`root hash: \`${ROOT_HASH}\``));
   assert.match(markdown, new RegExp(`data fingerprint SQLite: \`${DATA_FINGERPRINT}\``));
   assert.match(markdown, new RegExp(`SHA-256 распакованной SQLite: \`${'d'.repeat(64)}\``));
+  assert.match(markdown, new RegExp(`SHA-256 файла whoajor\\.sqlite\\.gz: \`${'e'.repeat(64)}\``));
   assert.match(markdown, /\[source: \/01_raw\/whoajor\/2026-08-30-full-snapshot\/whoajor\.sqlite\.gz\]/);
   assert.match(markdown, /временной диапазон источника: `2026-08-01` — `2026-08-30`/);
   assert.ok(markdown.includes(
@@ -106,4 +108,8 @@ test('summary отклоняет stale counts и invalid fingerprints', () => {
   const invalidDatabaseHash = fixtureSummaryInput();
   invalidDatabaseHash.database.decompressedSha256 = 'not-a-hash';
   assert.throws(() => renderSourceSummary(invalidDatabaseHash), /decompressedSha256/i);
+
+  const invalidArtifactHash = fixtureSummaryInput();
+  invalidArtifactHash.database.artifactSha256 = 'not-a-hash';
+  assert.throws(() => renderSourceSummary(invalidArtifactHash), /artifactSha256/i);
 });

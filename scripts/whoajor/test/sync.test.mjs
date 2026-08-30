@@ -16,6 +16,8 @@ import { CONTRACT } from '../lib/contract.mjs';
 import { finalizeDatabaseArtifact } from '../lib/database-artifact.mjs';
 import { createHttpClient } from '../lib/http-client.mjs';
 import { buildDatabase } from '../lib/normalize.mjs';
+import { writeDataProfile } from '../lib/profile.mjs';
+import { verifySample } from '../lib/sampling.mjs';
 import { renderSourceSummary } from '../lib/summary.mjs';
 import { validateSnapshot } from '../lib/validation.mjs';
 import {
@@ -30,6 +32,10 @@ const SYNC_CLI = join(HERE, '..', 'sync.mjs');
 const SUMMARIZE_CLI = join(HERE, '..', 'summarize.mjs');
 const RENAME_NOREPLACE = join(HERE, '..', 'rename-noreplace.py');
 const NOW = () => new Date('2026-08-30T07:00:00Z');
+const SYNC_PLAYERS = [
+  '76561198000000001', '76561198000000002',
+  '76561198000000003', '76561198000000004',
+];
 
 async function exists(path) {
   try {
@@ -74,6 +80,7 @@ async function buildCollectedFixture(prefix = 'whoajor-sync-') {
   const fixture = createFixtureApi({
     pageSize: 2,
     matchIds: ['match-2', 'match-1'],
+    leaderboardPlayers: SYNC_PLAYERS,
     detailPlayers: ['76561198000000001', '76561198000000002'],
     roundPlayers: ['76561198000000001', '76561198000000002'],
   });
@@ -84,6 +91,8 @@ async function buildCollectedFixture(prefix = 'whoajor-sync-') {
     maxRetries: 0,
   });
   await collectSnapshot({ outputDir: stagingDir, client, now: NOW, pageSize: 2 });
+  const sampling = await verifySample({ snapshotDir: stagingDir, client, now: NOW });
+  assert.equal(sampling.status, 'complete', JSON.stringify(sampling.reasons));
   return { stagingDir, fixture, client };
 }
 
@@ -91,10 +100,12 @@ async function writeReadyArtifacts(stagingDir, rawDir) {
   const report = await validateSnapshot(stagingDir);
   await writeFile(join(stagingDir, 'validation-report.json'), `${JSON.stringify(report, null, 2)}\n`);
   const database = await buildDatabase(stagingDir, join(stagingDir, 'whoajor.sqlite'));
+  await writeDataProfile(stagingDir, join(stagingDir, 'whoajor.sqlite'));
   database.artifact = 'whoajor.sqlite';
   database.decompressedSha256 = createHash('sha256')
     .update(await readFile(join(stagingDir, database.artifact)))
     .digest('hex');
+  database.artifactSha256 = database.decompressedSha256;
   await writeFile(join(stagingDir, 'contract.json'), serializeContract());
   const manifest = JSON.parse(await readFile(join(stagingDir, 'manifest.json'), 'utf8'));
   const input = {
@@ -146,7 +157,8 @@ test('publishSnapshot делает проверенный rename и сохран
   assert.equal(await exists(stagingDir), false);
   assert.deepEqual(await publishVerificationArtifacts(rawDir), []);
   for (const artifact of [
-    'manifest.json', 'validation-report.json', 'contract.json', 'whoajor.sqlite', 'source-summary.md',
+    'manifest.json', 'validation-report.json', 'sampling-report.json', 'data-profile.json',
+    'contract.json', 'whoajor.sqlite', 'source-summary.md',
   ]) assert.equal(await exists(join(rawDir, artifact)), true, artifact);
   const db = new Database(join(rawDir, 'whoajor.sqlite'), { readonly: true });
   assert.equal(db.pragma('integrity_check')[0].integrity_check, 'ok');
@@ -186,8 +198,8 @@ test('publishSnapshot блокирует incomplete report, errors и stale repo
 
 test('publishSnapshot блокирует missing report, manifest, DB, summary, contract и response blob', async () => {
   for (const missing of [
-    'manifest.json', 'validation-report.json', 'whoajor.sqlite', 'source-summary.md',
-    'contract.json', 'response-blob',
+    'manifest.json', 'validation-report.json', 'sampling-report.json', 'data-profile.json',
+    'whoajor.sqlite', 'source-summary.md', 'contract.json', 'response-blob',
   ]) {
     const { stagingDir, rawDir, manifest } = await buildReadyFixture(`whoajor-missing-${missing}-`);
     const path = missing === 'response-blob'
@@ -199,6 +211,56 @@ test('publishSnapshot блокирует missing report, manifest, DB, summary, 
     assert.equal(await exists(rawDir), false);
     assert.equal(await exists(stagingDir), true);
   }
+});
+
+test('publishSnapshot offline блокирует unstable и tampered sampling report', async () => {
+  const { stagingDir, rawDir } = await buildReadyFixture('whoajor-sampling-gate-');
+  const reportPath = join(stagingDir, 'sampling-report.json');
+  const baseline = JSON.parse(await readFile(reportPath, 'utf8'));
+  const mutations = [
+    (report) => { report.status = 'unstable'; },
+    (report) => { report.reasons = [{ code: 'TAMPERED' }]; },
+    (report) => { report.rootHash = '0'.repeat(64); },
+    (report) => { report.coverage.matchIndexPages.first = 'GET /api/matches?limit=2&offset=999'; },
+    (report) => { report.checks[0].expectedCanonicalSha256 = '0'.repeat(64); },
+    (report) => { report.checks[1] = structuredClone(report.checks[0]); },
+  ];
+
+  for (const mutate of mutations) {
+    const report = structuredClone(baseline);
+    mutate(report);
+    await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+    await assert.rejects(publishSnapshot(stagingDir, rawDir), /sampling report/i);
+    assert.equal(await exists(rawDir), false);
+    assert.equal(await exists(stagingDir), true);
+  }
+  await writeFile(reportPath, `${JSON.stringify(baseline, null, 2)}\n`);
+});
+
+test('publishSnapshot блокирует incomplete, stale и неверно привязанный data profile', async () => {
+  const { stagingDir, rawDir } = await buildReadyFixture('whoajor-profile-gate-');
+  const reportPath = join(stagingDir, 'data-profile.json');
+  const baseline = JSON.parse(await readFile(reportPath, 'utf8'));
+  const mutations = [
+    (report) => { report.status = 'incomplete'; },
+    (report) => { report.blockingChecks = 1; },
+    (report) => { report.snapshot.id = 'another-snapshot'; },
+    (report) => { report.snapshot.rootHash = '0'.repeat(64); },
+    (report) => { report.snapshot.contractVersion = '0.0.0'; },
+    (report) => { report.database.decompressedSha256 = '0'.repeat(64); },
+    (report) => { report.database.dataFingerprint = '0'.repeat(64); },
+    (report) => { report.cardinalities.maps += 1; },
+  ];
+
+  for (const mutate of mutations) {
+    const report = structuredClone(baseline);
+    mutate(report);
+    await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+    await assert.rejects(publishSnapshot(stagingDir, rawDir), /data profile|profile/i);
+    assert.equal(await exists(rawDir), false);
+    assert.equal(await exists(stagingDir), true);
+  }
+  await writeFile(reportPath, `${JSON.stringify(baseline, null, 2)}\n`);
 });
 
 test('publishSnapshot блокирует stale summary, contract и manifest status', async () => {
@@ -401,6 +463,7 @@ test('sync выполняет полный offline-injected pipeline и публ
   const fixture = createFixtureApi({
     pageSize: 2,
     matchIds: ['match-2', 'match-1'],
+    leaderboardPlayers: SYNC_PLAYERS,
     detailPlayers: ['76561198000000001', '76561198000000002'],
     roundPlayers: ['76561198000000001', '76561198000000002'],
   });
@@ -417,7 +480,9 @@ test('sync выполняет полный offline-injected pipeline и публ
   assert.equal(await exists(stagingDir), false);
   assert.equal(await exists(rawDir), true);
   assert.equal(JSON.parse(await readFile(join(rawDir, 'validation-report.json'))).status, 'complete');
-  fixture.assertNoUnexpectedCalls();
+  assert.equal(JSON.parse(await readFile(join(rawDir, 'sampling-report.json'))).status, 'complete');
+  assert.equal(JSON.parse(await readFile(join(rawDir, 'data-profile.json'))).status, 'complete');
+  assert.ok(fixture.calls.every(({ method }) => method === 'GET'));
 });
 
 test('sync детерминированно публикует большую SQLite только как gzip и фиксирует распакованный SHA', async () => {
@@ -425,6 +490,7 @@ test('sync детерминированно публикует большую SQ
     const { stagingDir } = await buildCollectedFixture(`${prefix}-staging-`);
     const rawParent = await mkdtemp(join(tmpdir(), `${prefix}-raw-`));
     const rawDir = join(rawParent, '2026-08-30-full-snapshot');
+    await writeReadyArtifacts(stagingDir, rawDir);
     const result = await sync({
       publishExisting: stagingDir,
       rawDir,
@@ -481,6 +547,7 @@ test('failed database build оставляет staging и не создаёт ra
   const rawDir = join(rawParent, '2026-08-30-full-snapshot');
   const fixture = createFixtureApi({
     pageSize: 2,
+    leaderboardPlayers: SYNC_PLAYERS,
     detailPlayers: ['76561198000000001', '76561198000000002'],
     roundPlayers: ['76561198000000001', '76561198000000002'],
   });
@@ -508,6 +575,7 @@ test('process CLI publish-existing revalidates offline and rebuilds missing deri
   const { stagingDir } = await buildCollectedFixture('whoajor-publish-existing-cli-');
   const rawParent = await mkdtemp(join(tmpdir(), 'whoajor-publish-existing-cli-raw-'));
   const rawDir = join(rawParent, 'arbitrary-snapshot-name');
+  await writeReadyArtifacts(stagingDir, rawDir);
 
   const { stdout, stderr } = await execFileAsync(process.execPath, [
     SYNC_CLI, '--', '--publish-existing', stagingDir, '--raw-target', rawDir,
@@ -552,6 +620,7 @@ test('publish-existing не обращается к сети', async () => {
   const { stagingDir } = await buildCollectedFixture('whoajor-publish-offline-');
   const rawParent = await mkdtemp(join(tmpdir(), 'whoajor-publish-offline-raw-'));
   const rawDir = join(rawParent, 'offline-snapshot');
+  await writeReadyArtifacts(stagingDir, rawDir);
 
   await sync(
     { publishExisting: stagingDir, rawDir },

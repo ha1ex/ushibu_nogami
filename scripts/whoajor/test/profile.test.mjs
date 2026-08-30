@@ -207,6 +207,7 @@ test('profile блокирует неверные JSON scalar types и не ма
     day: 20260830,
     headshot_pct: '101',
     kills: '-3',
+    player_id: '',
     rounds: '1.5',
     started_at: 123,
   }));
@@ -218,6 +219,7 @@ test('profile блокирует неверные JSON scalar types и не ма
   db.close();
 
   const report = profileDatabase(snapshotDir, dbPath);
+  assert.ok(report.anomalies.invalidIds > 0);
   assert.ok(report.anomalies.invalidDates >= 2);
   assert.ok(report.anomalies.impossibleMetrics >= 3);
   assert.deepEqual(report.crossCounts.metaTotals, [null]);

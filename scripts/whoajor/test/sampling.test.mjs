@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import {
+  mkdir, mkdtemp, readFile, readdir, rm,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { collectSnapshot } from '../collect.mjs';
@@ -159,10 +161,13 @@ test('selection детерминирована при перестановке m
     lexicographicFirst: 'GET /api/matches/alpha',
     lexicographicLast: 'GET /api/matches/zeta',
   });
+  assert.equal(typeof forwardSelection.coverage.dataEvidence.map, 'string');
+  assert.equal(typeof forwardSelection.coverage.dataEvidence.nonEmptyRelationship, 'string');
   const mandatoryIdentities = new Set([
     ...Object.values(forwardSelection.coverage.endpointFamilies),
     ...Object.values(forwardSelection.coverage.matchIndexPages),
     ...Object.values(forwardSelection.coverage.matchDetails),
+    ...Object.values(forwardSelection.coverage.dataEvidence),
   ]);
   assert.ok([...mandatoryIdentities].every((identity) => forwardKeys.includes(identity)));
   assert.ok(forwardSelection.selected.every(({ score, identity }) => (
@@ -186,7 +191,7 @@ test('verifySample сверяет canonical hashes и атомарно пише�
   assert.equal(report.contractVersion, snapshot.manifest.contractVersion);
   assert.equal(report.rootHash, snapshot.manifest.rootHash);
   assert.deepEqual(report.selectionAlgorithm, {
-    mandatoryCoverage: 'all CONTRACT endpoint families + first/last match pages + oldest/newest/lexicographic-first/lexicographic-last match detail',
+    mandatoryCoverage: 'all CONTRACT endpoint families + first/last match pages + oldest/newest/lexicographic-first/lexicographic-last match detail + map + non-empty relationship',
     score: 'sha256(snapshotId + identity)',
     target: 'max(30, ceil((matches + players + weapons) * 0.01))',
   });
@@ -235,4 +240,24 @@ test('default target не уменьшается и блокирует snapshot 
   assert.equal(report.candidateCount, 29);
   assert.equal(report.status, 'unstable');
   assert.ok(report.reasons.some(({ code }) => code === 'INSUFFICIENT_CANDIDATES'));
+});
+
+test('atomic sampling report очищает temp, если destination нельзя заменить', async (t) => {
+  const { snapshot, snapshotDir } = await collectFixture(t, {
+    matchIds: ['match-1', 'match-2', 'match-3'],
+  });
+  await mkdir(join(snapshotDir, 'sampling-report.json'));
+
+  await assert.rejects(
+    verifySample({
+      snapshotDir,
+      client: storedResponseClient(snapshot),
+      now: NOW,
+      minimumSampleSize: 10,
+    }),
+  );
+
+  const leftovers = (await readdir(snapshotDir))
+    .filter((name) => name.startsWith('sampling-report.json.tmp-'));
+  assert.deepEqual(leftovers, []);
 });

@@ -18,7 +18,9 @@ import {
 import {
   buildDatabase as buildDatabaseDefault, computeDataFingerprint,
 } from './lib/normalize.mjs';
+import { profileDatabase, writeDataProfile } from './lib/profile.mjs';
 import { loadSnapshot } from './lib/raw-store.mjs';
+import { assertSamplingReport, verifySample } from './lib/sampling.mjs';
 import { renderSourceSummary } from './lib/summary.mjs';
 import { validateSnapshot as validateSnapshotDefault } from './lib/validation.mjs';
 
@@ -26,7 +28,8 @@ const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(MODULE_DIR, '..', '..');
 const RENAME_NOREPLACE_HELPER = join(MODULE_DIR, 'rename-noreplace.py');
 const REQUIRED_ARTIFACTS = Object.freeze([
-  'manifest.json', 'validation-report.json', 'contract.json', 'source-summary.md',
+  'manifest.json', 'validation-report.json', 'sampling-report.json', 'data-profile.json',
+  'contract.json', 'source-summary.md',
 ]);
 let temporarySequence = 0;
 const execFileAsync = promisify(execFile);
@@ -192,6 +195,31 @@ function deterministicReport(report) {
   return deterministic;
 }
 
+function assertDataProfileHeader(profile, manifest) {
+  if (!profile || typeof profile !== 'object' || Array.isArray(profile)) {
+    throw new Error('data profile must be an object');
+  }
+  if (profile.status !== 'complete' || profile.blockingChecks !== 0) {
+    throw new Error('data profile must be complete with zero blockingChecks');
+  }
+  if (
+    profile.snapshot?.id !== manifest.snapshotId
+      || profile.snapshot?.rootHash !== manifest.rootHash
+      || profile.snapshot?.contractVersion !== manifest.contractVersion
+      || profile.snapshot?.status !== 'complete'
+  ) throw new Error('data profile snapshot identity differs from manifest');
+}
+
+function assertFreshDataProfile(profile, freshProfile, database) {
+  if (
+    profile.database?.decompressedSha256 !== database.decompressedSha256
+      || profile.database?.dataFingerprint !== database.dataFingerprint
+  ) throw new Error('data profile database hashes differ from inspected SQLite dataFingerprint');
+  if (canonicalStringify(profile) !== canonicalStringify(freshProfile)) {
+    throw new Error('data profile is stale or differs from fresh deterministic database profile');
+  }
+}
+
 async function cleanupDatabaseArtifacts(path) {
   await Promise.all([
     rm(path, { force: true }),
@@ -238,10 +266,22 @@ export async function publishSnapshot(stagingDir, rawDir) {
   }
   await assertRequiredArtifacts(stagingPath);
 
-  const { manifest } = await loadSnapshot(stagingPath);
+  const snapshot = await loadSnapshot(stagingPath);
+  const { manifest } = snapshot;
   if (manifest.status !== 'collected') {
     throw new Error(`manifest status must be collected before publication; got ${manifest.status}`);
   }
+  const samplingReport = await readJson(
+    join(stagingPath, 'sampling-report.json'),
+    'sampling report',
+  );
+  try {
+    await assertSamplingReport(snapshot, samplingReport);
+  } catch (error) {
+    throw new Error(`sampling report verification failed: ${error.message}`, { cause: error });
+  }
+  const dataProfile = await readJson(join(stagingPath, 'data-profile.json'), 'data profile');
+  assertDataProfileHeader(dataProfile, manifest);
   const report = await readJson(join(stagingPath, 'validation-report.json'), 'validation report');
   if (report.status !== 'complete') {
     throw new Error(`validation report status must be complete; got ${report.status}`);
@@ -267,10 +307,20 @@ export async function publishSnapshot(stagingDir, rawDir) {
   if (contractContents !== serializeContract()) {
     throw new Error('contract.json is stale, incomplete, or non-canonical');
   }
-  const persistedDatabase = await inspectDatabaseArtifact(
+  const inspected = await inspectDatabaseArtifact(
     stagingPath,
-    (path) => readDatabaseResult(path, manifest.rootHash),
+    (path) => ({
+      database: readDatabaseResult(path, manifest.rootHash),
+      profile: profileDatabase(stagingPath, path),
+    }),
   );
+  const persistedDatabase = {
+    ...inspected.database,
+    artifact: inspected.artifact,
+    artifactSha256: inspected.artifactSha256,
+    decompressedSha256: inspected.decompressedSha256,
+  };
+  assertFreshDataProfile(dataProfile, inspected.profile, persistedDatabase);
   const verificationDatabasePath = join(
     stagingPath,
     `whoajor.sqlite.publish-verify-${process.pid}-${randomUUID()}.sqlite`,
@@ -329,6 +379,16 @@ export async function sync(options = {}, overrides = {}) {
     if (manifest.status !== 'collected') {
       throw new Error(`snapshot collection did not complete: ${manifest.status}`);
     }
+    const samplingReport = await verifySample({
+      snapshotDir: stagingDir,
+      client,
+      baseUrl: options.baseUrl ?? WHOAJOR_BASE_URL,
+      delayMs: options.delayMs ?? DEFAULT_DELAY_MS,
+      now: options.now,
+    });
+    if (samplingReport.status !== 'complete') {
+      throw new Error('sampling verification did not produce a complete report');
+    }
   }
 
   const report = await deps.validateSnapshot(stagingDir);
@@ -353,6 +413,12 @@ export async function sync(options = {}, overrides = {}) {
     canonicalStringify(database.counts) !== canonicalStringify(builtDatabase.counts)
       || database.dataFingerprint !== builtDatabase.dataFingerprint
   ) throw new Error('final database artifact differs from database build result');
+  if (!options.publishExisting) {
+    await inspectDatabaseArtifact(
+      stagingDir,
+      (path) => writeDataProfile(stagingDir, path),
+    );
+  }
   const summaryInput = await createSummaryInput(stagingDir, rawDir, database);
   await writeFileAtomically(
     join(stagingDir, 'source-summary.md'),
@@ -421,6 +487,7 @@ async function main() {
     counts: result.database.counts,
     dataFingerprint: result.database.dataFingerprint,
     databaseArtifact: result.database.artifact,
+    artifactSha256: result.database.artifactSha256,
     decompressedSha256: result.database.decompressedSha256,
   })}\n`);
 }

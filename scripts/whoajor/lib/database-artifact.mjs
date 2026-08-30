@@ -58,6 +58,31 @@ function hashingTransform(hash) {
   });
 }
 
+async function assertCanonicalGzip(gzipPath, sqlitePath, snapshotDir) {
+  const canonical = join(
+    snapshotDir,
+    `.whoajor.sqlite.canonical-${process.pid}-${randomUUID()}.gz`,
+  );
+  try {
+    await writeDeterministicGzip(sqlitePath, canonical);
+    const [persistedMetadata, canonicalMetadata, persistedSha256, canonicalSha256] = await Promise.all([
+      stat(gzipPath),
+      stat(canonical),
+      sha256File(gzipPath),
+      sha256File(canonical),
+    ]);
+    if (
+      persistedMetadata.size !== canonicalMetadata.size
+        || persistedSha256 !== canonicalSha256
+    ) {
+      throw new Error('persisted SQLite gzip is not canonical deterministic gzip');
+    }
+    return persistedSha256;
+  } finally {
+    await rm(canonical, { force: true });
+  }
+}
+
 async function inspectGzipArtifact(gzipPath, snapshotDir, inspect) {
   const temporary = join(
     snapshotDir,
@@ -71,8 +96,9 @@ async function inspectGzipArtifact(gzipPath, snapshotDir, inspect) {
       hashingTransform(hash),
       createWriteStream(temporary, { flags: 'wx', mode: 0o600 }),
     );
+    const artifactSha256 = await assertCanonicalGzip(gzipPath, temporary, snapshotDir);
     const result = await inspect(temporary);
-    return { result, decompressedSha256: hash.digest('hex') };
+    return { artifactSha256, result, decompressedSha256: hash.digest('hex') };
   } catch (error) {
     throw new Error(`gzip SQLite verification failed: ${error.message}`, { cause: error });
   } finally {
@@ -88,12 +114,18 @@ export async function inspectDatabaseArtifact(snapshotDir, inspect) {
       inspect(selected.path),
       sha256File(selected.path),
     ]);
-    return { ...result, artifact: selected.artifact, decompressedSha256 };
+    return {
+      ...result,
+      artifact: selected.artifact,
+      artifactSha256: decompressedSha256,
+      decompressedSha256,
+    };
   }
   const checked = await inspectGzipArtifact(selected.path, snapshotDir, inspect);
   return {
     ...checked.result,
     artifact: selected.artifact,
+    artifactSha256: checked.artifactSha256,
     decompressedSha256: checked.decompressedSha256,
   };
 }
@@ -141,6 +173,7 @@ export async function finalizeDatabaseArtifact(
     return {
       ...checked.result,
       artifact: SQLITE_GZIP_ARTIFACT,
+      artifactSha256: checked.artifactSha256,
       decompressedSha256: checked.decompressedSha256,
     };
   } finally {

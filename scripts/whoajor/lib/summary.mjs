@@ -82,6 +82,7 @@ export function renderSourceSummary(input) {
     database.decompressedSha256,
     'decompressedSha256',
   );
+  const artifactSha256 = requireHash(database.artifactSha256, 'artifactSha256');
   const manifestCitation = rawCitation(rawPath, 'manifest.json');
   const reportCitation = rawCitation(rawPath, 'validation-report.json');
   const databaseCitation = rawCitation(rawPath, database.artifact);
@@ -108,7 +109,7 @@ export function renderSourceSummary(input) {
     '',
     `FACT: Валидатор подтвердил статус \`complete\`; root hash: \`${rootHash}\`. ${reportCitation}`,
     '',
-    `FACT: Нормализованная SQLite сохранила те же exact counts; data fingerprint SQLite: \`${dataFingerprint}\`; SHA-256 распакованной SQLite: \`${decompressedSha256}\`. ${databaseCitation}`,
+    `FACT: Нормализованная SQLite сохранила те же exact counts; data fingerprint SQLite: \`${dataFingerprint}\`; SHA-256 распакованной SQLite: \`${decompressedSha256}\`; SHA-256 файла ${database.artifact}: \`${artifactSha256}\`. ${databaseCitation}`,
     '',
     `FACT: Канонический raw evidence — manifest и content-addressed exact HTTP bodies в каталоге \`${rawPath}\`. ${manifestCitation}`,
     '',

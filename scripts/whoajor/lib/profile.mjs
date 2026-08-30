@@ -1,9 +1,12 @@
+import { createHash } from 'node:crypto';
+import { closeSync, openSync, readSync } from 'node:fs';
 import {
   mkdir, rename, rm, writeFile,
 } from 'node:fs/promises';
 import { basename, dirname, join } from 'node:path';
 import Database from 'better-sqlite3';
 import { canonicalStringify } from './canonical-json.mjs';
+import { computeDataFingerprint } from './normalize.mjs';
 
 const PROFILE_VERSION = 1;
 const REQUIRED_TABLES = Object.freeze([
@@ -170,13 +173,13 @@ function isIdentifierKey(name) {
 }
 
 function invalidJsonIdentifier(path, type, value) {
-  if (type === 'null' || type === 'array' || type === 'object') return false;
   const tokens = pathTokens(path);
+  if (type === 'null' || type === 'array' || type === 'object') return false;
   if (tokens.some((token) => STEAM_ID_KEYS.has(token))) {
     return type !== 'text' || !validSteamId(value);
   }
   const key = semanticPathKey(path);
-  if (key === 'id' || key === 'match_id' || key === 'matchid' || DIMENSION_ID_KEYS.has(key)) {
+  if (key === 'id' || key === 'matchid' || key.endsWith('_id') || DIMENSION_ID_KEYS.has(key)) {
     return type !== 'text' || String(value).trim() === '';
   }
   return false;
@@ -745,9 +748,38 @@ export function profileDatabase(snapshotDir, dbPath = join(snapshotDir, 'whoajor
   }
   const db = new Database(dbPath, { fileMustExist: true, readonly: true });
   try {
-    return buildProfile(db, snapshotDir);
+    const profile = buildProfile(db, snapshotDir);
+    let dataFingerprint = null;
+    try {
+      dataFingerprint = computeDataFingerprint(db);
+    } catch (error) {
+      if (profile.anomalies.malformedJson === 0) throw error;
+    }
+    return {
+      ...profile,
+      database: {
+        dataFingerprint,
+        decompressedSha256: sha256FileSync(dbPath),
+      },
+    };
   } finally {
     db.close();
+  }
+}
+
+function sha256FileSync(path) {
+  const descriptor = openSync(path, 'r');
+  const hash = createHash('sha256');
+  const buffer = Buffer.allocUnsafe(1024 * 1024);
+  try {
+    let bytesRead;
+    do {
+      bytesRead = readSync(descriptor, buffer, 0, buffer.length, null);
+      if (bytesRead > 0) hash.update(buffer.subarray(0, bytesRead));
+    } while (bytesRead > 0);
+    return hash.digest('hex');
+  } finally {
+    closeSync(descriptor);
   }
 }
 
