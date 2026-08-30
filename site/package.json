@@ -1,0 +1,11 @@
+{
+  "name": "ushibu-nogami-hq",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Штаб CS2 «Ушибу ногами» — статический сайт с пароль-гейтом на Routing Middleware",
+  "dependencies": {
+    "@vercel/blob": "^2.8.0",
+    "@vercel/functions": "^3.9.5"
+  }
+}

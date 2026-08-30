@@ -1,0 +1,77 @@
+/* ============================================================
+   Токены, общие для всех тем.
+   Цвета живут в theme-*.css — здесь только шкалы и метрика.
+   ============================================================ */
+
+:root {
+  /* --- Шрифтовые стеки. Фолбэки честные: если woff2 не подгрузился,
+         подстановка остаётся узкой/системной, а не «Times». --- */
+  --font-display: 'Oswald', 'Avenir Next Condensed', 'Roboto Condensed', 'PT Sans Narrow', 'Arial Narrow', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Consolas, 'Liberation Mono', monospace;
+
+  /* --- Шкала отступов. Всё кратно 4. --density задаёт тема. --- */
+  --density: 1;
+  --s1: calc(4px * var(--density));
+  --s2: calc(8px * var(--density));
+  --s3: calc(12px * var(--density));
+  --s4: calc(16px * var(--density));
+  --s5: calc(24px * var(--density));
+  --s6: calc(32px * var(--density));
+  --s7: calc(48px * var(--density));
+  --s8: calc(64px * var(--density));
+  --s9: calc(96px * var(--density));
+
+  /* --- Типографическая шкала.
+         Нижний предел 12px: в исходнике было 7–9px, читать невозможно. --- */
+  --fs-micro: 12px;
+  --fs-sm: 13px;
+  --fs-body: 16px;
+  --fs-lead: 18px;
+  --fs-h4: 17px;
+  --fs-h3: clamp(20px, 2.2vw, 26px);
+  --fs-h2: clamp(28px, 4vw, 46px);
+  --fs-h1: clamp(44px, 7vw, 92px);
+  --fs-stat: clamp(40px, 6vw, 80px);
+  --fs-stat-sm: clamp(28px, 3.4vw, 44px);
+
+  --lh-tight: 0.92;
+  --lh-snug: 1.15;
+  --lh-body: 1.55;
+
+  /* Трекинг: узкий дисплейный шрифт любит отрицательный,
+     мелкий моно-лейбл — положительный. */
+  --tr-display: -0.02em;
+  --tr-label: 0.12em;
+  --tr-label-lg: 0.16em;
+
+  /* --- Геометрия --- */
+  --radius: 0px;
+  --radius-sm: 0px;
+  --radius-pill: 0px;
+  --border: 1px;
+
+  /* --- Тайминги --- */
+  --dur-fast: 0.14s;
+  --dur: 0.22s;
+  --dur-slow: 0.38s;
+  --ease: cubic-bezier(0.22, 0.7, 0.2, 1);
+
+  /* --- Каркас --- */
+  --sidebar-w: 280px;
+  --page-pad: clamp(20px, 3.6vw, 60px);
+  --content-max: 1560px;
+  --topbar-h: 64px;
+
+  /* --- Слои --- */
+  --z-bg: 0;
+  --z-content: 1;
+  --z-sidebar: 20;
+  --z-overlay: 40;
+  --z-toast: 60;
+  --z-skip: 80;
+}
+
+@media (max-width: 1240px) {
+  :root { --sidebar-w: 232px; }
+}

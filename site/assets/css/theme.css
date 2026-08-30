@@ -1,0 +1,120 @@
+/* ============================================================
+   ПАЛИТРА NEON — единственная тема проекта.
+   Снята с логотипа команды: неоново-розовый #ff2e7e и
+   электрический фиолетовый #8a4bff на почти чёрном
+   с фиолетовым подтоном. Резкая геометрия, сетка, сканлайны.
+   ============================================================ */
+
+:root {
+  color-scheme: dark;
+
+  --bg: #07030d;
+  --bg-deep: #040209;
+  --surface-1: #100a1b;
+  --surface-2: #171024;
+  --surface-3: #1f1730;
+  --surface-raised: #291f3d;
+
+  --text: #f4eef9;
+  --text-dim: #b3a8c4;
+  --text-mute: #8b80a0;
+
+  --line: #2a2039;
+  --line-soft: rgba(244, 238, 249, 0.08);
+  --line-strong: #3d3153;
+
+  /* Розовый из логотипа — основной акцент */
+  --accent: #ff2e7e;
+  --accent-ink: #14030a;
+  --accent-soft: rgba(255, 46, 126, 0.13);
+  --accent-line: rgba(255, 46, 126, 0.4);
+  --accent-glow: rgba(255, 46, 126, 0.42);
+  /* Фиолетовый из логотипа — второй голос */
+  --accent-2: #8a4bff;
+
+  --signal: #9b5cff;
+  --signal-soft: rgba(155, 92, 255, 0.13);
+  --signal-line: rgba(155, 92, 255, 0.4);
+
+  --t-side: #ffa23a;
+  --t-soft: rgba(255, 162, 58, 0.13);
+  --ct-side: #4fb0ff;
+  --ct-soft: rgba(79, 176, 255, 0.13);
+
+  --ok: #2be8b0;
+  --warn: #ffc24b;
+  --idle: #8a7ea4;
+
+  --radius: 0px;
+  --radius-sm: 0px;
+  --radius-pill: 0px;
+  --density: 1;
+
+  --shadow-card: none;
+  --shadow-raised: 0 0 0 1px rgba(255, 46, 126, 0.1);
+  --shadow-glow: 0 0 30px -10px var(--accent-glow);
+  --focus: var(--accent);
+
+  /* Фон: два неоновых пятна из логотипа плюс техническая сетка */
+  --page-bg:
+    radial-gradient(1100px 640px at 86% -14%, rgba(255, 46, 126, 0.14), transparent 62%),
+    radial-gradient(900px 720px at 2% 108%, rgba(138, 75, 255, 0.14), transparent 60%),
+    repeating-linear-gradient(0deg, transparent 0 39px, rgba(244, 238, 249, 0.02) 39px 40px),
+    repeating-linear-gradient(90deg, transparent 0 39px, rgba(244, 238, 249, 0.02) 39px 40px),
+    var(--bg);
+
+  --fx-opacity: 0.2;
+  --fx-blend: soft-light;
+  --fx-image:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.55) 0 1px, transparent 1px 3px),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E");
+}
+
+/* Уголковые засечки — розовым, как обводка на логотипе */
+.card,
+.module {
+  background-image: linear-gradient(180deg, rgba(255, 46, 126, 0.045), transparent 130px);
+}
+.card::before,
+.module::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 14px;
+  height: 14px;
+  border-top: 1px solid var(--accent-line);
+  border-left: 1px solid var(--accent-line);
+  pointer-events: none;
+}
+.card::after,
+.module::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 14px;
+  height: 14px;
+  border-right: 1px solid rgba(138, 75, 255, 0.45);
+  border-bottom: 1px solid rgba(138, 75, 255, 0.45);
+  pointer-events: none;
+}
+
+/* Неоновое свечение — главный приём логотипа */
+.is-accent,
+.chip--accent,
+.meter__fill,
+.brand__mark {
+  box-shadow: var(--shadow-glow);
+}
+.stat__value,
+.countdown__value {
+  text-shadow: 0 0 34px var(--accent-glow);
+}
+.panel__header h1 em {
+  text-shadow: 0 0 44px var(--accent-glow);
+}
+/* Заголовки разделов получают розово-фиолетовую засечку, как кольцо на лого */
+.section__head::before {
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+}
