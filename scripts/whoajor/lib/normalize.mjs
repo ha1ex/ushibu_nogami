@@ -126,13 +126,16 @@ function sourceFullness(value) {
 function addSourceCandidate(states, id, source, priority) {
   const state = states.get(id) ?? { variants: new Map(), fallbacks: [] };
   const canonical = json(source);
-  if (!state.variants.has(canonical)) {
+  const existing = state.variants.get(canonical);
+  if (!existing) {
     state.variants.set(canonical, {
       canonical,
       fullness: sourceFullness(source),
       priority,
       source,
     });
+  } else if (priority > existing.priority) {
+    state.variants.set(canonical, { ...existing, priority });
   }
   states.set(id, state);
 }
@@ -543,17 +546,33 @@ function quoteIdentifier(identifier) {
   return `"${identifier.replaceAll('"', '""')}"`;
 }
 
+const SEMANTIC_REQUEST_SOURCE_FIELDS = Object.freeze([
+  'key', 'path', 'query', 'boundaryRole', 'status', 'bodyBytes', 'bodySha256',
+  'canonicalSha256', 'itemCount', 'reportedTotal',
+]);
+const SEMANTIC_SNAPSHOT_SOURCE_FIELDS = Object.freeze([
+  'snapshotId', 'contractVersion', 'status', 'rootHash', 'failure',
+]);
+
+function pickFields(value, fields) {
+  return Object.fromEntries(fields
+    .filter((field) => Object.hasOwn(value, field))
+    .map((field) => [field, value[field]]));
+}
+
+function semanticRequestSource(value) {
+  return pickFields(value, SEMANTIC_REQUEST_SOURCE_FIELDS);
+}
+
 function sanitizedSourceJson(table, sourceJson) {
   const value = JSON.parse(sourceJson);
-  if (table === 'requests') {
-    delete value.fetchedAt;
-    delete value.durationMs;
-  } else if (table === 'snapshots') {
-    for (const field of ['startedAt', 'finishedAt', 'completedAt']) delete value[field];
-    for (const request of value.requests ?? []) {
-      delete request.fetchedAt;
-      delete request.durationMs;
-    }
+  if (table === 'requests') return semanticRequestSource(value);
+  if (table === 'snapshots') {
+    const semantic = pickFields(value, SEMANTIC_SNAPSHOT_SOURCE_FIELDS);
+    semantic.requests = (value.requests ?? [])
+      .map(semanticRequestSource)
+      .sort((left, right) => compareText(json(left), json(right)));
+    return semantic;
   }
   return value;
 }

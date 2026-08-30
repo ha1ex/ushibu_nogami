@@ -33,6 +33,7 @@ const TABLES = [
 async function buildValidatedFixture({
   duplicateAlias = false,
   duplicateMatchTag = false,
+  priorityCollision = false,
   rich = false,
   trustValidationErrors = false,
 } = {}) {
@@ -47,10 +48,26 @@ async function buildValidatedFixture({
   });
   const client = createHttpClient({
     baseUrl: fixture.baseUrl,
-    fetchImpl: rich || duplicateMatchTag ? async (url, options) => {
+    fetchImpl: rich || duplicateMatchTag || priorityCollision ? async (url, options) => {
       const response = await fixture.fetch(url, options);
       const payload = await response.json();
-      const path = new URL(url).pathname;
+      const parsedUrl = new URL(url);
+      const path = parsedUrl.pathname;
+      if (priorityCollision) {
+        const sharedPlayer = {
+          steamid: PLAYERS[0],
+          name: 'Player 01',
+          matches: 1,
+          rounds_played: 2,
+          rating2: 1.05,
+          kills: 2,
+          shots: 20,
+          matches_total: 2,
+        };
+        if (path === '/api/leaderboard') payload[0] = sharedPlayer;
+        if (path === `/api/players/${PLAYERS[0]}/summary`) payload[0] = sharedPlayer;
+        if (/^\/api\/weapons\/[^/]+$/.test(path) && !parsedUrl.search) payload[0] = sharedPlayer;
+      }
       if (rich && path === '/api/draft-config') payload.igls = [PLAYERS[0]];
       if (/^\/api\/matches\/[^/]+$/.test(path)) {
         if (rich || duplicateMatchTag) {
@@ -281,6 +298,95 @@ test('изменение source discrepancy меняет fingerprint при те
   const second = await buildDatabase(snapshotDir, join(snapshotDir, 'after-discrepancy.sqlite'));
 
   assert.notEqual(first.dataFingerprint, second.dataFingerprint);
+});
+
+test('перестановка manifest observations не меняет master sources, variants и fingerprint', async () => {
+  const snapshotDir = await buildValidatedFixture({ priorityCollision: true });
+  const firstPath = join(snapshotDir, 'ordered.sqlite');
+  const first = await buildDatabase(snapshotDir, firstPath);
+  const readMasters = (path) => {
+    const db = new Database(path, { readonly: true });
+    const masters = {
+      players: db.prepare('select steamid, source_json, metrics_json from players order by steamid').all(),
+      weapons: db.prepare('select weapon, source_json, metrics_json from weapons order by weapon').all(),
+    };
+    db.close();
+    return masters;
+  };
+  const firstMasters = readMasters(firstPath);
+  const manifestPath = join(snapshotDir, 'manifest.json');
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  const rank = (entry) => {
+    if (entry.boundaryRole === 'start') return 0;
+    if (entry.boundaryRole === 'end') return 4;
+    if (/^\/api\/weapons\/[^/]+$/.test(entry.path) && Object.keys(entry.query).length === 0) return 1;
+    if (/^\/api\/matches\/[^/]+$/.test(entry.path)) return 2;
+    return 3;
+  };
+  manifest.requests.sort((left, right) => rank(left) - rank(right));
+  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+
+  const secondPath = join(snapshotDir, 'permuted.sqlite');
+  const second = await buildDatabase(snapshotDir, secondPath);
+  assert.deepEqual(readMasters(secondPath), firstMasters);
+  assert.equal(second.dataFingerprint, first.dataFingerprint);
+});
+
+test('HTTP transport metadata не меняет fingerprint', async () => {
+  const snapshotDir = await buildValidatedFixture();
+  const first = await buildDatabase(snapshotDir, join(snapshotDir, 'transport-before.sqlite'));
+  const manifestPath = join(snapshotDir, 'manifest.json');
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  manifest.requests.forEach((entry, index) => {
+    entry.fetchedAt = `2031-01-01T00:00:${String(index).padStart(2, '0')}Z`;
+    entry.durationMs = 10_000 + index;
+    entry.url = `https://transport-only.invalid/${index}`;
+    entry.contentType = 'application/json; transport-rewrite=true';
+    entry.contentLength = String(90_000 + index);
+    entry.observedHeaders = {
+      date: 'Mon, 01 Jan 2031 00:00:00 GMT',
+      'server-timing': `edge;dur=${index}`,
+      'x-request-id': `request-${index}`,
+      'cf-cache-status': 'HIT',
+    };
+  });
+  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+  const second = await buildDatabase(snapshotDir, join(snapshotDir, 'transport-after.sqlite'));
+
+  assert.equal(second.dataFingerprint, first.dataFingerprint);
+});
+
+test('status, path, query, body и entity mutations меняют fingerprint', async () => {
+  const snapshotDir = await buildValidatedFixture();
+  const dbPath = join(snapshotDir, 'semantic-mutations.sqlite');
+  const built = await buildDatabase(snapshotDir, dbPath);
+  const { computeDataFingerprint } = await import('../lib/normalize.mjs');
+  const db = new Database(dbPath);
+  const request = db.prepare('select rowid, * from requests limit 1').get();
+  const mutations = [
+    ['update requests set path = ? where rowid = ?', `${request.path}/changed`, request.rowid],
+    ['update requests set query_json = ? where rowid = ?', '{"changed":"1"}', request.rowid],
+    ['update requests set source_body = ? where rowid = ?', `${request.source_body} `, request.rowid],
+  ];
+  for (const [sql, ...params] of mutations) {
+    db.exec('BEGIN');
+    db.prepare(sql).run(...params);
+    assert.notEqual(computeDataFingerprint(db), built.dataFingerprint);
+    db.exec('ROLLBACK');
+  }
+  const requestSource = JSON.parse(request.source_json);
+  requestSource.status = 201;
+  db.exec('BEGIN');
+  db.prepare('update requests set source_json = ? where rowid = ?')
+    .run(JSON.stringify(requestSource), request.rowid);
+  assert.notEqual(computeDataFingerprint(db), built.dataFingerprint);
+  db.exec('ROLLBACK');
+  db.exec('BEGIN');
+  db.prepare('update tags set metrics_json = ? where rowid = (select min(rowid) from tags)')
+    .run('{"semantic":"changed"}');
+  assert.notEqual(computeDataFingerprint(db), built.dataFingerprint);
+  db.exec('ROLLBACK');
+  db.close();
 });
 
 test('ошибка после transaction удаляет временную базу и не публикует target', async () => {
