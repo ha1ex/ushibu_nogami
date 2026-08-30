@@ -15,6 +15,12 @@ const TEAM_METRIC_KEYS = [
   'clutchWinRate', 'forceWinRate', 'fullWinRate', 'tRoundWinRate', 'ctRoundWinRate',
   'utilityDamagePerRound', 'tradeRate',
 ];
+const REVIEWED_SCHEDULE = [
+  { matchId: 'm01', date: '2026-09-30', opponentTeamId: 'pocelui' },
+  { matchId: 'm02', date: '2026-10-01', opponentTeamId: 'takahuli' },
+  { matchId: 'm09', date: '2026-10-21', opponentTeamId: 'rassadnik' },
+  { matchId: 'm10', date: '2026-10-22', opponentTeamId: 'smoke' },
+];
 
 function ratio(numerator, denominator) {
   return denominator ? numerator / denominator : null;
@@ -104,10 +110,12 @@ function sideMetrics(sums) {
   const dpr = ratio(sums.deaths, sums.rounds) ?? 0;
   const apr = ratio(sums.assists, sums.rounds) ?? 0;
   const kastPct = (ratio(sums.kastRounds, sums.rounds) ?? 0) * 100;
+  const adr = ratio(sums.damage, sums.rounds) ?? 0;
   const impact = 2.13 * kpr + 0.42 * apr - 0.41;
   return {
     rating: sums.rounds
-      ? 0.0073 * kastPct + 0.3591 * kpr - 0.5329 * dpr + 0.2372 * impact + 0.1587
+      ? 0.0073 * kastPct + 0.3591 * kpr - 0.5329 * dpr
+        + 0.2372 * impact + 0.0032 * adr + 0.1587
       : null,
     adr: ratio(sums.damage, sums.rounds),
     roundWinRate: ratio(sums.roundWins, sums.rounds),
@@ -245,6 +253,8 @@ function buildEvidence(players, teams, mapEdges) {
   }
   for (const team of teams) {
     for (const metric of TEAM_METRIC_KEYS) {
+      const deviation = [...team.scouting.exploits, ...team.scouting.risks]
+        .find((item) => item.metric === metric);
       evidence.push({
         id: `team:${team.teamId}:recent:${metric}`,
         kind: 'team_projection_metric',
@@ -252,6 +262,11 @@ function buildEvidence(players, teams, mapEdges) {
         metric,
         value: team.recent.metrics[metric],
         samplePlayerRounds: team.recent.sums.rounds,
+        ...(deviation ? {
+          median: deviation.median,
+          delta: deviation.delta,
+          classification: team.scouting.exploits.includes(deviation) ? 'exploit' : 'risk',
+        } : {}),
       });
     }
     evidence.push({
@@ -275,16 +290,22 @@ function buildEvidence(players, teams, mapEdges) {
   return evidence.sort((left, right) => left.id.localeCompare(right.id));
 }
 
-export function validateReviewedRecommendations(config, evidenceIndex, rosters) {
+export function validateReviewedRecommendations(config, evidenceIndex, rosters, teams) {
   if (config.snapshotRoot !== CANONICAL_ROOT) throw new Error('recommendations root mismatch');
   if (config.reviewed !== true) throw new Error('recommendations must be reviewed');
   if (config.dataThrough !== RECENT_WINDOW.recentEnd) throw new Error('recommendations are stale');
   if (!Array.isArray(config.plans) || config.plans.length !== 4) throw new Error('exactly four plans required');
   const rosterById = new Map(rosters.map((roster) => [roster.teamId, roster]));
+  const teamById = new Map(teams.map((team) => [team.teamId, team]));
   const ourPlayers = new Map(rosterById.get('us').players.map((player) => [player.draftName, player]));
-  const expectedDates = ['2026-09-30', '2026-10-01', '2026-10-21', '2026-10-22'];
+  const matchIds = config.plans.map(({ matchId }) => matchId);
+  if (new Set(matchIds).size !== matchIds.length) throw new Error('duplicate matchId');
   return config.plans.map((plan, index) => {
-    if (plan.date !== expectedDates[index]) throw new Error(`unexpected plan date: ${plan.date}`);
+    const expected = REVIEWED_SCHEDULE[index];
+    if (plan.matchId !== expected.matchId) throw new Error(`unknown matchId: ${plan.matchId}`);
+    if (plan.date !== expected.date || plan.opponentTeamId !== expected.opponentTeamId) {
+      throw new Error(`schedule mismatch for ${plan.matchId}`);
+    }
     if (!rosterById.has(plan.opponentTeamId) || plan.opponentTeamId === 'us') {
       throw new Error(`unknown opponent: ${plan.opponentTeamId}`);
     }
@@ -294,9 +315,46 @@ export function validateReviewedRecommendations(config, evidenceIndex, rosters) 
     for (const field of ['backup', 'threatEvidence', 'weaknessEvidence', 'mapEvidence', 'do', 'dont', 'trainingChecklist', 'matchdayChecklist', 'caveats']) {
       if (!Array.isArray(plan[field]) || plan[field].length === 0) throw new Error(`${plan.opponentTeamId} missing ${field}`);
     }
+    const scouting = teamById.get(plan.opponentTeamId).scouting;
+    const requiredThreats = [
+      ...scouting.ratingThreats.map(({ evidenceId }) => evidenceId),
+      scouting.openingLeader?.evidenceId,
+      scouting.utilityLeader?.evidenceId,
+    ].filter(Boolean);
+    if (new Set(plan.threatEvidence).size !== plan.threatEvidence.length
+      || plan.threatEvidence.length !== requiredThreats.length
+      || requiredThreats.some((id) => !plan.threatEvidence.includes(id))) {
+      throw new Error(`${plan.opponentTeamId} threat evidence mismatch`);
+    }
+    const exploits = new Map(scouting.exploits.map((item) => [item.evidenceId, item]));
+    if (new Set(plan.weaknessEvidence).size !== plan.weaknessEvidence.length) {
+      throw new Error(`${plan.opponentTeamId} duplicate weakness evidence`);
+    }
+    if (plan.weaknessEvidence.some((id) => !(exploits.get(id)?.delta < 0))) {
+      throw new Error(`${plan.opponentTeamId} weakness is not an exploit`);
+    }
+    const overrides = plan.mapOverrides ?? [];
+    for (const [action, expectedSign] of [['pick', 1], ['ban', -1]]) {
+      const mapEvidenceId = `map-edge:${plan.opponentTeamId}:${plan[action]}`;
+      if (!plan.mapEvidence.includes(mapEvidenceId)) {
+        throw new Error(`${plan.opponentTeamId} missing evidence: ${mapEvidenceId}`);
+      }
+      const mapEvidence = evidenceIndex.get(mapEvidenceId);
+      const override = overrides.find((item) => item.action === action && item.map === plan[action]);
+      if (!(mapEvidence.edge * expectedSign > 0)) {
+        if (!override || typeof override.rationale !== 'string' || override.rationale.length < 20
+          || !Array.isArray(override.evidenceIds) || override.evidenceIds.length === 0) {
+          throw new Error(`${plan.opponentTeamId} map direction requires override`);
+        }
+        if (!override.evidenceIds.includes(mapEvidenceId)) {
+          throw new Error(`${plan.opponentTeamId} map override must cite its map evidence`);
+        }
+      }
+    }
     const references = [
       ...plan.threatEvidence, ...plan.weaknessEvidence, ...plan.mapEvidence,
       ...plan.caveats.map(({ evidenceId }) => evidenceId),
+      ...overrides.flatMap(({ evidenceIds = [] }) => evidenceIds),
     ];
     const missing = references.filter((id) => !evidenceIndex.has(id));
     if (missing.length) throw new Error(`${plan.opponentTeamId} missing evidence: ${missing.join(', ')}`);
@@ -438,6 +496,7 @@ export async function buildCalculatedDatasets(db, configDir, recommendationPath)
     recommendationConfig,
     new Map(evidence.map((item) => [item.id, item])),
     rosters,
+    teamMetrics,
   );
   return { rosters, playerMetrics, teamMetrics, mapEdges, evidence, recommendations };
 }

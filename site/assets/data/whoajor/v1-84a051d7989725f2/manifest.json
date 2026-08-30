@@ -25,8 +25,141 @@
     "trendMatches": 2987,
     "playerRounds": 76516,
     "matchPlayerWeapons": 29887,
-    "playerClutches": 9629
+    "playerClutches": 9629,
+    "leaderboardSnapshots": 162
   },
+  "gameplayTables": [
+    {
+      "table": "draft_config",
+      "dataset": "draftConfig",
+      "sourceRows": 1
+    },
+    {
+      "table": "draft_igls",
+      "dataset": "draftIgls",
+      "sourceRows": 5
+    },
+    {
+      "table": "draft_players",
+      "dataset": "draftPlayers",
+      "sourceRows": 30
+    },
+    {
+      "table": "leaderboard_snapshots",
+      "dataset": "leaderboardSnapshots",
+      "sourceRows": 162
+    },
+    {
+      "table": "match_player_weapons",
+      "dataset": "matchPlayerWeapons",
+      "sourceRows": 29887
+    },
+    {
+      "table": "match_players",
+      "dataset": "matchPlayers",
+      "sourceRows": 3819
+    },
+    {
+      "table": "match_rounds",
+      "dataset": "matchRounds",
+      "sourceRows": 7903
+    },
+    {
+      "table": "match_tags",
+      "dataset": "matchTags",
+      "sourceRows": 93
+    },
+    {
+      "table": "matches",
+      "dataset": "matches",
+      "sourceRows": 368
+    },
+    {
+      "table": "meta_maps",
+      "dataset": "maps",
+      "sourceRows": 46
+    },
+    {
+      "table": "player_aliases",
+      "dataset": "playerAliases",
+      "sourceRows": 5612
+    },
+    {
+      "table": "player_clutches",
+      "dataset": "playerClutches",
+      "sourceRows": 9629
+    },
+    {
+      "table": "player_map_snapshots",
+      "dataset": "playerMapStats",
+      "sourceRows": 965
+    },
+    {
+      "table": "player_match_stats",
+      "dataset": "playerMatchStats",
+      "sourceRows": 3583
+    },
+    {
+      "table": "player_rounds",
+      "dataset": "playerRounds",
+      "sourceRows": 76516
+    },
+    {
+      "table": "player_side_stats",
+      "dataset": "playerSideStats",
+      "sourceRows": 7638
+    },
+    {
+      "table": "player_weapon_daily_stats",
+      "dataset": "playerWeaponDailyStats",
+      "sourceRows": 13035
+    },
+    {
+      "table": "player_weapon_stats",
+      "dataset": "playerWeaponStats",
+      "sourceRows": 3202
+    },
+    {
+      "table": "players",
+      "dataset": "players",
+      "sourceRows": 81
+    },
+    {
+      "table": "round_rosters",
+      "dataset": "roundRosters",
+      "sourceRows": 76516
+    },
+    {
+      "table": "tags",
+      "dataset": "tags",
+      "sourceRows": 1
+    },
+    {
+      "table": "trend_matches",
+      "dataset": "trendMatches",
+      "sourceRows": 2987
+    },
+    {
+      "table": "trend_players",
+      "dataset": "trendPlayers",
+      "sourceRows": 20
+    },
+    {
+      "table": "weapon_daily_stats",
+      "dataset": "weaponDailyStats",
+      "sourceRows": 13035
+    },
+    {
+      "table": "weapon_splits",
+      "dataset": "weaponSplits",
+      "sourceRows": 1601
+    },
+    {
+      "table": "weapons",
+      "dataset": "weapons",
+      "sourceRows": 39
+    }
+  ],
   "assets": [
     {
       "dataset": "players",
@@ -1173,6 +1306,14 @@
       "sha256": "e90837a3555dccd8316034af07d7bad4742c106ce2ea80930e9e393fe1edcdc8"
     },
     {
+      "dataset": "leaderboardSnapshots",
+      "path": "data/leaderboardSnapshots-000.json",
+      "count": 162,
+      "bytes": 547460,
+      "gzipBytes": 108646,
+      "sha256": "e0ce6d9e0413c3966620cbb89ef4c31fa62eb7e3af6b2f30a30a578c36fe2002"
+    },
+    {
       "dataset": "trendPlayers",
       "path": "data/trendPlayers-000.json",
       "count": 20,
@@ -1216,17 +1357,17 @@
       "dataset": "playerMetrics",
       "path": "data/playerMetrics-000.json",
       "count": 30,
-      "bytes": 2038678,
-      "gzipBytes": 307924,
-      "sha256": "06ae8bf62b756c0b2549776567c19a8a0fdf0d36fd90cd0bc5738e3495a15fa9"
+      "bytes": 2038135,
+      "gzipBytes": 307802,
+      "sha256": "34d5519e1dfd1ff0f25ca954ca658c0b8e71d978de13962bc467753a112d11d1"
     },
     {
       "dataset": "teamMetrics",
       "path": "data/teamMetrics-000.json",
       "count": 5,
-      "bytes": 30988,
-      "gzipBytes": 7847,
-      "sha256": "3c71c5aea1da3ae85ea39100374cab22f0ef55641adcba2115bba3ec82fe617b"
+      "bytes": 30984,
+      "gzipBytes": 7865,
+      "sha256": "acdcc89344ec4cf3833f6867d93a3d835cfa417e894c7309ebb21e1fef3237fd"
     },
     {
       "dataset": "mapEdges",
@@ -1240,17 +1381,17 @@
       "dataset": "evidence",
       "path": "data/evidence-000.json",
       "count": 306,
-      "bytes": 90050,
-      "gzipBytes": 11367,
-      "sha256": "b341f7be2688f5fe3e6810a8654bc2af57af4b496e056d8130f8ff38bcf8891a"
+      "bytes": 92447,
+      "gzipBytes": 11932,
+      "sha256": "5ced40be9c1e49aa814fd0fa6731d259c6c839c102920ce6e5ffe6f013e3f5fa"
     },
     {
       "dataset": "recommendations",
       "path": "data/recommendations-000.json",
       "count": 4,
-      "bytes": 18402,
-      "gzipBytes": 4730,
-      "sha256": "b1c686095495f4a502e122cf6db72e595d3102ba3a6acc0449e7a6822abbcc5c"
+      "bytes": 20522,
+      "gzipBytes": 5309,
+      "sha256": "abc591ff2d5fdb6131d67b96a4b3be0ac86a5f3435d350b0d100967daab135ce"
     }
   ]
 }

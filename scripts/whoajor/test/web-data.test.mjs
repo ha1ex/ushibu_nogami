@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
-  mkdtemp, readFile, readdir, writeFile,
+  cp, mkdtemp, readFile, readdir, rm, symlink, writeFile,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -17,9 +17,26 @@ const GENERATOR = join(HERE, '..', 'generate-web-data.mjs');
 const VERIFIER = join(HERE, '..', 'verify-web-data.mjs');
 const RECOMMENDATIONS = join(HERE, '..', 'config', 'match-recommendations.json');
 const EXPECTED_ROOT = '84a051d7989725f22fd8bc37969f9308b2282edcdc61bf6b3477a021d8c71ee2';
+const EXPECTED_GAMEPLAY_TABLES = [
+  ['draft_config', 'draftConfig'], ['draft_igls', 'draftIgls'],
+  ['draft_players', 'draftPlayers'], ['leaderboard_snapshots', 'leaderboardSnapshots'],
+  ['match_player_weapons', 'matchPlayerWeapons'], ['match_players', 'matchPlayers'],
+  ['match_rounds', 'matchRounds'], ['match_tags', 'matchTags'], ['matches', 'matches'],
+  ['meta_maps', 'maps'], ['player_aliases', 'playerAliases'],
+  ['player_clutches', 'playerClutches'], ['player_map_snapshots', 'playerMapStats'],
+  ['player_match_stats', 'playerMatchStats'], ['player_rounds', 'playerRounds'],
+  ['player_side_stats', 'playerSideStats'],
+  ['player_weapon_daily_stats', 'playerWeaponDailyStats'],
+  ['player_weapon_stats', 'playerWeaponStats'], ['players', 'players'],
+  ['round_rosters', 'roundRosters'], ['tags', 'tags'],
+  ['trend_matches', 'trendMatches'], ['trend_players', 'trendPlayers'],
+  ['weapon_daily_stats', 'weaponDailyStats'], ['weapon_splits', 'weaponSplits'],
+  ['weapons', 'weapons'],
+];
 
-async function generate() {
+async function generate(t) {
   const outputDir = await mkdtemp(join(tmpdir(), 'whoajor-web-data-'));
+  t.after(() => rm(outputDir, { recursive: true, force: true }));
   const result = await execFileAsync(process.execPath, [GENERATOR, '--output', outputDir])
     .then(({ stdout, stderr }) => ({ code: 0, stdout, stderr }))
     .catch((error) => ({
@@ -78,8 +95,48 @@ function inspectSteamIds(value, path = '$') {
   }
 }
 
-test('generator publishes canonical pointer and exact source counts', async () => {
-  const outputDir = await generate();
+function sha256(bytes) {
+  return createHash('sha256').update(bytes).digest('hex');
+}
+
+async function rewriteManifest(outputDir, mutate) {
+  const currentPath = join(outputDir, 'current.json');
+  const current = JSON.parse(await readFile(currentPath, 'utf8'));
+  const manifestPath = join(outputDir, current.version, 'manifest.json');
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  await mutate({ current, manifest, versionDir: join(outputDir, current.version) });
+  const manifestBytes = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`);
+  await writeFile(manifestPath, manifestBytes);
+  current.manifestSha256 = sha256(manifestBytes);
+  await writeFile(currentPath, `${JSON.stringify(current, null, 2)}\n`);
+}
+
+async function mutateDataset(outputDir, dataset, mutate) {
+  await rewriteManifest(outputDir, async ({ manifest, versionDir }) => {
+    const asset = manifest.assets.find((item) => item.dataset === dataset);
+    assert.ok(asset, `${dataset} asset missing`);
+    const assetPath = join(versionDir, asset.path);
+    const payload = JSON.parse(await readFile(assetPath, 'utf8'));
+    mutate(payload.rows);
+    const bytes = Buffer.from(`${JSON.stringify(payload)}\n`);
+    await writeFile(assetPath, bytes);
+    asset.count = payload.rows.length;
+    asset.bytes = bytes.length;
+    asset.gzipBytes = gzipSync(bytes, { mtime: 0 }).length;
+    asset.sha256 = sha256(bytes);
+  });
+}
+
+async function expectVerifierFailure(outputDir, pattern) {
+  const result = await execFileAsync(process.execPath, [VERIFIER, '--output', outputDir])
+    .then(() => ({ code: 0, stderr: '' }))
+    .catch((error) => ({ code: error.code ?? 1, stderr: error.stderr ?? error.message }));
+  assert.notEqual(result.code, 0, `verifier accepted ${pattern}`);
+  assert.match(result.stderr, pattern);
+}
+
+test('generator publishes canonical pointer and exact source counts', async (t) => {
+  const outputDir = await generate(t);
   const current = JSON.parse(await readFile(join(outputDir, 'current.json'), 'utf8'));
   assert.equal(current.root, EXPECTED_ROOT);
   assert.equal(current.version, 'v1-84a051d7989725f2');
@@ -107,11 +164,16 @@ test('generator publishes canonical pointer and exact source counts', async () =
     playerRounds: 76516,
     matchPlayerWeapons: 29887,
     playerClutches: 9629,
+    leaderboardSnapshots: 162,
   });
+  assert.deepEqual(
+    manifest.gameplayTables.map(({ table, dataset }) => [table, dataset]),
+    EXPECTED_GAMEPLAY_TABLES,
+  );
 });
 
-test('generator exports complete safe shards with canonical hashes', async () => {
-  const outputDir = await generate();
+test('generator exports complete safe shards with canonical hashes', async (t) => {
+  const outputDir = await generate(t);
   const { versionDir, manifest } = await loadBuild(outputDir);
   assert.deepEqual(manifest.source, {
     file: 'whoajor.sqlite.gz',
@@ -128,7 +190,7 @@ test('generator exports complete safe shards with canonical hashes', async () =>
     assert.equal(createHash('sha256').update(bytes).digest('hex'), asset.sha256, asset.path);
     assert.equal(bytes.length, asset.bytes, asset.path);
     assert.equal(gzipSync(bytes, { mtime: 0 }).length, asset.gzipBytes, asset.path);
-    assert.ok(asset.gzipBytes <= 500 * 1024, `${asset.path}: ${asset.gzipBytes}`);
+    assert.ok(asset.gzipBytes < 512000, `${asset.path}: ${asset.gzipBytes}`);
     const payload = JSON.parse(bytes.toString('utf8'));
     assert.equal(payload.root, EXPECTED_ROOT);
     assert.equal(payload.dataset, asset.dataset);
@@ -163,6 +225,19 @@ test('generator exports complete safe shards with canonical hashes', async () =>
     },
   );
 
+  const leaderboard = rowsByDataset.get('leaderboardSnapshots') ?? [];
+  assert.equal(leaderboard.length, 162);
+  assert.equal(new Set(leaderboard.map((row) => (
+    `${row.snapshotId}|${row.queryFingerprint}|${row.steamid}`
+  ))).size, 162);
+  assert.ok(leaderboard.every((row) => (
+    typeof row.snapshotId === 'string'
+      && typeof row.queryFingerprint === 'string'
+      && typeof row.steamid === 'string'
+      && typeof row.rating2 === 'number'
+      && !Object.hasOwn(row, 'source_json')
+  )));
+
   const grains = {
     matchPlayerWeapons: (row) => `${row.matchId}|${row.steamid}|${row.weapon}`,
     playerWeaponStats: (row) => `${row.steamid}|${row.weapon}`,
@@ -177,8 +252,8 @@ test('generator exports complete safe shards with canonical hashes', async () =>
   }
 });
 
-test('generator maps 30 roster players and closes reviewed match plans over calculations', async () => {
-  const outputDir = await generate();
+test('generator maps 30 roster players and closes reviewed match plans over calculations', async (t) => {
+  const outputDir = await generate(t);
   const { versionDir, manifest } = await loadBuild(outputDir);
   const rosters = await loadDataset(versionDir, manifest, 'rosters');
   assert.equal(rosters.length, 5);
@@ -198,6 +273,11 @@ test('generator maps 30 roster players and closes reviewed match plans over calc
 
   const playerMetrics = await loadDataset(versionDir, manifest, 'playerMetrics');
   assert.equal(playerMetrics.length, 30);
+  const humarki = playerMetrics.find(({ steamid }) => steamid === '76561198033124797');
+  assert.equal(humarki.recent.sums.sides.T.rounds, 631);
+  assert.equal(humarki.recent.sums.sides.CT.rounds, 570);
+  assert.ok(Math.abs(humarki.recent.metrics.sides.T.rating - 0.9868880697305864) < 1e-12);
+  assert.ok(Math.abs(humarki.recent.metrics.sides.CT.rating - 1.1597150175438595) < 1e-12);
   for (const player of playerMetrics) {
     assert.ok(player.allTime.sums.rounds >= player.recent.sums.rounds);
     for (const window of [player.recent, player.allTime]) {
@@ -212,6 +292,11 @@ test('generator maps 30 roster players and closes reviewed match plans over calc
 
   const teams = await loadDataset(versionDir, manifest, 'teamMetrics');
   assert.equal(teams.length, 5);
+  const usTeam = teams.find(({ teamId }) => teamId === 'us');
+  assert.equal(usTeam.recent.sums.sides.T.rounds, 1230);
+  assert.equal(usTeam.recent.sums.sides.CT.rounds, 1372);
+  assert.ok(Math.abs(usTeam.recent.metrics.sides.T.rating - 1.0508679967479675) < 1e-12);
+  assert.ok(Math.abs(usTeam.recent.metrics.sides.CT.rating - 1.2274854664723032) < 1e-12);
   assert.ok(teams.every((team) => team.projectionPlayerCount === 6));
   assert.ok(teams.every((team) => team.top5.length === 5));
   assert.ok(teams.every((team) => team.methodology.cohesion === 'not_measured'));
@@ -239,10 +324,74 @@ test('generator maps 30 roster players and closes reviewed match plans over calc
   const evidenceIds = new Set(evidence.map(({ id }) => id));
   assert.equal(evidenceIds.size, evidence.length);
   const recommendations = await loadDataset(versionDir, manifest, 'recommendations');
+  assert.deepEqual(recommendations.map(({ matchId }) => matchId), ['m01', 'm02', 'm09', 'm10']);
   assert.deepEqual(recommendations.map(({ date }) => date), [
     '2026-09-30', '2026-10-01', '2026-10-21', '2026-10-22',
   ]);
+  const expectedPlanEvidence = {
+    pocelui: {
+      threats: [
+        'player:76561198033124797:recent:rating',
+        'player:76561198050158798:recent:rating',
+        'player:76561198251990202:recent:opening',
+        'player:76561198251990202:recent:utility',
+      ],
+      weaknesses: ['team:pocelui:recent:clutchWinRate', 'team:pocelui:recent:rating'],
+    },
+    takahuli: {
+      threats: [
+        'player:76561198039033727:recent:rating',
+        'player:76561199236099142:recent:rating',
+        'player:76561198034119116:recent:utility',
+      ],
+      weaknesses: [
+        'team:takahuli:recent:openingDiffPer100', 'team:takahuli:recent:forceWinRate',
+      ],
+    },
+    rassadnik: {
+      threats: [
+        'player:76561199121744233:recent:rating',
+        'player:76561198003507847:recent:rating',
+      ],
+      weaknesses: ['team:rassadnik:recent:retakeWinRate', 'team:rassadnik:recent:tradeRate'],
+    },
+    smoke: {
+      threats: [
+        'player:76561199223950506:recent:rating',
+        'player:76561198187382895:recent:rating',
+      ],
+      weaknesses: [
+        'team:smoke:recent:utilityDamagePerRound', 'team:smoke:recent:openingDiffPer100',
+      ],
+    },
+  };
   for (const plan of recommendations) {
+    const opponent = teams.find(({ teamId }) => teamId === plan.opponentTeamId);
+    const requiredThreats = [
+      ...opponent.scouting.ratingThreats.map(({ evidenceId }) => evidenceId),
+      opponent.scouting.openingLeader?.evidenceId,
+      opponent.scouting.utilityLeader?.evidenceId,
+    ].filter(Boolean);
+    assert.deepEqual([...plan.threatEvidence].sort(), [...requiredThreats].sort());
+    assert.deepEqual(plan.threatEvidence, expectedPlanEvidence[plan.opponentTeamId].threats);
+    assert.deepEqual(plan.weaknessEvidence, expectedPlanEvidence[plan.opponentTeamId].weaknesses);
+    const exploits = new Map(opponent.scouting.exploits.map((item) => [item.evidenceId, item]));
+    assert.ok(plan.weaknessEvidence.every((id) => exploits.get(id)?.delta < 0));
+    const edgeById = new Map(edges.find(({ opponentTeamId }) => (
+      opponentTeamId === plan.opponentTeamId
+    )).maps.map((item) => [`map-edge:${plan.opponentTeamId}:${item.map}`, item]));
+    for (const [action, expectedSign] of [['pick', 1], ['ban', -1]]) {
+      const evidenceId = `map-edge:${plan.opponentTeamId}:${plan[action]}`;
+      const edge = edgeById.get(evidenceId);
+      const override = plan.mapOverrides?.find((item) => (
+        item.action === action && item.map === plan[action]
+      ));
+      assert.ok(edge.edge * expectedSign > 0 || (
+        override?.rationale.length > 20
+          && override.evidenceIds.length > 0
+          && override.evidenceIds.every((id) => evidenceIds.has(id))
+      ), `${plan.opponentTeamId} ${action} direction`);
+    }
     assert.equal(plan.snapshotRoot, EXPECTED_ROOT);
     assert.equal(plan.dataThrough, '2026-08-27');
     assert.equal(plan.reviewed, true);
@@ -252,7 +401,7 @@ test('generator maps 30 roster players and closes reviewed match plans over calc
     assert.equal(plan.threats.length, plan.threatEvidence.length);
     assert.equal(plan.weaknesses.length, plan.weaknessEvidence.length);
     assert.ok(plan.threats.every(({ id, value, sampleRounds }) => (
-      evidenceIds.has(id) && typeof value === 'number' && sampleRounds > 0
+      evidenceIds.has(id) && typeof value === 'number' && sampleRounds >= 200
     )));
     assert.ok(plan.weaknesses.every(({ id, value, samplePlayerRounds }) => (
       evidenceIds.has(id) && typeof value === 'number' && samplePlayerRounds > 0
@@ -273,9 +422,111 @@ test('generator maps 30 roster players and closes reviewed match plans over calc
   }
 });
 
-test('verifier proves deterministic rebuild and rejects invalid reviewed inputs or tampering', async () => {
-  const first = await generate();
-  const second = await generate();
+test('failed generation is clean for an empty target and preserves a valid target', async (t) => {
+  const base = JSON.parse(await readFile(RECOMMENDATIONS, 'utf8'));
+  base.snapshotRoot = '0'.repeat(64);
+  const failureDir = await mkdtemp(join(tmpdir(), 'whoajor-atomic-failure-'));
+  t.after(() => rm(failureDir, { recursive: true, force: true }));
+  const configPath = join(failureDir, 'recommendations.json');
+  await writeFile(configPath, `${JSON.stringify(base)}\n`);
+
+  const emptyTarget = join(failureDir, 'empty-output');
+  const emptyFailure = await execFileAsync(process.execPath, [
+    GENERATOR, '--output', emptyTarget, '--recommendations', configPath,
+  ]).then(() => ({ code: 0, stderr: '' }))
+    .catch((error) => ({ code: error.code ?? 1, stderr: error.stderr ?? error.message }));
+  assert.notEqual(emptyFailure.code, 0);
+  assert.match(emptyFailure.stderr, /root mismatch/);
+  await assert.rejects(readFile(join(emptyTarget, 'current.json')), /ENOENT/);
+  assert.deepEqual((await readdir(failureDir)).sort(), ['recommendations.json']);
+
+  const validTarget = await generate(t);
+  const before = await fileTree(validTarget);
+  const preservedFailure = await execFileAsync(process.execPath, [
+    GENERATOR, '--output', validTarget, '--recommendations', configPath,
+  ]).then(() => ({ code: 0, stderr: '' }))
+    .catch((error) => ({ code: error.code ?? 1, stderr: error.stderr ?? error.message }));
+  assert.notEqual(preservedFailure.code, 0);
+  assert.match(preservedFailure.stderr, /root mismatch/);
+  const after = await fileTree(validTarget);
+  assert.deepEqual(after, before);
+});
+
+test('size and numeric guards enforce literal invalid boundaries', async () => {
+  const webData = await import('../lib/web-data.mjs');
+  const verifier = await import('../lib/verify-web-data.mjs');
+  assert.equal(typeof webData.assertShardGzipSize, 'function');
+  assert.doesNotThrow(() => webData.assertShardGzipSize(511999, 'boundary'));
+  assert.throws(() => webData.assertShardGzipSize(512000, 'boundary'), /512000/);
+  assert.equal(typeof verifier.assertFiniteNumbers, 'function');
+  assert.throws(() => verifier.assertFiniteNumbers({ rating: Infinity }), /non-finite/);
+});
+
+test('verifier rejects path escapes, symlinks, stale files, duplicates, and self-rehashed data', async (t) => {
+  const canonical = await generate(t);
+  async function copyCase(name) {
+    const parent = await mkdtemp(join(tmpdir(), `whoajor-adversarial-${name}-`));
+    t.after(() => rm(parent, { recursive: true, force: true }));
+    const outputDir = join(parent, 'whoajor');
+    await cp(canonical, outputDir, { recursive: true });
+    return { parent, outputDir };
+  }
+
+  {
+    const { parent, outputDir } = await copyCase('symlink');
+    const { versionDir, manifest } = await loadBuild(outputDir);
+    const listed = join(versionDir, manifest.assets[0].path);
+    const outside = join(parent, 'outside-asset.json');
+    await writeFile(outside, await readFile(listed));
+    await rm(listed);
+    await symlink(outside, listed);
+    await writeFile(join(versionDir, 'data', 'stale-unmanifested.json'), '{}\n');
+    await expectVerifierFailure(outputDir, /symlink|unlisted/);
+  }
+  {
+    const { parent, outputDir } = await copyCase('escape');
+    const currentPath = join(outputDir, 'current.json');
+    const current = JSON.parse(await readFile(currentPath, 'utf8'));
+    const manifestBytes = await readFile(join(outputDir, current.manifest));
+    await writeFile(join(parent, 'outside-manifest.json'), manifestBytes);
+    current.manifest = '../outside-manifest.json';
+    current.manifestSha256 = sha256(manifestBytes);
+    await writeFile(currentPath, `${JSON.stringify(current, null, 2)}\n`);
+    await expectVerifierFailure(outputDir, /unsafe manifest path/);
+  }
+  {
+    const { outputDir } = await copyCase('asset-duplicate');
+    await rewriteManifest(outputDir, async ({ manifest }) => {
+      manifest.assets.push(structuredClone(manifest.assets[0]));
+    });
+    await expectVerifierFailure(outputDir, /duplicate asset path/);
+  }
+  {
+    const { outputDir } = await copyCase('evidence-duplicate');
+    await mutateDataset(outputDir, 'evidence', (rows) => rows.push(structuredClone(rows[0])));
+    await expectVerifierFailure(outputDir, /duplicate evidence ID/);
+  }
+  {
+    const { outputDir } = await copyCase('denominator');
+    await mutateDataset(outputDir, 'playerMetrics', (rows) => {
+      const player = rows.find(({ recent }) => recent.sums.rounds > 0);
+      player.recent.metrics.rating = null;
+    });
+    await expectVerifierFailure(outputDir, /denominator invariant/);
+  }
+  {
+    const { outputDir } = await copyCase('canonical');
+    await mutateDataset(outputDir, 'playerMetrics', (rows) => {
+      const player = rows.find(({ recent }) => recent.sums.rounds > 0);
+      player.recent.metrics.rating = 999;
+    });
+    await expectVerifierFailure(outputDir, /canonical byte mismatch/);
+  }
+});
+
+test('verifier proves deterministic rebuild and rejects invalid reviewed inputs or tampering', async (t) => {
+  const first = await generate(t);
+  const second = await generate(t);
   const firstTree = await fileTree(first);
   const secondTree = await fileTree(second);
   assert.deepEqual(firstTree.map(([path]) => path), secondTree.map(([path]) => path));
@@ -288,7 +539,7 @@ test('verifier proves deterministic rebuild and rejects invalid reviewed inputs 
   assert.equal(receipt.status, 'ok');
   assert.equal(receipt.root, EXPECTED_ROOT);
   assert.ok(receipt.assets > 10);
-  assert.ok(receipt.maxGzipBytes <= 500 * 1024);
+  assert.ok(receipt.maxGzipBytes < 512000);
 
   const { versionDir, manifest } = await loadBuild(first);
   const tamperedPath = join(versionDir, manifest.assets[0].path);
@@ -305,14 +556,44 @@ test('verifier proves deterministic rebuild and rejects invalid reviewed inputs 
     ['must be reviewed', (value) => { value.reviewed = false; }],
     ['stale', (value) => { value.dataThrough = '2026-08-26'; }],
     ['missing evidence', (value) => { value.plans[0].mapEvidence = ['missing:evidence']; }],
+    ['unknown matchId', (value) => { value.plans[0].matchId = 'm99'; }],
+    ['duplicate matchId', (value) => { value.plans[1].matchId = value.plans[0].matchId; }],
+    ['threat evidence mismatch', (value) => {
+      value.plans[0].threatEvidence = ['player:76561199395039271:recent:rating'];
+    }],
+    ['weakness is not an exploit', (value) => {
+      value.plans[0].weaknessEvidence = ['team:pocelui:recent:retakeWinRate'];
+    }],
+    ['duplicate weakness evidence', (value) => {
+      value.plans[0].weaknessEvidence = [
+        'team:pocelui:recent:clutchWinRate',
+        'team:pocelui:recent:clutchWinRate',
+      ];
+    }],
+    ['map direction requires override', (value) => {
+      value.plans[0].pick = 'de_dust2';
+      value.plans[0].mapEvidence = ['map-edge:pocelui:de_dust2'];
+    }],
+    ['map override must cite its map evidence', (value) => {
+      value.plans[0].pick = 'de_dust2';
+      value.plans[0].mapEvidence = ['map-edge:pocelui:de_dust2'];
+      value.plans[0].mapOverrides = [{
+        action: 'pick',
+        map: 'de_dust2',
+        rationale: 'Ручное решение с длинным, но нерелевантным обоснованием.',
+        evidenceIds: ['limitation:cohesion'],
+      }];
+    }],
   ];
   for (const [message, mutate] of mutations) {
     const configDir = await mkdtemp(join(tmpdir(), 'whoajor-review-config-'));
+    t.after(() => rm(configDir, { recursive: true, force: true }));
     const configPath = join(configDir, 'recommendations.json');
     const candidate = structuredClone(base);
     mutate(candidate);
     await writeFile(configPath, `${JSON.stringify(candidate)}\n`);
     const outputDir = await mkdtemp(join(tmpdir(), 'whoajor-invalid-build-'));
+    t.after(() => rm(outputDir, { recursive: true, force: true }));
     const result = await execFileAsync(process.execPath, [
       GENERATOR, '--output', outputDir, '--recommendations', configPath,
     ]).then(() => ({ code: 0, stderr: '' }))

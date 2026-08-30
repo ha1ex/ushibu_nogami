@@ -6,14 +6,15 @@
   "reviewedAt": "2026-08-30",
   "plans": [
     {
+      "matchId": "m01",
       "date": "2026-09-30",
       "opponentTeamId": "pocelui",
       "pick": "de_anubis",
       "ban": "de_dust2",
       "backup": ["de_ancient", "de_mirage"],
       "contingency": "Если Anubis забанен первым, переходить на Ancient; при двух ранних банах — Mirage и тот же медленный CT-first каркас.",
-      "threatEvidence": ["player:76561198033124797:recent:rating", "player:76561199395039271:recent:rating"],
-      "weaknessEvidence": ["team:pocelui:recent:tRoundWinRate", "team:pocelui:recent:clutchWinRate"],
+      "threatEvidence": ["player:76561198033124797:recent:rating", "player:76561198050158798:recent:rating", "player:76561198251990202:recent:opening", "player:76561198251990202:recent:utility"],
+      "weaknessEvidence": ["team:pocelui:recent:clutchWinRate", "team:pocelui:recent:rating"],
       "mapEvidence": ["map-edge:pocelui:de_anubis", "map-edge:pocelui:de_dust2"],
       "do": ["Стартовать CT, если формат допускает выбор стороны.", "Антифорсы играть парами и доводить равные раунды до поздней стадии."],
       "dont": ["Не превращать BO1 в серию одиночных ранних дуэлей.", "Не форсировать повторный выход без размена после первого контакта."],
@@ -34,15 +35,17 @@
       ]
     },
     {
+      "matchId": "m02",
       "date": "2026-10-01",
       "opponentTeamId": "takahuli",
       "pick": "de_anubis",
-      "ban": "de_cache",
+      "ban": "de_dust2",
       "backup": ["de_mirage", "de_nuke"],
       "contingency": "До вето проверить Dexter: без него давить слабую замену и сохранять Anubis; с Dexter убрать сухие дуэли и держать второй бан Ancient.",
-      "threatEvidence": ["player:76561198039033727:recent:rating", "player:76561199236099142:recent:rating"],
-      "weaknessEvidence": ["team:takahuli:recent:forceWinRate", "team:takahuli:recent:retakeWinRate"],
-      "mapEvidence": ["map-edge:takahuli:de_anubis", "map-edge:takahuli:de_cache"],
+      "threatEvidence": ["player:76561198039033727:recent:rating", "player:76561199236099142:recent:rating", "player:76561198034119116:recent:utility"],
+      "weaknessEvidence": ["team:takahuli:recent:openingDiffPer100", "team:takahuli:recent:forceWinRate"],
+      "mapEvidence": ["map-edge:takahuli:de_anubis", "map-edge:takahuli:de_dust2"],
+      "mapOverrides": [{"action":"ban","map":"de_dust2","rationale":"Значимого отрицательного edge нет; нейтральный Dust2 убираем как консервативный бан вместо выгодного Cache.","evidenceIds":["map-edge:takahuli:de_dust2","map-edge:takahuli:de_cache"]}],
       "do": ["Пережидать ранние флешки и выходить второй волной.", "После плента играть дальние crossfire и сохранять utility."],
       "dont": ["Не давать MagnoN/Dexter изолированные первые дуэли.", "Не переучивать план ночью после матча 30 сентября."],
       "personalTasks": [
@@ -62,15 +65,17 @@
       ]
     },
     {
+      "matchId": "m09",
       "date": "2026-10-21",
       "opponentTeamId": "rassadnik",
-      "pick": "de_anubis",
+      "pick": "de_cache",
       "ban": "de_nuke",
-      "backup": ["de_mirage", "de_cache"],
-      "contingency": "Если Anubis закрыт, выбирать Mirage; Cache использовать только после отдельного прака и подтверждения пяти ролей.",
-      "threatEvidence": ["player:76561199121744233:recent:rating", "player:76561197988005676:recent:rating"],
-      "weaknessEvidence": ["team:rassadnik:recent:retakeWinRate", "team:rassadnik:recent:roundWinRate"],
-      "mapEvidence": ["map-edge:rassadnik:de_anubis", "map-edge:rassadnik:de_nuke"],
+      "backup": ["de_anubis", "de_mirage"],
+      "contingency": "Если Cache закрыт, выбирать Anubis; обе карты использовать только после отдельного прака и подтверждения пяти ролей.",
+      "threatEvidence": ["player:76561199121744233:recent:rating", "player:76561198003507847:recent:rating"],
+      "weaknessEvidence": ["team:rassadnik:recent:retakeWinRate", "team:rassadnik:recent:tradeRate"],
+      "mapEvidence": ["map-edge:rassadnik:de_cache", "map-edge:rassadnik:de_nuke"],
+      "mapOverrides": [{"action":"pick","map":"de_cache","rationale":"Положительного edge нет; Cache имеет минимальный отрицательный разрыв и среднюю выборку, поэтому это защитный выбор.","evidenceIds":["map-edge:rassadnik:de_cache","map-edge:rassadnik:de_anubis"]}],
       "do": ["Сначала utility против auff, затем смена направления или гарантированный размен.", "Стремиться в postplant и растягивать их неоднородную пятёрку."],
       "dont": ["Не пикать auff всухую.", "Не принимать решение по среднему драфт-рейтингу без проверки фактической пятёрки."],
       "personalTasks": [
@@ -81,7 +86,7 @@
         {"draftName":"Reconnecting","task":"Сохранять жизнь якоря до postplant, не искать ранний геройский контакт."},
         {"draftName":"kibkalo","task":"Освоить Mirage contingency и быть готовым к ротации состава."}
       ],
-      "trainingChecklist": ["Разобрать игры соперника 7, 8 и 13 октября.", "Отработать Anubis/Mirage postplant против звёздного ретейка."],
+      "trainingChecklist": ["Разобрать игры соперника 7, 8 и 13 октября.", "Отработать Cache/Anubis postplant против звёздного ретейка."],
       "matchdayChecklist": ["Подтвердить фактическую пятёрку соперника.", "Обновить позиционные заметки только по новым демо/записям."],
       "confidence": "medium",
       "caveats": [
@@ -90,6 +95,7 @@
       ]
     },
     {
+      "matchId": "m10",
       "date": "2026-10-22",
       "opponentTeamId": "smoke",
       "pick": "de_anubis",
@@ -97,7 +103,7 @@
       "backup": ["de_inferno", "de_mirage"],
       "contingency": "Если Anubis закрыт, выбирать Inferno после проверки матча 15 октября; вторым баном убирать Ancient или Nuke по свежему вето.",
       "threatEvidence": ["player:76561199223950506:recent:rating", "player:76561198187382895:recent:rating"],
-      "weaknessEvidence": ["team:smoke:recent:tRoundWinRate", "team:smoke:recent:tradeRate"],
+      "weaknessEvidence": ["team:smoke:recent:utilityDamagePerRound", "team:smoke:recent:openingDiffPer100"],
       "mapEvidence": ["map-edge:smoke:de_anubis", "map-edge:smoke:de_dust2"],
       "do": ["Играть медленные defaults и повторные выходы.", "После установки сохранять utility и дальние crossfire против ретейка."],
       "dont": ["Не ускоряться после первого контакта без карты ротаций.", "Не входить в матч без проверки их вето 6, 13 и 15 октября."],

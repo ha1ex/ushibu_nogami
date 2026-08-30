@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { createReadStream, createWriteStream } from 'node:fs';
 import {
-  mkdir, mkdtemp, readFile, rm, writeFile,
+  lstat, mkdir, mkdtemp, readFile, rename, rm, writeFile,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
@@ -18,6 +18,26 @@ export const RECENT_WINDOW = Object.freeze({
   recentStart: '2026-05-29',
   recentEnd: '2026-08-27',
 });
+export const GAMEPLAY_TABLES = Object.freeze([
+  ['draft_config', 'draftConfig'], ['draft_igls', 'draftIgls'],
+  ['draft_players', 'draftPlayers'], ['leaderboard_snapshots', 'leaderboardSnapshots'],
+  ['match_player_weapons', 'matchPlayerWeapons'], ['match_players', 'matchPlayers'],
+  ['match_rounds', 'matchRounds'], ['match_tags', 'matchTags'], ['matches', 'matches'],
+  ['meta_maps', 'maps'], ['player_aliases', 'playerAliases'],
+  ['player_clutches', 'playerClutches'], ['player_map_snapshots', 'playerMapStats'],
+  ['player_match_stats', 'playerMatchStats'], ['player_rounds', 'playerRounds'],
+  ['player_side_stats', 'playerSideStats'],
+  ['player_weapon_daily_stats', 'playerWeaponDailyStats'],
+  ['player_weapon_stats', 'playerWeaponStats'], ['players', 'players'],
+  ['round_rosters', 'roundRosters'], ['tags', 'tags'],
+  ['trend_matches', 'trendMatches'], ['trend_players', 'trendPlayers'],
+  ['weapon_daily_stats', 'weaponDailyStats'], ['weapon_splits', 'weaponSplits'],
+  ['weapons', 'weapons'],
+]);
+
+export function assertShardGzipSize(gzipBytes, label) {
+  if (gzipBytes >= 512000) throw new Error(`${label} gzip size ${gzipBytes} must be < 512000`);
+}
 
 function stableJson(value) {
   return `${JSON.stringify(value, null, 2)}\n`;
@@ -37,6 +57,36 @@ function scalar(db, sql) {
   return db.prepare(sql).get().value;
 }
 
+async function pathExists(path) {
+  try {
+    await lstat(path);
+    return true;
+  } catch (error) {
+    if (error.code === 'ENOENT') return false;
+    throw error;
+  }
+}
+
+async function publishTree(stagingDir, outputDir) {
+  const parent = dirname(outputDir);
+  await mkdir(parent, { recursive: true });
+  let backupDir = null;
+  if (await pathExists(outputDir)) {
+    backupDir = await mkdtemp(join(parent, `.${basename(outputDir)}-backup-`));
+    await rm(backupDir, { recursive: true });
+    await rename(outputDir, backupDir);
+  }
+  try {
+    await rename(stagingDir, outputDir);
+  } catch (error) {
+    if (backupDir && await pathExists(backupDir) && !(await pathExists(outputDir))) {
+      await rename(backupDir, outputDir);
+    }
+    throw error;
+  }
+  if (backupDir) await rm(backupDir, { recursive: true, force: true });
+}
+
 function sourceCounts(db) {
   return {
     players: scalar(db, 'select count(*) value from players'),
@@ -49,6 +99,7 @@ function sourceCounts(db) {
     playerRounds: scalar(db, 'select count(*) value from player_rounds'),
     matchPlayerWeapons: scalar(db, 'select count(*) value from match_player_weapons'),
     playerClutches: scalar(db, 'select count(*) value from player_clutches'),
+    leaderboardSnapshots: scalar(db, 'select count(*) value from leaderboard_snapshots'),
   };
 }
 
@@ -86,8 +137,10 @@ async function writeDataset(versionDir, dataset, rows) {
     const payload = { schemaVersion: 1, root: CANONICAL_ROOT, dataset, rows: candidate };
     const bytes = Buffer.from(compactJson(payload));
     const gzipBytes = gzipSync(bytes, { mtime: 0 }).length;
-    if (gzipBytes > 500 * 1024) {
-      if (candidate.length < 2) throw new Error(`${dataset} row exceeds 500 KiB gzip`);
+    if (gzipBytes >= 512000) {
+      if (candidate.length < 2) {
+        assertShardGzipSize(gzipBytes, `${dataset} row`);
+      }
       const middle = Math.ceil(candidate.length / 2);
       pending.unshift(candidate.slice(0, middle), candidate.slice(middle));
       continue;
@@ -157,6 +210,7 @@ function exportDefinitions(db) {
     ['draftConfig', () => sourceRows(db, `select version, source_json, metrics_json from draft_config order by version`)],
     ['draftPlayers', () => sourceRows(db, `select steamid, source_json, metrics_json from draft_players order by steamid`)],
     ['draftIgls', () => sourceRows(db, `select igl_key iglKey, steamid, source_json, metrics_json from draft_igls order by igl_key`)],
+    ['leaderboardSnapshots', () => sourceRows(db, `select snapshot_id snapshotId, query_fingerprint queryFingerprint, steamid, source_json, metrics_json from leaderboard_snapshots order by snapshot_id, query_fingerprint, steamid`)],
     ['trendPlayers', () => simple(`select steamid, name, rounds_total roundsTotal from trend_players order by player_index`)],
     ['trendMatches', () => simple(`select steamid, started_at startedAt, map, match_name matchName, adr, assists, cs_good csGood, cs_graded csGraded, cs_stop_fast csStopFast, cs_stop_slow csStopSlow, damage, deaths, dpr, flash_assists flashAssists, hs_kills hsKills, impact, kast_pct kastPct, kast_rounds kastRounds, kills, kpr, opening_deaths openingDeaths, opening_kills openingKills, ping_n pingN, ping_sum pingSum, rating2, rounds_played roundsPlayed, rounds_won roundsWon, rws_sum rwsSum, stop_ms_n stopMsN, stop_ms_sum stopMsSum, ttd_adj_sum ttdAdjSum, ttd_n ttdN, ttd_sum ttdSum from trend_matches order by player_index, match_index`)],
     ['quality', () => [{
@@ -172,6 +226,7 @@ function exportDefinitions(db) {
 export async function generateWebData({ sourceGzip, outputDir, recommendationPath }) {
   const workDir = await mkdtemp(join(tmpdir(), 'whoajor-web-build-'));
   const sqlitePath = join(workDir, 'whoajor.sqlite');
+  let stagingDir = null;
   try {
     await pipeline(
       createReadStream(sourceGzip),
@@ -189,25 +244,25 @@ export async function generateWebData({ sourceGzip, outputDir, recommendationPat
       const range = db.prepare(`
         select min(started_at) allTimeStart, max(started_at) allTimeEnd
         from matches`).get();
-      const versionDir = join(outputDir, VERSION);
-      if (versionDir !== outputDir && basename(versionDir) === VERSION) {
-        await rm(versionDir, { recursive: true, force: true });
-      }
-      await mkdir(versionDir, { recursive: true });
-      const assets = [];
-      for (const [dataset, loadRows] of exportDefinitions(db)) {
-        assets.push(...await writeDataset(versionDir, dataset, loadRows()));
-      }
       const configDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'config');
       const calculated = await buildCalculatedDatasets(db, configDir, recommendationPath);
-      for (const [dataset, rows] of Object.entries(calculated)) {
-        assets.push(...await writeDataset(versionDir, dataset, rows));
-      }
       const profile = JSON.parse(await readFile(join(dirname(sourceGzip), 'data-profile.json'), 'utf8'));
       const gzipSha256 = await sha256File(sourceGzip);
       const sqliteSha256 = await sha256File(sqlitePath);
       if (profile.database.decompressedSha256 !== sqliteSha256) {
         throw new Error('decompressed SQLite SHA does not match canonical profile');
+      }
+
+      await mkdir(dirname(outputDir), { recursive: true });
+      stagingDir = await mkdtemp(join(dirname(outputDir), `.${basename(outputDir)}-staging-`));
+      const versionDir = join(stagingDir, VERSION);
+      await mkdir(versionDir, { recursive: true });
+      const assets = [];
+      for (const [dataset, loadRows] of exportDefinitions(db)) {
+        assets.push(...await writeDataset(versionDir, dataset, loadRows()));
+      }
+      for (const [dataset, rows] of Object.entries(calculated)) {
+        assets.push(...await writeDataset(versionDir, dataset, rows));
       }
       const manifest = {
         schemaVersion: 1,
@@ -226,6 +281,11 @@ export async function generateWebData({ sourceGzip, outputDir, recommendationPat
           allTimeEnd: range.allTimeEnd,
         },
         counts: sourceCounts(db),
+        gameplayTables: GAMEPLAY_TABLES.map(([table, dataset]) => ({
+          table,
+          dataset,
+          sourceRows: scalar(db, `select count(*) value from ${table}`),
+        })),
         assets,
       };
       const manifestPath = join(versionDir, 'manifest.json');
@@ -237,12 +297,17 @@ export async function generateWebData({ sourceGzip, outputDir, recommendationPat
         manifest: `${VERSION}/manifest.json`,
         manifestSha256: await sha256File(manifestPath),
       };
-      await writeFile(join(outputDir, 'current.json'), stableJson(current));
+      await writeFile(join(stagingDir, 'current.json'), stableJson(current));
+      const { verifyPublishedTree } = await import('./verify-web-data.mjs');
+      await verifyPublishedTree({ outputDir: stagingDir, sourceGzip });
+      await publishTree(stagingDir, outputDir);
+      stagingDir = null;
       return { outputDir, manifest, current };
     } finally {
       db.close();
     }
   } finally {
+    if (stagingDir) await rm(stagingDir, { recursive: true, force: true });
     if (dirname(sqlitePath) === workDir && workDir.startsWith(join(tmpdir(), 'whoajor-web-build-'))) {
       await rm(workDir, { recursive: true, force: true });
     }
