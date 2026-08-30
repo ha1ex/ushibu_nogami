@@ -76,6 +76,8 @@ test('summary содержит полный frontmatter, provenance, exact count
     `[source: /01_raw/whoajor/2026-08-30-full-snapshot/responses/${'c'.repeat(64)}.json]`,
   ));
   assert.match(markdown, /\[source: \/01_raw\/whoajor\/2026-08-30-full-snapshot\/manifest\.json\]/);
+  assert.match(markdown, /[^\n]\n$/);
+  assert.doesNotMatch(markdown, /\n\n$/);
 });
 
 test('summary сохраняет каждую discrepancy без сглаживания и маркирует выводы', () => {

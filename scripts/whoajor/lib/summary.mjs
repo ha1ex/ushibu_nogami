@@ -143,6 +143,5 @@ export function renderSourceSummary(input) {
       );
     }
   }
-  lines.push('');
   return `${lines.join('\n')}\n`;
 }
