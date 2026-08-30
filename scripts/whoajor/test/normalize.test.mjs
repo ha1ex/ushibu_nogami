@@ -1,0 +1,188 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
+import {
+  access, mkdtemp, readFile, readdir, writeFile,
+} from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
+import Database from 'better-sqlite3';
+import { collectSnapshot } from '../collect.mjs';
+import { createHttpClient } from '../lib/http-client.mjs';
+import { buildDatabase } from '../lib/normalize.mjs';
+import { validateSnapshot } from '../lib/validation.mjs';
+import { createFixtureApi } from './fixture-api.mjs';
+
+const NOW = () => new Date('2026-08-29T07:00:00Z');
+const PLAYERS = ['76561198000000001', '76561198000000002'];
+const execFileAsync = promisify(execFile);
+const HERE = dirname(fileURLToPath(import.meta.url));
+const NORMALIZE_CLI = join(HERE, '..', 'normalize.mjs');
+const TABLES = [
+  'draft_config', 'draft_igls', 'draft_players', 'leaderboard_snapshots',
+  'match_player_weapons', 'match_players', 'match_rounds', 'match_tags', 'matches',
+  'meta_maps', 'player_aliases', 'player_clutches', 'player_map_snapshots',
+  'player_match_stats', 'player_rounds', 'player_side_stats', 'player_weapon_daily_stats',
+  'player_weapon_stats', 'players', 'requests', 'round_rosters', 'snapshots',
+  'source_discrepancies', 'tags', 'weapon_daily_stats', 'weapon_splits', 'weapons',
+];
+
+async function buildValidatedFixture() {
+  const snapshotDir = await mkdtemp(join(tmpdir(), 'whoajor-normalize-'));
+  const fixture = createFixtureApi({
+    pageSize: 2,
+    matchIds: ['match-2', 'match-1'],
+    leaderboardPlayers: PLAYERS,
+    draftPlayers: [],
+    detailPlayers: PLAYERS,
+    roundPlayers: PLAYERS,
+  });
+  const client = createHttpClient({
+    baseUrl: fixture.baseUrl,
+    fetchImpl: fixture.fetch,
+    delayMs: 0,
+    maxRetries: 0,
+  });
+  await collectSnapshot({ outputDir: snapshotDir, client, now: NOW, pageSize: 2 });
+  const report = await validateSnapshot(snapshotDir);
+  assert.equal(report.status, 'complete');
+  await writeFile(
+    join(snapshotDir, 'validation-report.json'),
+    `${JSON.stringify(report, null, 2)}\n`,
+  );
+  return snapshotDir;
+}
+
+test('normalizer сохраняет сущности, FK и весь source_json', async () => {
+  const snapshotDir = await buildValidatedFixture();
+  const dbPath = join(snapshotDir, 'whoajor.sqlite');
+  const first = await buildDatabase(snapshotDir, dbPath);
+  const db = new Database(dbPath, { readonly: true });
+  assert.equal(db.pragma('foreign_key_check').length, 0);
+  assert.deepEqual(first.counts, {
+    requests: 25,
+    matches: 2,
+    matchDetails: 2,
+    players: 2,
+    weapons: 2,
+    tags: 1,
+  });
+  assert.equal(db.prepare('select count(*) n from matches').get().n, 2);
+  assert.equal(db.prepare('select count(*) n from match_rounds').get().n, 4);
+  assert.equal(db.prepare('select typeof(steamid) t from players limit 1').get().t, 'text');
+  assert.ok(JSON.parse(db.prepare('select source_json j from match_players limit 1').get().j));
+  assert.ok(JSON.parse(db.prepare('select metrics_json j from match_players limit 1').get().j).perRound);
+
+  const actualTables = db.pragma('table_list')
+    .filter((row) => row.schema === 'main' && !row.name.startsWith('sqlite_'))
+    .sort((left, right) => left.name.localeCompare(right.name));
+  assert.deepEqual(actualTables.map(({ name }) => name), TABLES);
+  assert.ok(actualTables.every(({ strict }) => strict === 1));
+  for (const table of TABLES) {
+    const columns = db.pragma(`table_info(${table})`);
+    assert.ok(columns.some(({ name }) => name === 'source_json'), `${table} must retain source_json`);
+    for (const { source_json: sourceJson } of db.prepare(`select source_json from ${table}`).all()) {
+      assert.doesNotThrow(() => JSON.parse(sourceJson), `${table}.source_json must be JSON`);
+    }
+  }
+
+  const pk = (table) => db.pragma(`table_info(${table})`)
+    .filter(({ pk: position }) => position > 0)
+    .sort((left, right) => left.pk - right.pk)
+    .map(({ name }) => name);
+  assert.deepEqual(pk('match_rounds'), ['match_id', 'round']);
+  assert.deepEqual(pk('round_rosters'), ['match_id', 'round', 'side', 'steamid']);
+  assert.deepEqual(pk('player_rounds'), ['match_id', 'steamid', 'round']);
+  assert.deepEqual(pk('player_clutches'), ['match_id', 'steamid', 'round', 'start_tick']);
+  assert.deepEqual(pk('leaderboard_snapshots'), [
+    'snapshot_id', 'query_fingerprint', 'steamid',
+  ]);
+  assert.deepEqual(pk('player_map_snapshots'), [
+    'snapshot_id', 'query_fingerprint', 'steamid', 'map',
+  ]);
+  assert.ok(db.pragma('foreign_key_list(round_rosters)').length >= 2);
+  assert.ok(db.pragma('foreign_key_list(player_rounds)').length >= 2);
+
+  const manifest = JSON.parse(await readFile(join(snapshotDir, 'manifest.json'), 'utf8'));
+  const metaStart = manifest.requests.find((entry) => (
+    entry.path === '/api/meta' && entry.boundaryRole === 'start'
+  ));
+  const storedMeta = db.prepare(`
+    select source_body from requests
+    where request_key = ? and observation_role = 'start'`).get(metaStart.key);
+  assert.equal(storedMeta.source_body, await readFile(join(snapshotDir, metaStart.blob), 'utf8'));
+  assert.equal(db.prepare(`
+    select count(*) n from requests
+    where path in ('/api/meta', '/api/matches') and observation_role in ('start', 'end')
+  `).get().n, 4);
+  db.close();
+
+  manifest.requests.forEach((entry, index) => {
+    entry.fetchedAt = `2030-01-01T00:00:${String(index).padStart(2, '0')}Z`;
+    entry.durationMs = 999 + index;
+  });
+  await writeFile(join(snapshotDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
+  const secondPath = join(snapshotDir, 'whoajor-second.sqlite');
+  const second = await buildDatabase(snapshotDir, secondPath);
+  assert.equal(first.dataFingerprint, second.dataFingerprint);
+});
+
+test('normalizer отклоняет stale validation report до создания target', async () => {
+  const snapshotDir = await buildValidatedFixture();
+  const reportPath = join(snapshotDir, 'validation-report.json');
+  const report = JSON.parse(await readFile(reportPath, 'utf8'));
+  report.rootHash = '0'.repeat(64);
+  await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+  const dbPath = join(snapshotDir, 'stale.sqlite');
+
+  await assert.rejects(buildDatabase(snapshotDir, dbPath), /validation report is stale/);
+  await assert.rejects(access(dbPath), { code: 'ENOENT' });
+});
+
+test('normalizer не принимает incomplete validation report', async () => {
+  const snapshotDir = await buildValidatedFixture();
+  const reportPath = join(snapshotDir, 'validation-report.json');
+  const report = JSON.parse(await readFile(reportPath, 'utf8'));
+  report.status = 'incomplete';
+  report.errors.push({ code: 'TEST_ERROR', location: 'fixture', message: 'blocked' });
+  await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+
+  await assert.rejects(
+    buildDatabase(snapshotDir, join(snapshotDir, 'incomplete.sqlite')),
+    /complete validation report without errors/,
+  );
+});
+
+test('ошибка после transaction удаляет временную базу и не публикует target', async () => {
+  const snapshotDir = await buildValidatedFixture();
+  const reportPath = join(snapshotDir, 'validation-report.json');
+  const report = JSON.parse(await readFile(reportPath, 'utf8'));
+  report.counts.tags += 1;
+  await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+  const dbPath = join(snapshotDir, 'broken.sqlite');
+
+  await assert.rejects(buildDatabase(snapshotDir, dbPath), /SQLite count mismatch for tags/);
+  await assert.rejects(access(dbPath), { code: 'ENOENT' });
+  assert.deepEqual(
+    (await readdir(snapshotDir)).filter((name) => name.startsWith('broken.sqlite.tmp-')),
+    [],
+  );
+});
+
+test('CLI строит SQLite и печатает counts с fingerprint', async () => {
+  const snapshotDir = await buildValidatedFixture();
+  const dbPath = join(snapshotDir, 'cli.sqlite');
+  const { stdout, stderr } = await execFileAsync(process.execPath, [
+    NORMALIZE_CLI, snapshotDir, dbPath,
+  ]);
+
+  assert.equal(stderr, '');
+  const result = JSON.parse(stdout);
+  assert.equal(result.counts.matches, 2);
+  assert.match(result.dataFingerprint, /^[a-f0-9]{64}$/);
+  const db = new Database(dbPath, { readonly: true });
+  assert.equal(db.pragma('integrity_check')[0].integrity_check, 'ok');
+  db.close();
+});
