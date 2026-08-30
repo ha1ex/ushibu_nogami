@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "web-data:generate": "node generate-web-data.mjs --output ../../site/assets/data/whoajor",
+    "web-data:verify": "node verify-web-data.mjs --output ../../site/assets/data/whoajor"
   },
   "dependencies": {
     "better-sqlite3": "^12.10.0"

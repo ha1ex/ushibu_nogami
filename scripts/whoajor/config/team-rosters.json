@@ -1,0 +1,29 @@
+{
+  "teams": [
+    {
+      "teamId": "us",
+      "name": "Ушибу ногами",
+      "players": ["L!S", "D4ba", "d0lfero", "middle", "Reconnecting", "kibkalo"]
+    },
+    {
+      "teamId": "pocelui",
+      "name": "Поцелуй всадницу",
+      "players": ["enjoykaz", "professorkill", "Denze1", "Сквиртолог Анзол", "humarki", "Inner Conflict"]
+    },
+    {
+      "teamId": "takahuli",
+      "name": "Такахули",
+      "players": ["babaika", "MagnoN", "Dexter", "jazz", "VAZON", "Siberian Hawk"]
+    },
+    {
+      "teamId": "rassadnik",
+      "name": "Рассадник добра",
+      "players": ["Ivan_Kuzmich", "auff", "indy", "Proha", "LuckyDon", "Flashberry"]
+    },
+    {
+      "teamId": "smoke",
+      "name": "Smoke mid everyday",
+      "players": ["NonLumpompox", "Stanley Marsh", "seetor", "shadowizard", "boo", "vadlip"]
+    }
+  ]
+}

@@ -33,6 +33,8 @@
     "whoajor:verify-published": "node scripts/whoajor/verify-published.mjs",
     "whoajor:verify-spa-surface": "node scripts/whoajor/verify-spa-surface.mjs",
     "whoajor:verify": "corepack pnpm whoajor:verify-spa-surface && corepack pnpm whoajor:verify-published",
+    "whoajor:web-data": "corepack pnpm -C scripts/whoajor web-data:generate",
+    "whoajor:web-data:verify": "corepack pnpm -C scripts/whoajor web-data:verify",
     "whoajor:sync": "node scripts/whoajor/sync.mjs",
     "agent:sync": "node scripts/agent/sync-config.mjs --write",
     "agent:test": "node --test scripts/agent/test-config.mjs scripts/agent/test-write-guard.mjs scripts/agent/test-repository-check.mjs scripts/agent/test-kb-init.mjs",

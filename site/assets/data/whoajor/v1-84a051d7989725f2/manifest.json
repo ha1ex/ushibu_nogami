@@ -1,0 +1,1256 @@
+{
+  "schemaVersion": 1,
+  "version": "v1-84a051d7989725f2",
+  "contractVersion": "1.1.0",
+  "root": "84a051d7989725f22fd8bc37969f9308b2282edcdc61bf6b3477a021d8c71ee2",
+  "source": {
+    "file": "whoajor.sqlite.gz",
+    "gzipSha256": "917af8cec282dc68fa00ffbcbd2117b0b4587c02da0313ebe8359f7fca8b1234",
+    "sqliteSha256": "0cc8105931ef2491c29504eb5b0ef115d77090def76bd0adcf1b3ab5fff2d4a1",
+    "dataFingerprint": "5a0e563128ab92cc2bad823852850c2fd3668155120f216a0116694b4de578a7"
+  },
+  "window": {
+    "recentStart": "2026-05-29",
+    "recentEnd": "2026-08-27",
+    "allTimeStart": "2023-11-16T19:08:00",
+    "allTimeEnd": "2026-08-27T20:04:00"
+  },
+  "counts": {
+    "players": 81,
+    "matches": 368,
+    "rounds": 7903,
+    "maps": 46,
+    "weapons": 39,
+    "trendPlayers": 20,
+    "trendMatches": 2987,
+    "playerRounds": 76516,
+    "matchPlayerWeapons": 29887,
+    "playerClutches": 9629
+  },
+  "assets": [
+    {
+      "dataset": "players",
+      "path": "data/players-000.json",
+      "count": 81,
+      "bytes": 266216,
+      "gzipBytes": 53376,
+      "sha256": "4473bfca5ea093c26ee1a27a7fd09e632c825e425e3878d814a5a1bef29048c6"
+    },
+    {
+      "dataset": "playerAliases",
+      "path": "data/playerAliases-000.json",
+      "count": 2000,
+      "bytes": 346227,
+      "gzipBytes": 77004,
+      "sha256": "8edee7bb5ea19497616cd4c9b39641df75ef5e4a2c722d69ab306b996b83dd9e"
+    },
+    {
+      "dataset": "playerAliases",
+      "path": "data/playerAliases-001.json",
+      "count": 2000,
+      "bytes": 343422,
+      "gzipBytes": 77430,
+      "sha256": "446157a1eeda113a919152f22065ea942b5b43f30f1e0c562aee3b054f96bd75"
+    },
+    {
+      "dataset": "playerAliases",
+      "path": "data/playerAliases-002.json",
+      "count": 1612,
+      "bytes": 281923,
+      "gzipBytes": 62761,
+      "sha256": "b8b16e287f35a6e337fb23fece7da2c012995276b5966549511c9a072dfcc99b"
+    },
+    {
+      "dataset": "matches",
+      "path": "data/matches-000.json",
+      "count": 368,
+      "bytes": 228426,
+      "gzipBytes": 19144,
+      "sha256": "371b4353d03860b079ee9d5ff4c3b5d41fdfc0783cb88e5bbe48fdcad8a8a5eb"
+    },
+    {
+      "dataset": "matchTags",
+      "path": "data/matchTags-000.json",
+      "count": 93,
+      "bytes": 6351,
+      "gzipBytes": 751,
+      "sha256": "c5252821d38cddc1cc4f0e9c2857eb8c8632eb58afb2d879458321e935d6371d"
+    },
+    {
+      "dataset": "matchRounds",
+      "path": "data/matchRounds-000.json",
+      "count": 2000,
+      "bytes": 693289,
+      "gzipBytes": 19855,
+      "sha256": "efff76b1a4ccdf59a4bc9a4270503e8db49b60ea79dfe82b69df4e63f20a8598"
+    },
+    {
+      "dataset": "matchRounds",
+      "path": "data/matchRounds-001.json",
+      "count": 2000,
+      "bytes": 670824,
+      "gzipBytes": 20592,
+      "sha256": "f651f5d606d8f60338b08c9ce118e64f087214e80c7fad50c14360e1732864e7"
+    },
+    {
+      "dataset": "matchRounds",
+      "path": "data/matchRounds-002.json",
+      "count": 2000,
+      "bytes": 656517,
+      "gzipBytes": 20325,
+      "sha256": "57b43eca5e3dbfff6c1f404ead0733a2d734e29f49e6805828d9db91e5467347"
+    },
+    {
+      "dataset": "matchRounds",
+      "path": "data/matchRounds-003.json",
+      "count": 1903,
+      "bytes": 657961,
+      "gzipBytes": 19889,
+      "sha256": "a0564fca322322b3326d3dd0375bb24f96a9da643ebf526aadcbaddf421e19bb"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-000.json",
+      "count": 2000,
+      "bytes": 206148,
+      "gzipBytes": 7844,
+      "sha256": "171401ff6767a2366205fd99803957e459bc51b1523c78b627e72fd25421e893"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-001.json",
+      "count": 2000,
+      "bytes": 205898,
+      "gzipBytes": 7832,
+      "sha256": "d39598e69c962c2177ca8bfecc401e0e31d2a48b8b457c0c6f58fb6c787b77c0"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-002.json",
+      "count": 2000,
+      "bytes": 205938,
+      "gzipBytes": 8093,
+      "sha256": "61c94d40f9e8507912d64672249615bc1e5546830dfbc3ea50973521bc34b5a0"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-003.json",
+      "count": 2000,
+      "bytes": 207087,
+      "gzipBytes": 7988,
+      "sha256": "28d585ed09b14d2959511ce4dc3ca307049d20329eca0942ee323a674e48d0e8"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-004.json",
+      "count": 2000,
+      "bytes": 205263,
+      "gzipBytes": 7902,
+      "sha256": "42f0da2c05364e70803bf5202f2de6318d61b8dbdf2a97d309afedd2452b5500"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-005.json",
+      "count": 2000,
+      "bytes": 206975,
+      "gzipBytes": 7664,
+      "sha256": "e771ab92bd2d1a189bd93907f8b8affbe3d9ca2a05180a0473dbaad7d0e18e03"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-006.json",
+      "count": 2000,
+      "bytes": 206489,
+      "gzipBytes": 7984,
+      "sha256": "e461d5659c3f5d57894c97cbfe383df0c8d06395474d78eec2ccfcf21413dd6a"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-007.json",
+      "count": 2000,
+      "bytes": 206498,
+      "gzipBytes": 7899,
+      "sha256": "59b9e26a91ef62f2c3aa7434e3373b76a933c74089a47c3e4ebee4921575dba5"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-008.json",
+      "count": 2000,
+      "bytes": 206659,
+      "gzipBytes": 8132,
+      "sha256": "12ee3e5ee2c376209fa7bb0d3f0bcfaa9090952d0d11a386335d95815740d447"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-009.json",
+      "count": 2000,
+      "bytes": 206984,
+      "gzipBytes": 7969,
+      "sha256": "5662ed052194ff6f08eaddc0143eaa92e55e2d19bc85605e68b83b5250e35b06"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-010.json",
+      "count": 2000,
+      "bytes": 208513,
+      "gzipBytes": 8051,
+      "sha256": "bc8abb84c21ed30d9e2c967a79d154d5f34fe41454e7ba6428f9c8d32e82d106"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-011.json",
+      "count": 2000,
+      "bytes": 208971,
+      "gzipBytes": 7891,
+      "sha256": "903001b978f267cca1a855720e87bcc4c85fba35bc4aa50e4e823ea5942efba9"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-012.json",
+      "count": 2000,
+      "bytes": 206207,
+      "gzipBytes": 7924,
+      "sha256": "8e4bf0fdcfa04a66299b07814974fdaad06c458736c9b1b578dd39228e04064e"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-013.json",
+      "count": 2000,
+      "bytes": 206184,
+      "gzipBytes": 7878,
+      "sha256": "e1980c5cc8aab20a907fa649e4c625adb7100467cd496228ce86417f3147f13b"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-014.json",
+      "count": 2000,
+      "bytes": 206662,
+      "gzipBytes": 7881,
+      "sha256": "b7802031ead662279a28aa65b6c5b12025d8c99b1ec03a68f8e854a20107a492"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-015.json",
+      "count": 2000,
+      "bytes": 206961,
+      "gzipBytes": 8152,
+      "sha256": "0c734fb5a6b0bb36d421c10f79f07278f1710aca1a30da1018ccf95373a9e5e0"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-016.json",
+      "count": 2000,
+      "bytes": 206344,
+      "gzipBytes": 8062,
+      "sha256": "6cd8b62c63f3a13e20621601642c9180288cd1bd56474476575f891ba675f7ee"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-017.json",
+      "count": 2000,
+      "bytes": 207287,
+      "gzipBytes": 8122,
+      "sha256": "972c44aa84f77ad2c484612c868e5953054300d262288129aa5d4b752731f982"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-018.json",
+      "count": 2000,
+      "bytes": 207381,
+      "gzipBytes": 8048,
+      "sha256": "3b51b0074db1acf9cb02a39fd6cd2ccc016ca782ee0b5d75a849026a40d07003"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-019.json",
+      "count": 2000,
+      "bytes": 207541,
+      "gzipBytes": 7906,
+      "sha256": "85bef03a911de05acdab4e551bf11018c340ce577f6dee6173d74e105f29f078"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-020.json",
+      "count": 2000,
+      "bytes": 205454,
+      "gzipBytes": 7947,
+      "sha256": "f362182a645075ef4db35b0c07b6f3c99141893ed3a89ce1ee92d75edca5f638"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-021.json",
+      "count": 2000,
+      "bytes": 207350,
+      "gzipBytes": 7852,
+      "sha256": "263aa18b79767efc412f8be3b7d4ccb4f90d1623df36e5bec2e604fadd1ff0bc"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-022.json",
+      "count": 2000,
+      "bytes": 207536,
+      "gzipBytes": 7978,
+      "sha256": "2406b05a27596cb66d2a1e378f78668e4991623983781ae8c7edf22759a88804"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-023.json",
+      "count": 2000,
+      "bytes": 206822,
+      "gzipBytes": 8087,
+      "sha256": "6d460895134d526521c5882335e47ee51c67cf21c5492d9e1f86d75d748da4de"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-024.json",
+      "count": 2000,
+      "bytes": 207143,
+      "gzipBytes": 8256,
+      "sha256": "aba3723769858c32bdc32abd0900cdf1ccd13b547088acbebc3c5ec7645c3c0b"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-025.json",
+      "count": 2000,
+      "bytes": 205896,
+      "gzipBytes": 8107,
+      "sha256": "458f1e04a56b5dcc4417bc266b720dfa5825189f7feeb6ed5e87538bbd432b48"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-026.json",
+      "count": 2000,
+      "bytes": 205302,
+      "gzipBytes": 8037,
+      "sha256": "e23c29289ee85f2c0644c59e1c5fbc58bef80c06b9d95106d640e7b61fe0a90b"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-027.json",
+      "count": 2000,
+      "bytes": 207188,
+      "gzipBytes": 8102,
+      "sha256": "acd6cb938ae51723a7e3b4ed934ed1788f44f9eb642268a621e3d356ebb421e5"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-028.json",
+      "count": 2000,
+      "bytes": 206238,
+      "gzipBytes": 7914,
+      "sha256": "7ed60a96a6fa343203f13b0b3e443dc7bfab3638e0ffbb18b8a20e105098e798"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-029.json",
+      "count": 2000,
+      "bytes": 207050,
+      "gzipBytes": 7964,
+      "sha256": "b1c8bec8ab98b587ec2106b48fddfffb89a3a77a4416f44fdc008e57aa6bd185"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-030.json",
+      "count": 2000,
+      "bytes": 207000,
+      "gzipBytes": 7807,
+      "sha256": "b7cb96bcd20f3aa6b62751b33cde701a3c5fed437a6c95df0545c307a5e9eb24"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-031.json",
+      "count": 2000,
+      "bytes": 205853,
+      "gzipBytes": 8000,
+      "sha256": "53b8c5c8423bc66ec11e18fbc39ffc9d3bd9dd54720b69e25364a3f8ef0cd2eb"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-032.json",
+      "count": 2000,
+      "bytes": 207068,
+      "gzipBytes": 8158,
+      "sha256": "a330854bc02044c01b168fcefba3e8c1006e2995ecf57635c120f44e9f46bd10"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-033.json",
+      "count": 2000,
+      "bytes": 206163,
+      "gzipBytes": 8317,
+      "sha256": "bfa00445bc50af564397221d44a02e314de9e2af68c45dd53603e75e968e60b2"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-034.json",
+      "count": 2000,
+      "bytes": 205866,
+      "gzipBytes": 8167,
+      "sha256": "317cbc87030a26db896e815c56a41b5e0fd2ae6e78def85ffcb73f479d875d21"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-035.json",
+      "count": 2000,
+      "bytes": 206142,
+      "gzipBytes": 8322,
+      "sha256": "50fc0a535af7d162747cf565a2d56f8eb91f3dbd4799e7e417f110a728d88fbc"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-036.json",
+      "count": 2000,
+      "bytes": 208231,
+      "gzipBytes": 8094,
+      "sha256": "944238457397a1039876d4a88e510fe86bd28337d0420973dd8378f1fce096bb"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-037.json",
+      "count": 2000,
+      "bytes": 209093,
+      "gzipBytes": 7996,
+      "sha256": "96fe8c17aaa52ed0c3a0c7588e6b4192b46da580668618fdb0e25387fc040c84"
+    },
+    {
+      "dataset": "roundRosters",
+      "path": "data/roundRosters-038.json",
+      "count": 516,
+      "bytes": 52696,
+      "gzipBytes": 2244,
+      "sha256": "2c9168bde88176e99ca4cf8ac009055cbc919f00619bf3cc6241cac1b4c7f02a"
+    },
+    {
+      "dataset": "matchPlayers",
+      "path": "data/matchPlayers-000.json",
+      "count": 500,
+      "bytes": 1774695,
+      "gzipBytes": 254458,
+      "sha256": "02cab79ae9a1d487a51118e832908fcbbd777f581090f5b6d1eaa6294a929225"
+    },
+    {
+      "dataset": "matchPlayers",
+      "path": "data/matchPlayers-001.json",
+      "count": 500,
+      "bytes": 1770143,
+      "gzipBytes": 262464,
+      "sha256": "d43f915f0f506e212cf424ac6e9e80b2f83c4404c8c4046e9aef471689dabbdc"
+    },
+    {
+      "dataset": "matchPlayers",
+      "path": "data/matchPlayers-002.json",
+      "count": 500,
+      "bytes": 1768616,
+      "gzipBytes": 255171,
+      "sha256": "2e93dc60c50e70be4f5e0ce2000b454667a95707d46b7abc9bb3ad86225636bd"
+    },
+    {
+      "dataset": "matchPlayers",
+      "path": "data/matchPlayers-003.json",
+      "count": 500,
+      "bytes": 1780892,
+      "gzipBytes": 267197,
+      "sha256": "50ac3df145b1d1b923f291cdd6494b2adddfbd678d1f480c807ef052773a889c"
+    },
+    {
+      "dataset": "matchPlayers",
+      "path": "data/matchPlayers-004.json",
+      "count": 910,
+      "bytes": 3235806,
+      "gzipBytes": 477413,
+      "sha256": "774cbfdc3d4e3e626179a00ce3eb2dc2603e3d509edad7842befeba18f9eca4c"
+    },
+    {
+      "dataset": "matchPlayers",
+      "path": "data/matchPlayers-005.json",
+      "count": 909,
+      "bytes": 3227606,
+      "gzipBytes": 474729,
+      "sha256": "1bdb35f467a30e545810df3612fd4b1856e4dc08e3d5cb47960a2f2e00615b0c"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-000.json",
+      "count": 2000,
+      "bytes": 1324231,
+      "gzipBytes": 75429,
+      "sha256": "4e4da2711bce83160f3e303e365b707e7cc01f3838325d3312ea0cd33bee9102"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-001.json",
+      "count": 2000,
+      "bytes": 1326187,
+      "gzipBytes": 76408,
+      "sha256": "609d605034b3ddefca5b2ad5eb92e069926235dc0d63a5f1b9f7ff1e771ffb56"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-002.json",
+      "count": 2000,
+      "bytes": 1325913,
+      "gzipBytes": 76714,
+      "sha256": "3097a9f4f11ab219ea3568a0bbcf8642035d3ff861857c6e44ed19dab04d5191"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-003.json",
+      "count": 2000,
+      "bytes": 1325701,
+      "gzipBytes": 76083,
+      "sha256": "1ce8dd3be32f625a5990d02ce6639b955a6eed0790085ae5a8368c897975f225"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-004.json",
+      "count": 2000,
+      "bytes": 1323028,
+      "gzipBytes": 75200,
+      "sha256": "16b07c4b16a6238d2e71c1b6542b17a86b9af4c4f45ba139e1aef8983e0094d7"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-005.json",
+      "count": 2000,
+      "bytes": 1323938,
+      "gzipBytes": 75434,
+      "sha256": "4fa0249c7bc123c349b2a80f49bcaca3f1729338a67e5d4a121b6ec64b26aa94"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-006.json",
+      "count": 2000,
+      "bytes": 1324480,
+      "gzipBytes": 75329,
+      "sha256": "d7bd3f00592f98f3edda44a12c40f446d0edecc1fdf284b2026409cf64c0e5da"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-007.json",
+      "count": 2000,
+      "bytes": 1321610,
+      "gzipBytes": 74142,
+      "sha256": "b071bde0a48baf3d7dbc53257b819e115260e5c80790ff0f6112acd0483577fd"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-008.json",
+      "count": 2000,
+      "bytes": 1323527,
+      "gzipBytes": 74368,
+      "sha256": "e2956ae3f77b126510baecfacc8dc8323bf7e89a49ac3b1200a4f19be11516f5"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-009.json",
+      "count": 2000,
+      "bytes": 1325535,
+      "gzipBytes": 74709,
+      "sha256": "4f4434460f3e363abe02e6c119a109668787c6e99f69565b84f9e36de594191c"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-010.json",
+      "count": 2000,
+      "bytes": 1326186,
+      "gzipBytes": 72625,
+      "sha256": "1b8ffeadf41e003400d0ebe97713905eca22753f6db778f2f26d03f0d4c5c140"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-011.json",
+      "count": 2000,
+      "bytes": 1326687,
+      "gzipBytes": 73538,
+      "sha256": "790c649f967449ca61fe2de3d59987657608117edca282ff2ebe6a8ff1b97e9f"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-012.json",
+      "count": 2000,
+      "bytes": 1323391,
+      "gzipBytes": 74060,
+      "sha256": "3b864a1cbca15026fa67750daf8509f73eea140f923aadd19d2bbf4102891e41"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-013.json",
+      "count": 2000,
+      "bytes": 1324578,
+      "gzipBytes": 72981,
+      "sha256": "63966560d426d475fb37cfe24ef8fb555cb807b4232598dbb767fb081e3a4dc6"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-014.json",
+      "count": 2000,
+      "bytes": 1329576,
+      "gzipBytes": 73279,
+      "sha256": "aad8e58adb1ca485e4689033d2a0c2b2e1fff9cef2358ecd3daca8564263da8c"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-015.json",
+      "count": 2000,
+      "bytes": 1327920,
+      "gzipBytes": 74491,
+      "sha256": "da3fc38a0fb0ae639be07587adbd61ec16947bf1830f493331f2953af391e378"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-016.json",
+      "count": 2000,
+      "bytes": 1322383,
+      "gzipBytes": 74824,
+      "sha256": "dcaf9fa69f6f9a1fe6243353af1beda74d0ed919789203d27d1885afd84712c5"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-017.json",
+      "count": 2000,
+      "bytes": 1331012,
+      "gzipBytes": 73904,
+      "sha256": "739af84bd2b019f6b54b122faf0d8d5310f7422f1109dae0264b5b448101238a"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-018.json",
+      "count": 2000,
+      "bytes": 1329041,
+      "gzipBytes": 73781,
+      "sha256": "0edc7ccb7b8a99519a7443130698505a66194d9a2596b5caacc8914b7206f70e"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-019.json",
+      "count": 2000,
+      "bytes": 1323622,
+      "gzipBytes": 74378,
+      "sha256": "dede79dcd36ca8774dc4a326b5e273b4c34bad3859a2c5fbb27af40f76b33028"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-020.json",
+      "count": 2000,
+      "bytes": 1323879,
+      "gzipBytes": 73604,
+      "sha256": "3b7e656258954c059565d4fb6cd8397641b2a9f256ca0fb37f2099d608b71d73"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-021.json",
+      "count": 2000,
+      "bytes": 1331996,
+      "gzipBytes": 74516,
+      "sha256": "a8a3d7ce86be9caf30501fbd09627c48ddf80d72eff36a64b3241df7c3b8cc5f"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-022.json",
+      "count": 2000,
+      "bytes": 1326888,
+      "gzipBytes": 72065,
+      "sha256": "cb2ee135058c0fe19bb1881fffe41ea9cc61c77389e675e6414e4e1d7d479638"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-023.json",
+      "count": 2000,
+      "bytes": 1326820,
+      "gzipBytes": 74275,
+      "sha256": "ea3acebb84f09cb81577e03d20913ed3ae71d255f265ed84f5f446f09bb2c65b"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-024.json",
+      "count": 2000,
+      "bytes": 1329535,
+      "gzipBytes": 73427,
+      "sha256": "ab85d61cb79d3b1a337a5ae2894968d775e96006ee11ad9605f310522f8039f8"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-025.json",
+      "count": 2000,
+      "bytes": 1328618,
+      "gzipBytes": 73879,
+      "sha256": "72a7f3b0cb398e3c2b9acf80ecbbb03d6e3fdd1238a6eca58c8f75c5559136b3"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-026.json",
+      "count": 2000,
+      "bytes": 1322088,
+      "gzipBytes": 74073,
+      "sha256": "c1c7dfb7fa89f46ae13ca61dd5787b061e5525b7de9b097d4277323528b84711"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-027.json",
+      "count": 2000,
+      "bytes": 1325540,
+      "gzipBytes": 72696,
+      "sha256": "84f3fae7e9e91a254a7709e6ba082de1b1bddbca3bdd81a69481ce8e48c6a1b9"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-028.json",
+      "count": 2000,
+      "bytes": 1331652,
+      "gzipBytes": 75184,
+      "sha256": "166381c214d682b1ba3e7454999302f3f2f3ef66ec67d6db0c881b598982d644"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-029.json",
+      "count": 2000,
+      "bytes": 1327074,
+      "gzipBytes": 74929,
+      "sha256": "628b4e6a5cfd8ca69beee237ded5151d6da7ebcf9542786d9c1d0f329b1a22d5"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-030.json",
+      "count": 2000,
+      "bytes": 1338948,
+      "gzipBytes": 72665,
+      "sha256": "f3fcdb35c5b1f4f2204bb70032965ba7846a1bbda8386af98a1b94e6c034a6c1"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-031.json",
+      "count": 2000,
+      "bytes": 1322779,
+      "gzipBytes": 73516,
+      "sha256": "5741cc2549035fc6a9b1fea8893bf330034a631ec75cb1419cef453d315111ce"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-032.json",
+      "count": 2000,
+      "bytes": 1322570,
+      "gzipBytes": 74873,
+      "sha256": "1a907d1349537af340d36e892a25d0b5467eaee0d34da40d22597910cb28ee0c"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-033.json",
+      "count": 2000,
+      "bytes": 1320920,
+      "gzipBytes": 72992,
+      "sha256": "588411fec796e00648957433055fb48e1d71a5becc42541a3b6e065d10d5fffc"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-034.json",
+      "count": 2000,
+      "bytes": 1326140,
+      "gzipBytes": 72599,
+      "sha256": "bc1be0edbf609fde6f9db8ae742aa597fb4a8bb8c9437e634deed536a01a14ab"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-035.json",
+      "count": 2000,
+      "bytes": 1325611,
+      "gzipBytes": 74280,
+      "sha256": "366fa4252bf3db589dc334318ae70b5b8e773a78479f5d7f6af9987057f94073"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-036.json",
+      "count": 2000,
+      "bytes": 1326873,
+      "gzipBytes": 74408,
+      "sha256": "a022098f561c292a536d00d6aab9ae3efed27f4debc6e6267d30f9ae87d970b0"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-037.json",
+      "count": 2000,
+      "bytes": 1325101,
+      "gzipBytes": 74579,
+      "sha256": "f4916290d7d0856f68032502e583af69faa875251be56c1bc33b588d719f6ff0"
+    },
+    {
+      "dataset": "playerRounds",
+      "path": "data/playerRounds-038.json",
+      "count": 516,
+      "bytes": 340718,
+      "gzipBytes": 19767,
+      "sha256": "bfd9d04d59bafbba812f835dce91a85302e862a429089fd376ccc5d2616cf5f3"
+    },
+    {
+      "dataset": "playerSideStats",
+      "path": "data/playerSideStats-000.json",
+      "count": 2000,
+      "bytes": 1157414,
+      "gzipBytes": 102030,
+      "sha256": "a1c85ad0385e53a2e0d8a35f62b208d54babb4c9b0c0123f898f8b3d195a0e6a"
+    },
+    {
+      "dataset": "playerSideStats",
+      "path": "data/playerSideStats-001.json",
+      "count": 2000,
+      "bytes": 1153634,
+      "gzipBytes": 97242,
+      "sha256": "51a8cf062f269e462bc725ec98a6930475d563994a328aa0a1964c6af986d1a3"
+    },
+    {
+      "dataset": "playerSideStats",
+      "path": "data/playerSideStats-002.json",
+      "count": 2000,
+      "bytes": 1152736,
+      "gzipBytes": 95771,
+      "sha256": "26ea3345330650708ff4f20ce3dc4b948c9c21bad2f62852db82c6ed15c61d41"
+    },
+    {
+      "dataset": "playerSideStats",
+      "path": "data/playerSideStats-003.json",
+      "count": 1638,
+      "bytes": 944329,
+      "gzipBytes": 78254,
+      "sha256": "c70c7c1cc905b06acf47e76654bf99c59535f866ebd35ad253b25d8ea274c6c7"
+    },
+    {
+      "dataset": "playerClutches",
+      "path": "data/playerClutches-000.json",
+      "count": 2000,
+      "bytes": 343658,
+      "gzipBytes": 24678,
+      "sha256": "e9db7db1d76f96eee6906e34a1541ffce2c0c67b2ebeb07137d27a0e278982c2"
+    },
+    {
+      "dataset": "playerClutches",
+      "path": "data/playerClutches-001.json",
+      "count": 2000,
+      "bytes": 343345,
+      "gzipBytes": 24594,
+      "sha256": "08995b02b6f6d467dc1cbad12a3536725f978c27863216f7aefbd9994ac80ed6"
+    },
+    {
+      "dataset": "playerClutches",
+      "path": "data/playerClutches-002.json",
+      "count": 2000,
+      "bytes": 343633,
+      "gzipBytes": 24343,
+      "sha256": "9f9f57b2c2e033696d38a4423720726706297cba96ac274aba45a18d5c418490"
+    },
+    {
+      "dataset": "playerClutches",
+      "path": "data/playerClutches-003.json",
+      "count": 2000,
+      "bytes": 343284,
+      "gzipBytes": 24080,
+      "sha256": "444e2e8e31405b27750b5213c288f3a815495313c2fcc45061a7db394cafa815"
+    },
+    {
+      "dataset": "playerClutches",
+      "path": "data/playerClutches-004.json",
+      "count": 1629,
+      "bytes": 279744,
+      "gzipBytes": 20274,
+      "sha256": "6b52f84c3e61ead225d2af1d6f76f99c921091ac9ba0a530893c8d76a3a191af"
+    },
+    {
+      "dataset": "weapons",
+      "path": "data/weapons-000.json",
+      "count": 39,
+      "bytes": 2371,
+      "gzipBytes": 694,
+      "sha256": "08788319079e6fba89c31aff1dde5934e916af4904726d26c0a0bba3e99e4dc7"
+    },
+    {
+      "dataset": "matchPlayerWeapons",
+      "path": "data/matchPlayerWeapons-000.json",
+      "count": 2000,
+      "bytes": 863032,
+      "gzipBytes": 75956,
+      "sha256": "c019be9a90bce83a9133f5bd74fb0cebd459010fd0106a641762847a5316ca48"
+    },
+    {
+      "dataset": "matchPlayerWeapons",
+      "path": "data/matchPlayerWeapons-001.json",
+      "count": 2000,
+      "bytes": 862641,
+      "gzipBytes": 76296,
+      "sha256": "f2f5eccabbb3c405ead28191726389a67d89c63003b7a545579842e4b863f74a"
+    },
+    {
+      "dataset": "matchPlayerWeapons",
+      "path": "data/matchPlayerWeapons-002.json",
+      "count": 2000,
+      "bytes": 864390,
+      "gzipBytes": 77402,
+      "sha256": "b97737cd3cd1afd3b48ae94937336648fa6f00359db11dc9a14bfd5ff1741b42"
+    },
+    {
+      "dataset": "matchPlayerWeapons",
+      "path": "data/matchPlayerWeapons-003.json",
+      "count": 2000,
+      "bytes": 862572,
+      "gzipBytes": 73735,
+      "sha256": "049e3688808e2c2c3c672157bbde3d8e82ec755fd37709dd35f783b8c8cec625"
+    },
+    {
+      "dataset": "matchPlayerWeapons",
+      "path": "data/matchPlayerWeapons-004.json",
+      "count": 2000,
+      "bytes": 863877,
+      "gzipBytes": 73351,
+      "sha256": "fe3fcb077e81c0fce2c0c33a597a1db04200f009c38ea14aefb1b2741a2eb796"
+    },
+    {
+      "dataset": "matchPlayerWeapons",
+      "path": "data/matchPlayerWeapons-005.json",
+      "count": 2000,
+      "bytes": 863557,
+      "gzipBytes": 73708,
+      "sha256": "44572d3bb2f9958035054ae8526ef08f2862127de09856dcd69523963b82c52e"
+    },
+    {
+      "dataset": "matchPlayerWeapons",
+      "path": "data/matchPlayerWeapons-006.json",
+      "count": 2000,
+      "bytes": 863218,
+      "gzipBytes": 74891,
+      "sha256": "24d7962a580c9b2c9249e3c82551edc41fc243663ac02a50712d16343f59e0a7"
+    },
+    {
+      "dataset": "matchPlayerWeapons",
+      "path": "data/matchPlayerWeapons-007.json",
+      "count": 2000,
+      "bytes": 863271,
+      "gzipBytes": 73821,
+      "sha256": "c8bbd25e5343da450da32095ee6ad15767df7056503865c588ea0b10156f65b0"
+    },
+    {
+      "dataset": "matchPlayerWeapons",
+      "path": "data/matchPlayerWeapons-008.json",
+      "count": 2000,
+      "bytes": 864559,
+      "gzipBytes": 74194,
+      "sha256": "1e2c816827b0269bfa3e8b14e4274fbf74035eab4b2fac141bc07b7d50b53bae"
+    },
+    {
+      "dataset": "matchPlayerWeapons",
+      "path": "data/matchPlayerWeapons-009.json",
+      "count": 2000,
+      "bytes": 862462,
+      "gzipBytes": 72842,
+      "sha256": "e52373b9ccb4b140721f90d2e1f9ed56553f83b1450990de6f008f53e2eb3f13"
+    },
+    {
+      "dataset": "matchPlayerWeapons",
+      "path": "data/matchPlayerWeapons-010.json",
+      "count": 2000,
+      "bytes": 863649,
+      "gzipBytes": 74138,
+      "sha256": "b4a2ce439d9f50e6b133d5a68c1b4dc3e53f70de5b7b233699ebd2f2d6bf214e"
+    },
+    {
+      "dataset": "matchPlayerWeapons",
+      "path": "data/matchPlayerWeapons-011.json",
+      "count": 2000,
+      "bytes": 862779,
+      "gzipBytes": 73600,
+      "sha256": "5d3274f84a3711eb87156e54361282608a07b22080d9e294597347df98f29cb1"
+    },
+    {
+      "dataset": "matchPlayerWeapons",
+      "path": "data/matchPlayerWeapons-012.json",
+      "count": 2000,
+      "bytes": 862583,
+      "gzipBytes": 74078,
+      "sha256": "3c513a0bb48f9c3932e4fbed167bad8126fddf92fb869795fa0e258dc56f96ee"
+    },
+    {
+      "dataset": "matchPlayerWeapons",
+      "path": "data/matchPlayerWeapons-013.json",
+      "count": 2000,
+      "bytes": 863706,
+      "gzipBytes": 74800,
+      "sha256": "f029b60f81325fb0b9727f73156befdd0484ca1018f995f6bb3417a67d118360"
+    },
+    {
+      "dataset": "matchPlayerWeapons",
+      "path": "data/matchPlayerWeapons-014.json",
+      "count": 1887,
+      "bytes": 817366,
+      "gzipBytes": 71539,
+      "sha256": "6c007df6b9fbc74dd849e7a40738b1111e82feaa03508b937f2ba36563ef50a3"
+    },
+    {
+      "dataset": "playerMatchStats",
+      "path": "data/playerMatchStats-000.json",
+      "count": 2000,
+      "bytes": 1406207,
+      "gzipBytes": 184574,
+      "sha256": "00b4bcc1aceac2e6f693f0d244b554ceb2d68b65713a61b3c195d67c04f58e28"
+    },
+    {
+      "dataset": "playerMatchStats",
+      "path": "data/playerMatchStats-001.json",
+      "count": 1583,
+      "bytes": 1115414,
+      "gzipBytes": 147784,
+      "sha256": "2d9d79f25a05b86979d45062458bb8e94cf7214039f0be3de2c3c6eb53f9700b"
+    },
+    {
+      "dataset": "playerMapStats",
+      "path": "data/playerMapStats-000.json",
+      "count": 965,
+      "bytes": 317066,
+      "gzipBytes": 56180,
+      "sha256": "658f486fc078f72b32eeb193ed9d04d5fd5b74720c46c9d4eb3c7e8437173cae"
+    },
+    {
+      "dataset": "playerWeaponStats",
+      "path": "data/playerWeaponStats-000.json",
+      "count": 1601,
+      "bytes": 652520,
+      "gzipBytes": 60727,
+      "sha256": "7e5f38594e87cce17fd789fb20bc52a2deb83c4a36b7dac4457ac5eac13dc9aa"
+    },
+    {
+      "dataset": "playerWeaponDailyStats",
+      "path": "data/playerWeaponDailyStats-000.json",
+      "count": 2000,
+      "bytes": 704023,
+      "gzipBytes": 56970,
+      "sha256": "acbf19700f144667c91468694f81d57ac0aa49db180719863ce42a3d56cb0e49"
+    },
+    {
+      "dataset": "playerWeaponDailyStats",
+      "path": "data/playerWeaponDailyStats-001.json",
+      "count": 2000,
+      "bytes": 703251,
+      "gzipBytes": 55975,
+      "sha256": "b98f77ca4fa42a81a2df8d0b6bc635f75076bb72aa05a59d1610824b5a1750b5"
+    },
+    {
+      "dataset": "playerWeaponDailyStats",
+      "path": "data/playerWeaponDailyStats-002.json",
+      "count": 2000,
+      "bytes": 702442,
+      "gzipBytes": 54793,
+      "sha256": "a1d73c8646a19a164ffbaebbb51f7139ba11310d158a675e612cef0b51007513"
+    },
+    {
+      "dataset": "playerWeaponDailyStats",
+      "path": "data/playerWeaponDailyStats-003.json",
+      "count": 2000,
+      "bytes": 701455,
+      "gzipBytes": 53495,
+      "sha256": "a7355767e2a3fd72fcdfda486396c9926ca211986db33f73e82b05f4ed82c482"
+    },
+    {
+      "dataset": "playerWeaponDailyStats",
+      "path": "data/playerWeaponDailyStats-004.json",
+      "count": 2000,
+      "bytes": 703656,
+      "gzipBytes": 55997,
+      "sha256": "48b1737e8454fc205faf71ea84421500a4aae5befc325b19e613ba2c4ca701d1"
+    },
+    {
+      "dataset": "playerWeaponDailyStats",
+      "path": "data/playerWeaponDailyStats-005.json",
+      "count": 2000,
+      "bytes": 702668,
+      "gzipBytes": 54292,
+      "sha256": "ed881dca6bd56cdecfd4104d77dc4f6f4488b1f9e5d976e5657a22b19d608ea9"
+    },
+    {
+      "dataset": "playerWeaponDailyStats",
+      "path": "data/playerWeaponDailyStats-006.json",
+      "count": 1035,
+      "bytes": 362716,
+      "gzipBytes": 27485,
+      "sha256": "c5efefaba8f8a4dc3c10185ced1e7b4af96b13965221b3f0e820cd7f62570e7c"
+    },
+    {
+      "dataset": "weaponDailyStats",
+      "path": "data/weaponDailyStats-000.json",
+      "count": 2000,
+      "bytes": 191008,
+      "gzipBytes": 13216,
+      "sha256": "3be5998ba7df05339aa38daaa252d471c50489b0acd85d33779dc6a0bbb0b988"
+    },
+    {
+      "dataset": "weaponDailyStats",
+      "path": "data/weaponDailyStats-001.json",
+      "count": 2000,
+      "bytes": 190714,
+      "gzipBytes": 12868,
+      "sha256": "14dc16056e4a7faf66d2f879f689fb913f8b2fe9b965345058fa296ad9e648cf"
+    },
+    {
+      "dataset": "weaponDailyStats",
+      "path": "data/weaponDailyStats-002.json",
+      "count": 2000,
+      "bytes": 190825,
+      "gzipBytes": 13225,
+      "sha256": "4c7a32c9b6f2a05ff5e8c1b4a13dffb0cf427331cad2faa43e35d0305beaf242"
+    },
+    {
+      "dataset": "weaponDailyStats",
+      "path": "data/weaponDailyStats-003.json",
+      "count": 2000,
+      "bytes": 190503,
+      "gzipBytes": 13025,
+      "sha256": "c0d4b048447162cedfe1ef6899d7e95a9efb5ef5c4e24314552e4549cae285ac"
+    },
+    {
+      "dataset": "weaponDailyStats",
+      "path": "data/weaponDailyStats-004.json",
+      "count": 2000,
+      "bytes": 190869,
+      "gzipBytes": 13198,
+      "sha256": "c90f6bac412978ebe4d2ad5f2cfcdabe5bbbfebc41d3858548350cc62462f2fb"
+    },
+    {
+      "dataset": "weaponDailyStats",
+      "path": "data/weaponDailyStats-005.json",
+      "count": 2000,
+      "bytes": 190863,
+      "gzipBytes": 12846,
+      "sha256": "ca0ac3b05fb86b13b56a59db0e78a6c426cf1370673db1c2f5bd95a74f7513cd"
+    },
+    {
+      "dataset": "weaponDailyStats",
+      "path": "data/weaponDailyStats-006.json",
+      "count": 1035,
+      "bytes": 98906,
+      "gzipBytes": 7187,
+      "sha256": "fb56e9d14768571a227c9989212cba97eba0f89a1de4ce877a15708c312bc9ce"
+    },
+    {
+      "dataset": "weaponSplits",
+      "path": "data/weaponSplits-000.json",
+      "count": 1601,
+      "bytes": 144346,
+      "gzipBytes": 13228,
+      "sha256": "4459673ff81bef195ca315abd81b015a1f53987eea0ca9062706effc366aada5"
+    },
+    {
+      "dataset": "maps",
+      "path": "data/maps-000.json",
+      "count": 46,
+      "bytes": 1375,
+      "gzipBytes": 477,
+      "sha256": "4a6491eaccad3f37d182aeeec051079e96e1c563c1ce19a592e8cddcb92b6330"
+    },
+    {
+      "dataset": "tags",
+      "path": "data/tags-000.json",
+      "count": 1,
+      "bytes": 151,
+      "gzipBytes": 145,
+      "sha256": "d894fc884ef8ff374b3bb7dd221d498ebace52b8a31233df8de907baf419d496"
+    },
+    {
+      "dataset": "draftConfig",
+      "path": "data/draftConfig-000.json",
+      "count": 1,
+      "bytes": 2631,
+      "gzipBytes": 942,
+      "sha256": "b1f5d169a275fb11624ac927a8942f81bc53bbf3daee55298408e2d0306f7e15"
+    },
+    {
+      "dataset": "draftPlayers",
+      "path": "data/draftPlayers-000.json",
+      "count": 30,
+      "bytes": 2426,
+      "gzipBytes": 864,
+      "sha256": "a5fe64ad15f3cc5fd0572f5b31ba353012f7b9669af50ef9ea6beff62ad9ed45"
+    },
+    {
+      "dataset": "draftIgls",
+      "path": "data/draftIgls-000.json",
+      "count": 5,
+      "bytes": 1145,
+      "gzipBytes": 335,
+      "sha256": "e90837a3555dccd8316034af07d7bad4742c106ce2ea80930e9e393fe1edcdc8"
+    },
+    {
+      "dataset": "trendPlayers",
+      "path": "data/trendPlayers-000.json",
+      "count": 20,
+      "bytes": 1519,
+      "gzipBytes": 575,
+      "sha256": "afc1da4ed1d921c7ccfbaa02916b43074b9678daa2f99d58cc13d96cb2d4bc29"
+    },
+    {
+      "dataset": "trendMatches",
+      "path": "data/trendMatches-000.json",
+      "count": 2000,
+      "bytes": 1198524,
+      "gzipBytes": 186299,
+      "sha256": "9af4f17b98efa688f64f331f9b083e0e37edfbeaad21b62254f2dbd0de6ad3ee"
+    },
+    {
+      "dataset": "trendMatches",
+      "path": "data/trendMatches-001.json",
+      "count": 987,
+      "bytes": 588816,
+      "gzipBytes": 93225,
+      "sha256": "3e4f02378e35cc5339cd2357878912a1f2fa954a49ef5848ceb80f6b07c9a8c9"
+    },
+    {
+      "dataset": "quality",
+      "path": "data/quality-000.json",
+      "count": 1,
+      "bytes": 218,
+      "gzipBytes": 193,
+      "sha256": "a77554be89d4988dc5908d5db028441c3958464d37eea90c157cd3fe353cd22c"
+    },
+    {
+      "dataset": "rosters",
+      "path": "data/rosters-000.json",
+      "count": 5,
+      "bytes": 4900,
+      "gzipBytes": 1237,
+      "sha256": "d97d7daa3257071fc3f480e31e54aade44b340ef97d3a21a9fc06c014b393747"
+    },
+    {
+      "dataset": "playerMetrics",
+      "path": "data/playerMetrics-000.json",
+      "count": 30,
+      "bytes": 2038678,
+      "gzipBytes": 307924,
+      "sha256": "06ae8bf62b756c0b2549776567c19a8a0fdf0d36fd90cd0bc5738e3495a15fa9"
+    },
+    {
+      "dataset": "teamMetrics",
+      "path": "data/teamMetrics-000.json",
+      "count": 5,
+      "bytes": 30988,
+      "gzipBytes": 7847,
+      "sha256": "3c71c5aea1da3ae85ea39100374cab22f0ef55641adcba2115bba3ec82fe617b"
+    },
+    {
+      "dataset": "mapEdges",
+      "path": "data/mapEdges-000.json",
+      "count": 4,
+      "bytes": 51675,
+      "gzipBytes": 6845,
+      "sha256": "c7b7653f5c4b405284a03d0d356485d2b3bf00a1a7637cc77bf5cc6f1b78708d"
+    },
+    {
+      "dataset": "evidence",
+      "path": "data/evidence-000.json",
+      "count": 306,
+      "bytes": 90050,
+      "gzipBytes": 11367,
+      "sha256": "b341f7be2688f5fe3e6810a8654bc2af57af4b496e056d8130f8ff38bcf8891a"
+    },
+    {
+      "dataset": "recommendations",
+      "path": "data/recommendations-000.json",
+      "count": 4,
+      "bytes": 18402,
+      "gzipBytes": 4730,
+      "sha256": "b1c686095495f4a502e122cf6db72e595d3102ba3a6acc0449e7a6822abbcc5c"
+    }
+  ]
+}
