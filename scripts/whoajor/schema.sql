@@ -145,11 +145,12 @@ CREATE TABLE player_side_stats (
 CREATE TABLE player_clutches (
   match_id TEXT NOT NULL,
   steamid TEXT NOT NULL,
+  clutch_index INTEGER NOT NULL,
   round INTEGER NOT NULL,
-  start_tick INTEGER NOT NULL,
+  start_tick INTEGER,
   source_json TEXT NOT NULL,
   metrics_json TEXT NOT NULL,
-  PRIMARY KEY (match_id, steamid, round, start_tick),
+  PRIMARY KEY (match_id, steamid, clutch_index),
   FOREIGN KEY (match_id, steamid) REFERENCES match_players(match_id, steamid),
   FOREIGN KEY (match_id, round) REFERENCES match_rounds(match_id, round)
 ) STRICT;

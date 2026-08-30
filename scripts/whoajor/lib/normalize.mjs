@@ -322,8 +322,8 @@ function populate(db, snapshotId, manifest, report, observations) {
     VALUES (?, ?, ?, ?, ?)`);
   const insertClutch = statement(db, `
     INSERT INTO player_clutches(
-      match_id, steamid, round, start_tick, source_json, metrics_json
-    ) VALUES (?, ?, ?, ?, ?, ?)`);
+      match_id, steamid, clutch_index, round, start_tick, source_json, metrics_json
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)`);
   const insertMatchWeapon = statement(db, `
     INSERT INTO match_player_weapons(
       match_id, steamid, weapon, source_json, metrics_json
@@ -352,9 +352,10 @@ function populate(db, snapshotId, manifest, report, observations) {
       for (const [side, metrics] of Object.entries(player.bySide ?? {})) {
         insertSide(matchId, player.steamid, side, json(metrics), json(metrics));
       }
-      for (const clutch of player.clutches ?? []) {
+      for (const [clutchIndex, clutch] of (player.clutches ?? []).entries()) {
         insertClutch(
-          matchId, player.steamid, clutch.round, clutch.startTick ?? clutch.start_tick,
+          matchId, player.steamid, clutchIndex, clutch.round,
+          clutch.startTick ?? clutch.start_tick ?? null,
           json(clutch), json(clutch),
         );
       }

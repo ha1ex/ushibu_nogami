@@ -37,6 +37,7 @@ async function buildValidatedFixture({
   rich = false,
   trustValidationErrors = false,
   drawRound = false,
+  legacyClutchWithoutStartTick = false,
 } = {}) {
   const snapshotDir = await mkdtemp(join(tmpdir(), 'whoajor-normalize-'));
   const fixture = createFixtureApi({
@@ -47,6 +48,7 @@ async function buildValidatedFixture({
     detailPlayers: PLAYERS,
     roundPlayers: PLAYERS,
     drawRound,
+    legacyClutchWithoutStartTick,
   });
   const client = createHttpClient({
     baseUrl: fixture.baseUrl,
@@ -117,6 +119,28 @@ test('normalizer сохраняет draw round с nullable winner', async () => 
   db.close();
 });
 
+test('normalizer сохраняет legacy clutch без startTick на source-array grain', async () => {
+  const snapshotDir = await buildValidatedFixture({ legacyClutchWithoutStartTick: true });
+  const dbPath = join(snapshotDir, 'legacy-clutch.sqlite');
+
+  await buildDatabase(snapshotDir, dbPath);
+
+  const db = new Database(dbPath, { readonly: true });
+  const clutches = db.prepare(`
+    select clutch_index, round, start_tick
+    from player_clutches
+    order by clutch_index`).all();
+  assert.deepEqual(clutches, [
+    { clutch_index: 0, round: 1, start_tick: null },
+    { clutch_index: 1, round: 1, start_tick: 256 },
+  ]);
+  assert.deepEqual(db.pragma('table_info(player_clutches)')
+    .filter(({ pk }) => pk > 0)
+    .sort((left, right) => left.pk - right.pk)
+    .map(({ name }) => name), ['match_id', 'steamid', 'clutch_index']);
+  db.close();
+});
+
 test('normalizer сохраняет сущности, FK и весь source_json', async () => {
   const snapshotDir = await buildValidatedFixture({ rich: true });
   const dbPath = join(snapshotDir, 'whoajor.sqlite');
@@ -184,7 +208,7 @@ test('normalizer сохраняет сущности, FK и весь source_json
   assert.deepEqual(pk('match_rounds'), ['match_id', 'round']);
   assert.deepEqual(pk('round_rosters'), ['match_id', 'round', 'side', 'steamid']);
   assert.deepEqual(pk('player_rounds'), ['match_id', 'steamid', 'round']);
-  assert.deepEqual(pk('player_clutches'), ['match_id', 'steamid', 'round', 'start_tick']);
+  assert.deepEqual(pk('player_clutches'), ['match_id', 'steamid', 'clutch_index']);
   assert.deepEqual(pk('leaderboard_snapshots'), [
     'snapshot_id', 'query_fingerprint', 'steamid',
   ]);

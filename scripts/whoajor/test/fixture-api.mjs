@@ -122,6 +122,7 @@ export function createFixtureApi({
   malformedBoundaryPath = null,
   drawRound = false,
   legacyOptionalMatchFields = false,
+  legacyClutchWithoutStartTick = false,
 } = {}) {
   const baseUrl = 'https://fixture.whoajor.test';
   const calls = [];
@@ -141,6 +142,13 @@ export function createFixtureApi({
     const firstDetail = details.get(rows[0].id);
     delete firstDetail.workshopMap;
     delete firstDetail.voiceRecorded;
+  }
+  if (legacyClutchWithoutStartTick) {
+    const firstDetail = details.get(rows[0].id);
+    firstDetail.players[0].clutches = [
+      { round: 1, vs: 1, won: false, kills: 0, survived: false },
+      { round: 1, startTick: 256, vs: 1, won: true, kills: 1, survived: true },
+    ];
   }
   const expectedPlayers = [...new Set([
     ...leaderboardPlayers, ...draftPlayers, ...detailPlayers, ...roundPlayers,
