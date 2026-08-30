@@ -115,11 +115,11 @@ export const CONTRACT = deepFreeze({
         tickrate: 'number',
         roundsPlayed: 'number',
         knifeRounds: 'number',
-        workshopMap: 'boolean',
+        workshopMap: 'boolean|undefined',
         mode: 'string',
         scoreByRoster: 'object',
         mixedTeams: 'boolean',
-        voiceRecorded: 'boolean',
+        voiceRecorded: 'boolean|undefined',
         tags: 'array',
         rounds: 'array',
         players: 'array',
@@ -251,7 +251,7 @@ export const CONTRACT = deepFreeze({
     matchRound: {
       required: {
         round: 'number',
-        winner: 'string',
+        winner: 'string|null',
         reason: 'string',
         bombPlanted: 'boolean',
         tSteamids: 'array',

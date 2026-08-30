@@ -255,6 +255,27 @@ test('schema failure оставляет manifest incomplete и пробрасы�
     'response must be stored before collector schema parsing');
 });
 
+test('collector принимает реальный draw round с winner=null', async () => {
+  const fixture = createFixtureApi({ drawRound: true });
+  const { manifest, outputDir } = await runFixture(fixture);
+
+  assert.equal(manifest.status, 'collected');
+  const details = await Promise.all(manifest.requests
+    .filter(({ path }) => path.startsWith('/api/matches/'))
+    .map(async ({ blob }) => JSON.parse(await readFile(join(outputDir, blob), 'utf8'))));
+  const detail = details.find(({ rounds }) => rounds.some(({ reason }) => reason === 'draw'));
+  assert.equal(detail.rounds[0].winner, null);
+  assert.equal(detail.rounds[0].reason, 'draw');
+});
+
+test('collector принимает историческую карточку без workshopMap и voiceRecorded', async () => {
+  const fixture = createFixtureApi({ legacyOptionalMatchFields: true });
+  const { manifest } = await runFixture(fixture);
+
+  assert.equal(manifest.status, 'collected');
+  fixture.assertNoUnexpectedCalls();
+});
+
 test('JSON parse failure оставляет staging manifest incomplete', async () => {
   const fixture = createFixtureApi({ malformedPath: '/api/tags' });
   const outputDir = await mkdtemp(join(tmpdir(), 'whoajor-collect-bad-json-'));
@@ -359,5 +380,18 @@ test('CLI принимает output, base URL, pacing, page size и resume бе�
     delayMs: 0,
     pageSize: 2,
     resume: true,
+  });
+});
+
+test('CLI принимает literal -- из корневой pnpm-команды', () => {
+  assert.deepEqual(parseCliArgs([
+    '--', '--output', '.context/whoajor-staging/2026-08-30-full',
+    '--delay-ms', '250', '--page-size', '100',
+  ]), {
+    outputDir: '.context/whoajor-staging/2026-08-30-full',
+    baseUrl: 'https://stats.whoajor.com',
+    delayMs: 250,
+    pageSize: 100,
+    resume: false,
   });
 });

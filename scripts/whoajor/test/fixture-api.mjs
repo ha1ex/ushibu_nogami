@@ -120,6 +120,8 @@ export function createFixtureApi({
   boundaryDrift = false,
   malformedPath = null,
   malformedBoundaryPath = null,
+  drawRound = false,
+  legacyOptionalMatchFields = false,
 } = {}) {
   const baseUrl = 'https://fixture.whoajor.test';
   const calls = [];
@@ -130,6 +132,16 @@ export function createFixtureApi({
     row.id,
     matchDetail(row, detailPlayers, roundPlayers),
   ]));
+  if (drawRound) {
+    const firstDetail = details.get(rows[0].id);
+    firstDetail.rounds[0].winner = null;
+    firstDetail.rounds[0].reason = 'draw';
+  }
+  if (legacyOptionalMatchFields) {
+    const firstDetail = details.get(rows[0].id);
+    delete firstDetail.workshopMap;
+    delete firstDetail.voiceRecorded;
+  }
   const expectedPlayers = [...new Set([
     ...leaderboardPlayers, ...draftPlayers, ...detailPlayers, ...roundPlayers,
   ])].sort();

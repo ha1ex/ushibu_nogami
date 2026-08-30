@@ -336,19 +336,20 @@ function parseInteger(value, option) {
 }
 
 export function parseCliArgs(args) {
+  const values = args[0] === '--' ? args.slice(1) : args;
   const options = {
     baseUrl: WHOAJOR_BASE_URL,
     delayMs: DEFAULT_DELAY_MS,
     pageSize: 100,
     resume: false,
   };
-  for (let index = 0; index < args.length; index += 1) {
-    const option = args[index];
+  for (let index = 0; index < values.length; index += 1) {
+    const option = values[index];
     if (option === '--resume') {
       options.resume = true;
       continue;
     }
-    const value = args[index + 1];
+    const value = values[index + 1];
     if (value === undefined) throw new Error(`${option} requires a value`);
     index += 1;
     if (option === '--output') options.outputDir = value;

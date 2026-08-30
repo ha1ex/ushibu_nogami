@@ -55,7 +55,7 @@ CREATE TABLE match_tags (
 CREATE TABLE match_rounds (
   match_id TEXT NOT NULL,
   round INTEGER NOT NULL,
-  winner TEXT NOT NULL,
+  winner TEXT,
   reason TEXT NOT NULL,
   bomb_planted INTEGER NOT NULL CHECK (bomb_planted IN (0, 1)),
   source_json TEXT NOT NULL,

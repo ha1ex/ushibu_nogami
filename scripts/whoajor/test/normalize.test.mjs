@@ -36,6 +36,7 @@ async function buildValidatedFixture({
   priorityCollision = false,
   rich = false,
   trustValidationErrors = false,
+  drawRound = false,
 } = {}) {
   const snapshotDir = await mkdtemp(join(tmpdir(), 'whoajor-normalize-'));
   const fixture = createFixtureApi({
@@ -45,6 +46,7 @@ async function buildValidatedFixture({
     draftPlayers: [],
     detailPlayers: PLAYERS,
     roundPlayers: PLAYERS,
+    drawRound,
   });
   const client = createHttpClient({
     baseUrl: fixture.baseUrl,
@@ -104,6 +106,16 @@ async function buildValidatedFixture({
   );
   return snapshotDir;
 }
+
+test('normalizer сохраняет draw round с nullable winner', async () => {
+  const snapshotDir = await buildValidatedFixture({ drawRound: true });
+  const dbPath = join(snapshotDir, 'draw-round.sqlite');
+  await buildDatabase(snapshotDir, dbPath);
+  const db = new Database(dbPath, { readonly: true });
+  const draw = db.prepare("select winner, reason from match_rounds where reason = 'draw'").get();
+  assert.deepEqual(draw, { winner: null, reason: 'draw' });
+  db.close();
+});
 
 test('normalizer сохраняет сущности, FK и весь source_json', async () => {
   const snapshotDir = await buildValidatedFixture({ rich: true });
