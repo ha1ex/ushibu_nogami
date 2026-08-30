@@ -39,6 +39,7 @@ CREATE TABLE matches (
   server_name TEXT NOT NULL,
   started_at TEXT NOT NULL,
   rounds_played INTEGER NOT NULL,
+  has_detail INTEGER NOT NULL CHECK (has_detail IN (0, 1)),
   source_json TEXT NOT NULL,
   metrics_json TEXT NOT NULL
 ) STRICT;

@@ -1,12 +1,17 @@
 #!/usr/bin/env node
+import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { buildDatabase } from './lib/normalize.mjs';
 
 export async function runNormalizeCli(args) {
-  if (args.length !== 2 || !args[0] || !args[1]) {
-    throw new Error('usage: whoajor:build-db -- <snapshot-dir> <database-path>');
+  const positionals = args[0] === '--' ? args.slice(1) : args;
+  if (positionals.length < 1 || positionals.length > 2 || !positionals[0]) {
+    throw new Error('usage: whoajor:build-db -- <snapshot-dir> [database-path]');
   }
-  return buildDatabase(args[0], args[1]);
+  return buildDatabase(
+    positionals[0],
+    positionals[1] ?? join(positionals[0], 'whoajor.sqlite'),
+  );
 }
 
 async function main() {
