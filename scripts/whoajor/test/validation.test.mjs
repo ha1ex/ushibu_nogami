@@ -386,7 +386,7 @@ test('все документированные discrepancy/warning остают
   }
 });
 
-test('UNKNOWN_FIELD дедуплицируется по структурному пути без миллионов row warnings', async () => {
+test('UNKNOWN_FIELD дедуплицируется внутри canonical request без миллионов row warnings', async () => {
   const dir = await buildCollectedFixture();
   await rewritePayload(dir, (entry) => entry.path.endsWith('/maps'), (rows) => {
     rows.splice(0, rows.length, ...Array.from({ length: 100 }, (_, index) => ({
@@ -407,7 +407,25 @@ test('UNKNOWN_FIELD дедуплицируется по структурному
   ));
 
   assert.equal(report.status, 'complete');
-  assert.equal(upstreamWarnings.length, 1);
+  assert.equal(upstreamWarnings.length, 3);
+});
+
+test('UNKNOWN_FIELD не склеивается между разными canonical endpoints', async () => {
+  const dir = await buildCollectedFixture();
+  await rewritePayload(dir, (entry) => entry.path === '/api/tags', (rows) => {
+    rows[0].shared_extension = true;
+  });
+  await rewritePayload(dir, (entry) => entry.path === '/api/weapons', (rows) => {
+    rows[0].shared_extension = true;
+  });
+
+  const report = await validateSnapshot(dir);
+  const sharedWarnings = report.warnings.filter(({ code, location }) => (
+    code === 'UNKNOWN_FIELD' && location.endsWith('.shared_extension')
+  ));
+
+  assert.equal(report.status, 'complete');
+  assert.equal(sharedWarnings.length, 2);
 });
 
 test('повторный аудит детерминирован кроме operational checkedAt', async () => {

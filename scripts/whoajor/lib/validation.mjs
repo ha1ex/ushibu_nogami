@@ -83,13 +83,20 @@ function sortEvents(events) {
   ));
 }
 
-function makeReporter(report) {
+function makeReporter(report, requestScopes) {
   const seen = new Set();
   return (bucket, code, location, message) => {
     const event = { code, location, message };
-    const identityLocation = code === 'UNKNOWN_FIELD'
-      ? location.replace(/\[\d+\]/g, '[]')
-      : location;
+    let identityLocation = location;
+    if (code === 'UNKNOWN_FIELD') {
+      const requestLocation = location.match(/^manifest\.requests\[(\d+)\](.*)$/);
+      const requestScope = requestLocation
+        ? requestScopes.get(Number(requestLocation[1]))
+        : null;
+      identityLocation = requestScope
+        ? `${requestScope}${requestLocation[2].replace(/\[\d+\]/g, '[]')}`
+        : location.replace(/\[\d+\]/g, '[]');
+    }
     const identity = `${bucket}\0${code}\0${identityLocation}\0${message}`;
     if (!seen.has(identity)) {
       seen.add(identity);
@@ -724,7 +731,8 @@ export async function validateSnapshot(dir) {
     counts: { requests: 0, matches: 0, matchDetails: 0, players: 0, weapons: 0, tags: 0 },
     rootHash: EMPTY_ROOT_HASH,
   };
-  const add = makeReporter(report);
+  const requestScopes = new Map();
+  const add = makeReporter(report, requestScopes);
   let manifest;
   try {
     manifest = JSON.parse(await readFile(join(dir, 'manifest.json'), 'utf8'));
@@ -738,6 +746,14 @@ export async function validateSnapshot(dir) {
     sortEvents(report.errors);
     return report;
   }
+  manifest.requests.forEach((entry, index) => {
+    if (!isObject(entry) || typeof entry.path !== 'string' || !isObject(entry.query)) return;
+    try {
+      requestScopes.set(index, requestKey(entry.path, entry.query));
+    } catch {
+      // The regular request-key validation below reports malformed request records.
+    }
+  });
   if (manifest.contractVersion !== CONTRACT.version) {
     add(
       'errors',
