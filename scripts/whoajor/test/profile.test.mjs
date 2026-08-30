@@ -206,10 +206,13 @@ test('profile блокирует неверные JSON scalar types и не ма
   db.prepare('UPDATE tags SET metrics_json = ?').run(JSON.stringify({
     day: 20260830,
     headshot_pct: '101',
+    id: null,
     kills: '-3',
+    match_id: {},
     player_id: '',
     rounds: '1.5',
     started_at: 123,
+    team_id: [],
   }));
   const snapshot = db.prepare('SELECT snapshot_id, source_json FROM snapshots').get();
   const source = JSON.parse(snapshot.source_json);
@@ -219,7 +222,7 @@ test('profile блокирует неверные JSON scalar types и не ма
   db.close();
 
   const report = profileDatabase(snapshotDir, dbPath);
-  assert.ok(report.anomalies.invalidIds > 0);
+  assert.equal(report.anomalies.invalidIds, 4);
   assert.ok(report.anomalies.invalidDates >= 2);
   assert.ok(report.anomalies.impossibleMetrics >= 3);
   assert.deepEqual(report.crossCounts.metaTotals, [null]);

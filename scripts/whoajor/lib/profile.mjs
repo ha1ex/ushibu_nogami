@@ -174,13 +174,13 @@ function isIdentifierKey(name) {
 
 function invalidJsonIdentifier(path, type, value) {
   const tokens = pathTokens(path);
-  if (type === 'null' || type === 'array' || type === 'object') return false;
-  if (tokens.some((token) => STEAM_ID_KEYS.has(token))) {
-    return type !== 'text' || !validSteamId(value);
-  }
   const key = semanticPathKey(path);
   if (key === 'id' || key === 'matchid' || key.endsWith('_id') || DIMENSION_ID_KEYS.has(key)) {
     return type !== 'text' || String(value).trim() === '';
+  }
+  if (tokens.some((token) => STEAM_ID_KEYS.has(token))) {
+    if (type === 'array' && STEAM_ID_KEYS.has(key)) return false;
+    return type !== 'text' || !validSteamId(value);
   }
   return false;
 }
