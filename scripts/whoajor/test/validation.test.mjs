@@ -386,7 +386,7 @@ test('все документированные discrepancy/warning остают
   }
 });
 
-test('UNKNOWN_FIELD дедуплицируется внутри canonical request без миллионов row warnings', async () => {
+test('UNKNOWN_FIELD дедуплицируется по CONTRACT family и payload path', async () => {
   const dir = await buildCollectedFixture();
   await rewritePayload(dir, (entry) => entry.path.endsWith('/maps'), (rows) => {
     rows.splice(0, rows.length, ...Array.from({ length: 100 }, (_, index) => ({
@@ -407,7 +407,26 @@ test('UNKNOWN_FIELD дедуплицируется внутри canonical reques
   ));
 
   assert.equal(report.status, 'complete');
-  assert.equal(upstreamWarnings.length, 3);
+  assert.equal(upstreamWarnings.length, 1);
+});
+
+test('UNKNOWN_FIELD склеивает одинаковый path двух matchDetail ID без изменения hard audit', async () => {
+  const dir = await buildCollectedFixture();
+  const baseline = await validateSnapshot(dir);
+  await rewritePayload(dir, (entry) => (
+    entry.path === '/api/matches/match-1' || entry.path === '/api/matches/match-2'
+  ), (detail) => {
+    detail.family_extension = 'same schema extension';
+  }, { all: true });
+
+  const report = await validateSnapshot(dir);
+  const familyWarnings = report.warnings.filter(({ code, location }) => (
+    code === 'UNKNOWN_FIELD' && location.endsWith('.family_extension')
+  ));
+
+  assert.equal(familyWarnings.length, 1);
+  assert.deepEqual(report.errors, baseline.errors);
+  assert.deepEqual(report.discrepancies, baseline.discrepancies);
 });
 
 test('UNKNOWN_FIELD не склеивается между разными canonical endpoints', async () => {

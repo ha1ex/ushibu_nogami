@@ -12,6 +12,10 @@ import { canonicalStringify } from './lib/canonical-json.mjs';
 import { CONTRACT } from './lib/contract.mjs';
 import { createHttpClient } from './lib/http-client.mjs';
 import {
+  DATABASE_GZIP_THRESHOLD_BYTES, finalizeDatabaseArtifact, inspectDatabaseArtifact,
+  resolveDatabaseArtifact,
+} from './lib/database-artifact.mjs';
+import {
   buildDatabase as buildDatabaseDefault, computeDataFingerprint,
 } from './lib/normalize.mjs';
 import { loadSnapshot } from './lib/raw-store.mjs';
@@ -22,7 +26,7 @@ const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(MODULE_DIR, '..', '..');
 const RENAME_NOREPLACE_HELPER = join(MODULE_DIR, 'rename-noreplace.py');
 const REQUIRED_ARTIFACTS = Object.freeze([
-  'manifest.json', 'validation-report.json', 'contract.json', 'whoajor.sqlite', 'source-summary.md',
+  'manifest.json', 'validation-report.json', 'contract.json', 'source-summary.md',
 ]);
 let temporarySequence = 0;
 const execFileAsync = promisify(execFile);
@@ -134,9 +138,9 @@ export async function createSummaryInput(stagingDir, rawDir, database = undefine
   if (report.rootHash !== manifest.rootHash) {
     throw new Error('validation report root does not match manifest root');
   }
-  const checkedDatabase = readDatabaseResult(
-    join(stagingDir, 'whoajor.sqlite'),
-    manifest.rootHash,
+  const checkedDatabase = await inspectDatabaseArtifact(
+    stagingDir,
+    (path) => readDatabaseResult(path, manifest.rootHash),
   );
   if (database) {
     if (canonicalStringify(database.counts) !== canonicalStringify(checkedDatabase.counts)) {
@@ -215,6 +219,7 @@ async function assertRequiredArtifacts(stagingDir) {
       throw new Error(`required artifact ${artifact} is missing: ${error.message}`, { cause: error });
     }
   }
+  await resolveDatabaseArtifact(stagingDir);
 }
 
 export async function publishSnapshot(stagingDir, rawDir) {
@@ -262,9 +267,9 @@ export async function publishSnapshot(stagingDir, rawDir) {
   if (contractContents !== serializeContract()) {
     throw new Error('contract.json is stale, incomplete, or non-canonical');
   }
-  const persistedDatabase = readDatabaseResult(
-    join(stagingPath, 'whoajor.sqlite'),
-    manifest.rootHash,
+  const persistedDatabase = await inspectDatabaseArtifact(
+    stagingPath,
+    (path) => readDatabaseResult(path, manifest.rootHash),
   );
   const verificationDatabasePath = join(
     stagingPath,
@@ -335,7 +340,19 @@ export async function sync(options = {}, overrides = {}) {
     throw new Error('snapshot is not complete or validation reported errors');
   }
   await writeFileAtomically(join(stagingDir, 'contract.json'), serializeContract());
-  const database = await deps.buildDatabase(stagingDir, join(stagingDir, 'whoajor.sqlite'));
+  const builtDatabase = await deps.buildDatabase(stagingDir, join(stagingDir, 'whoajor.sqlite'));
+  const database = await finalizeDatabaseArtifact(
+    stagingDir,
+    (path) => readDatabaseResult(path, report.rootHash),
+    {
+      thresholdBytes: options.databaseGzipThresholdBytes
+        ?? DATABASE_GZIP_THRESHOLD_BYTES,
+    },
+  );
+  if (
+    canonicalStringify(database.counts) !== canonicalStringify(builtDatabase.counts)
+      || database.dataFingerprint !== builtDatabase.dataFingerprint
+  ) throw new Error('final database artifact differs from database build result');
   const summaryInput = await createSummaryInput(stagingDir, rawDir, database);
   await writeFileAtomically(
     join(stagingDir, 'source-summary.md'),
@@ -403,6 +420,8 @@ async function main() {
     rootHash: result.report.rootHash,
     counts: result.database.counts,
     dataFingerprint: result.database.dataFingerprint,
+    databaseArtifact: result.database.artifact,
+    decompressedSha256: result.database.decompressedSha256,
   })}\n`);
 }
 

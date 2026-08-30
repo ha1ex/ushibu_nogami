@@ -124,26 +124,56 @@ function sourceFullness(value) {
   );
 }
 
-function addSourceCandidate(states, id, source, priority) {
+function childSourcePath(parent, key) {
+  if (typeof key === 'number') return `${parent}[${key}]`;
+  if (/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(key)) return `${parent}.${key}`;
+  return `${parent}[${JSON.stringify(key)}]`;
+}
+
+function sourceReference(observation, sourcePath) {
+  return {
+    endpoint: observation.name,
+    observationRole: observationRole(observation.entry),
+    requestKey: observation.entry.key,
+    sourcePath,
+  };
+}
+
+function preferReference(left, right) {
+  if (!left) return right;
+  return compareText(json(left), json(right)) <= 0 ? left : right;
+}
+
+function addSourceCandidate(states, id, source, priority, observation, sourcePath) {
   const state = states.get(id) ?? { variants: new Map(), fallbacks: [] };
   const canonical = json(source);
+  const reference = sourceReference(observation, sourcePath);
   const existing = state.variants.get(canonical);
   if (!existing) {
     state.variants.set(canonical, {
       canonical,
       fullness: sourceFullness(source),
       priority,
+      reference,
       source,
     });
-  } else if (priority > existing.priority) {
-    state.variants.set(canonical, { ...existing, priority });
+  } else {
+    state.variants.set(canonical, {
+      ...existing,
+      priority: Math.max(existing.priority, priority),
+      reference: preferReference(existing.reference, reference),
+    });
   }
   states.set(id, state);
 }
 
-function addFallback(states, id, source) {
+function addFallback(states, id, source, observation, sourcePath) {
   const state = states.get(id) ?? { variants: new Map(), fallbacks: [] };
-  state.fallbacks.push(source);
+  state.fallbacks.push({
+    canonical: json(source),
+    reference: sourceReference(observation, sourcePath),
+    source,
+  });
   states.set(id, state);
 }
 
@@ -154,15 +184,28 @@ function selectSources(states, idField) {
         || right.fullness - left.fullness
         || compareText(left.canonical, right.canonical)
     ));
-    const source = candidates[0]?.source ?? state.fallbacks
-      .map((row) => ({ canonical: json(row), row }))
-      .sort((left, right) => compareText(left.canonical, right.canonical))[0]?.row
-      ?? { [idField]: id };
+    const fallbacks = state.fallbacks.sort((left, right) => (
+      compareText(left.canonical, right.canonical)
+        || compareText(json(left.reference), json(right.reference))
+    ));
+    const selected = candidates[0] ?? fallbacks[0] ?? {
+      canonical: json({ [idField]: id }),
+      reference: null,
+      source: { [idField]: id },
+    };
+    const source = selected.source;
+    const variantCandidates = candidates.length > 0 ? candidates : [selected];
     return [id, {
       id,
       name: source.name ?? candidates.find(({ source: row }) => typeof row.name === 'string')?.source.name ?? null,
       source,
-      variants: candidates.map(({ source: row }) => row),
+      lineage: {
+        selectedSourceSha256: sha256Hex(selected.canonical),
+        sourceVariants: variantCandidates.map(({ canonical, reference }) => ({
+          sha256: sha256Hex(canonical),
+          reference,
+        })),
+      },
     }];
   }));
 }
@@ -170,9 +213,13 @@ function selectSources(states, idField) {
 function collectNamedEntities(observations) {
   const playerStates = new Map();
   const weaponStates = new Map();
-  const visit = (value, observation) => {
+  const visit = (value, observation, sourcePath = '$') => {
     if (Array.isArray(value)) {
-      value.forEach((nested) => visit(nested, observation));
+      value.forEach((nested, index) => visit(
+        nested,
+        observation,
+        childSourcePath(sourcePath, index),
+      ));
       return;
     }
     if (!value || typeof value !== 'object') return;
@@ -182,13 +229,23 @@ function collectNamedEntities(observations) {
         value.steamid,
         value,
         PLAYER_SOURCE_PRIORITY[observation.name] ?? 300,
+        observation,
+        sourcePath,
       );
     }
     for (const field of ['tSteamids', 'ctSteamids']) {
       if (Array.isArray(value[field])) {
-        for (const steamid of value[field]) {
-          if (typeof steamid === 'string') addFallback(playerStates, steamid, { steamid });
-        }
+        value[field].forEach((steamid, index) => {
+          if (typeof steamid === 'string') {
+            addFallback(
+              playerStates,
+              steamid,
+              { steamid },
+              observation,
+              childSourcePath(childSourcePath(sourcePath, field), index),
+            );
+          }
+        });
       }
     }
     if (typeof value.weapon === 'string') {
@@ -197,16 +254,34 @@ function collectNamedEntities(observations) {
         value.weapon,
         value,
         WEAPON_SOURCE_PRIORITY[observation.name] ?? 300,
+        observation,
+        sourcePath,
       );
     }
-    Object.values(value).forEach((nested) => visit(nested, observation));
+    Object.entries(value).forEach(([key, nested]) => visit(
+      nested,
+      observation,
+      childSourcePath(sourcePath, key),
+    ));
   };
   for (const observation of observations) {
     if (observation.context.steamid) {
-      addFallback(playerStates, observation.context.steamid, { steamid: observation.context.steamid });
+      addFallback(
+        playerStates,
+        observation.context.steamid,
+        { steamid: observation.context.steamid },
+        observation,
+        '$request.path',
+      );
     }
     if (observation.context.weapon) {
-      addFallback(weaponStates, observation.context.weapon, { weapon: observation.context.weapon });
+      addFallback(
+        weaponStates,
+        observation.context.weapon,
+        { weapon: observation.context.weapon },
+        observation,
+        '$request.path',
+      );
     }
     visit(observation.payload, observation);
   }
@@ -230,8 +305,8 @@ function populate(db, snapshotId, manifest, report, observations) {
   const insertRequest = statement(db, `
     INSERT INTO requests(
       snapshot_id, request_key, observation_role, path, query_json, body_sha256,
-      canonical_sha256, source_body, source_json
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+      canonical_sha256, source_json
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
   for (const row of observations) {
     insertRequest(
       snapshotId,
@@ -241,7 +316,6 @@ function populate(db, snapshotId, manifest, report, observations) {
       json(row.entry.query ?? {}),
       row.entry.bodySha256,
       row.entry.canonicalSha256,
-      row.sourceBody,
       json(row.entry),
     );
   }
@@ -262,7 +336,7 @@ function populate(db, snapshotId, manifest, report, observations) {
       steamid,
       row.name,
       json(row.source),
-      json({ selectedSource: row.source, sourceVariants: row.variants }),
+      json(row.lineage),
     );
   }
   const insertWeapon = statement(db, `
@@ -271,7 +345,7 @@ function populate(db, snapshotId, manifest, report, observations) {
     insertWeapon(
       weapon,
       json(row.source),
-      json({ selectedSource: row.source, sourceVariants: row.variants }),
+      json(row.lineage),
     );
   }
 
@@ -298,7 +372,7 @@ function populate(db, snapshotId, manifest, report, observations) {
       detail?.roundsPlayed ?? index.rounds_played,
       detail ? 1 : 0,
       json(source),
-      json({ index: index ?? null, detail: detail ?? null }),
+      detail && index ? json({ index }) : '{}',
     );
   }
 
@@ -329,39 +403,54 @@ function populate(db, snapshotId, manifest, report, observations) {
     INSERT INTO match_player_weapons(
       match_id, steamid, weapon, source_json, metrics_json
     ) VALUES (?, ?, ?, ?, ?)`);
+  const detailEntries = new Map(observationsOf(observations, 'matchDetail').map((observation) => (
+    [observation.context.matchId, observation.entry]
+  )));
   for (const [matchId, detail] of [...detailMatches.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+    const detailEntry = detailEntries.get(matchId);
     for (const rawTag of detail.tags ?? []) {
       const tag = typeof rawTag === 'string' ? rawTag : String(rawTag.tag ?? rawTag.name);
       insertMatchTag(matchId, tag, json(rawTag));
     }
-    for (const round of detail.rounds ?? []) {
+    for (const [roundIndex, round] of (detail.rounds ?? []).entries()) {
+      const roundJson = json(round);
       insertRound(
-        matchId, round.round, round.winner, round.reason, bool(round.bombPlanted), json(round), json(round),
+        matchId, round.round, round.winner, round.reason, bool(round.bombPlanted), roundJson, '{}',
       );
       for (const [side, field] of [['T', 'tSteamids'], ['CT', 'ctSteamids']]) {
-        for (const steamid of round[field] ?? []) insertRoster(matchId, round.round, side, steamid, json(round));
+        for (const [rosterIndex, steamid] of (round[field] ?? []).entries()) {
+          insertRoster(matchId, round.round, side, steamid, json({
+            provenance: {
+              observationRole: observationRole(detailEntry),
+              requestKey: detailEntry.key,
+              roundSourceSha256: sha256Hex(roundJson),
+              sourcePath: `$.rounds[${roundIndex}].${field}[${rosterIndex}]`,
+            },
+            steamid,
+          }));
+        }
       }
     }
     for (const player of detail.players ?? []) {
-      insertMatchPlayer(matchId, player.steamid, player.name, json(player), json(player));
+      insertMatchPlayer(matchId, player.steamid, player.name, json(player), '{}');
       for (const round of player.perRound ?? []) {
         insertPlayerRound(
           matchId, player.steamid, round.round, round.side, round.kills, round.deaths,
-          bool(round.won), json(round), json(round),
+          bool(round.won), json(round), '{}',
         );
       }
       for (const [side, metrics] of Object.entries(player.bySide ?? {})) {
-        insertSide(matchId, player.steamid, side, json(metrics), json(metrics));
+        insertSide(matchId, player.steamid, side, json(metrics), '{}');
       }
       for (const [clutchIndex, clutch] of (player.clutches ?? []).entries()) {
         insertClutch(
           matchId, player.steamid, clutchIndex, clutch.round,
           clutch.startTick ?? clutch.start_tick ?? null,
-          json(clutch), json(clutch),
+          json(clutch), '{}',
         );
       }
       for (const weapon of player.weapons ?? []) {
-        insertMatchWeapon(matchId, player.steamid, weapon.weapon, json(weapon), json(weapon));
+        insertMatchWeapon(matchId, player.steamid, weapon.weapon, json(weapon), '{}');
       }
     }
   }
@@ -370,20 +459,35 @@ function populate(db, snapshotId, manifest, report, observations) {
     INSERT INTO player_aliases(
       snapshot_id, steamid, alias, source_fingerprint, source_json
     ) VALUES (?, ?, ?, ?, ?)`);
-  const addAliases = (observation, rows) => rows.forEach((row) => {
+  const addAliases = (observation, rows, basePath) => rows.forEach((row, index) => {
     if (typeof row?.steamid === 'string' && typeof row?.name === 'string') {
-      const sourceJson = json(row);
+      const fullSourceJson = json(row);
+      const sourceJson = json({
+        name: row.name,
+        provenance: {
+          endpoint: observation.name,
+          observationRole: observationRole(observation.entry),
+          requestKey: observation.entry.key,
+          sourcePath: `${basePath}[${index}]`,
+          sourceSha256: sha256Hex(fullSourceJson),
+        },
+        steamid: row.steamid,
+      });
       insertAlias(
         snapshotId, row.steamid, row.name,
-        sha256Hex(`${observation.entry.key}\0${sourceJson}`), sourceJson,
+        sha256Hex(`${observation.entry.key}\0${fullSourceJson}`), sourceJson,
       );
     }
   });
   for (const observation of observations) {
-    if (observation.name === 'matchDetail') addAliases(observation, observation.payload.players ?? []);
+    if (observation.name === 'matchDetail') {
+      addAliases(observation, observation.payload.players ?? [], '$.players');
+    }
     else if (['leaderboard', 'playerSummary', 'weaponDetail'].includes(observation.name)) {
-      addAliases(observation, observation.payload);
-    } else if (observation.name === 'draftConfig') addAliases(observation, observation.payload.players ?? []);
+      addAliases(observation, observation.payload, '$');
+    } else if (observation.name === 'draftConfig') {
+      addAliases(observation, observation.payload.players ?? [], '$.players');
+    }
   }
 
   const insertLeaderboard = statement(db, `
@@ -395,7 +499,7 @@ function populate(db, snapshotId, manifest, report, observations) {
   ))) {
     const fingerprint = queryFingerprint(observation.entry);
     for (const row of observation.payload) {
-      insertLeaderboard(snapshotId, fingerprint, row.steamid, json(row), json(row));
+      insertLeaderboard(snapshotId, fingerprint, row.steamid, json(row), '{}');
     }
   }
 
@@ -419,25 +523,25 @@ function populate(db, snapshotId, manifest, report, observations) {
     const fingerprint = queryFingerprint(observation.entry);
     if (observation.name === 'playerMaps') {
       for (const row of observation.payload) {
-        insertMap(snapshotId, fingerprint, observation.context.steamid, row.map, json(row), json(row));
+        insertMap(snapshotId, fingerprint, observation.context.steamid, row.map, json(row), '{}');
       }
     } else if (observation.name === 'playerMatches') {
       for (const row of observation.payload) {
         insertPlayerMatch(
-          snapshotId, fingerprint, observation.context.steamid, row.match_id, json(row), json(row),
+          snapshotId, fingerprint, observation.context.steamid, row.match_id, json(row), '{}',
         );
       }
     } else if (observation.name === 'playerWeapons') {
       for (const row of observation.payload) {
         insertPlayerWeapon(
-          snapshotId, fingerprint, observation.context.steamid, row.weapon, json(row), json(row),
+          snapshotId, fingerprint, observation.context.steamid, row.weapon, json(row), '{}',
         );
       }
     } else if (observation.name === 'playerWeaponsByDay') {
       for (const row of observation.payload) {
         insertPlayerWeaponDay(
           snapshotId, fingerprint, observation.context.steamid, row.weapon, row.day,
-          json(row), json(row),
+          json(row), '{}',
         );
       }
     }
@@ -452,14 +556,14 @@ function populate(db, snapshotId, manifest, report, observations) {
     if (observation.name === 'weaponDetail') {
       for (const row of observation.payload) {
         insertPlayerWeapon(
-          snapshotId, fingerprint, row.steamid, observation.context.weapon, json(row), json(row),
+          snapshotId, fingerprint, row.steamid, observation.context.weapon, json(row), '{}',
         );
       }
     } else if (observation.name === 'weaponDetailByDay') {
       for (const row of observation.payload) {
         insertWeaponDay(
           snapshotId, fingerprint, observation.context.weapon, row.steamid, row.day,
-          json(row), json(row),
+          json(row), '{}',
         );
       }
     }
@@ -471,7 +575,7 @@ function populate(db, snapshotId, manifest, report, observations) {
     ) VALUES (?, ?, ?, ?, ?)`);
   const splits = firstObservation(observations, 'weaponSplits');
   for (const row of splits?.payload ?? []) {
-    insertSplit(snapshotId, row.steamid, row.weapon, json(row), json(row));
+    insertSplit(snapshotId, row.steamid, row.weapon, json(row), '{}');
   }
 
   const draft = firstObservation(observations, 'draftConfig')?.payload;
@@ -479,14 +583,14 @@ function populate(db, snapshotId, manifest, report, observations) {
     statement(db, `INSERT INTO draft_config(
       snapshot_id, version, teams, metric, published_at, source_json, metrics_json
     ) VALUES (?, ?, ?, ?, ?, ?, ?)`)(
-      snapshotId, draft.v, draft.teams, draft.metric, draft.publishedAt, json(draft), json(draft),
+      snapshotId, draft.v, draft.teams, draft.metric, draft.publishedAt, json(draft), '{}',
     );
     const insertDraftPlayer = statement(db, `
       INSERT INTO draft_players(
         snapshot_id, version, steamid, source_json, metrics_json
       ) VALUES (?, ?, ?, ?, ?)`);
     for (const row of draft.players ?? []) {
-      insertDraftPlayer(snapshotId, draft.v, row.steamid, json(row), json(row));
+      insertDraftPlayer(snapshotId, draft.v, row.steamid, json(row), '{}');
     }
     const insertIgl = statement(db, `
       INSERT INTO draft_igls(
@@ -496,18 +600,18 @@ function populate(db, snapshotId, manifest, report, observations) {
       const candidate = typeof row === 'string' ? row : row?.steamid ?? null;
       const steamid = players.has(candidate) ? candidate : null;
       const key = candidate ?? String(row?.id ?? row?.name ?? index);
-      insertIgl(snapshotId, draft.v, key, steamid, json(row), json(row));
+      insertIgl(snapshotId, draft.v, key, steamid, json(row), '{}');
     });
   }
 
   const meta = firstObservation(observations, 'meta')?.payload;
   const insertMetaMap = statement(db, `
     INSERT INTO meta_maps(snapshot_id, map, source_json, metrics_json) VALUES (?, ?, ?, ?)`);
-  for (const row of meta?.maps ?? []) insertMetaMap(snapshotId, row.map, json(row), json(row));
+  for (const row of meta?.maps ?? []) insertMetaMap(snapshotId, row.map, json(row), '{}');
   const tagPayload = firstObservation(observations, 'tags')?.payload ?? [];
   const insertTag = statement(db, `
     INSERT INTO tags(snapshot_id, tag, source_json, metrics_json) VALUES (?, ?, ?, ?)`);
-  for (const row of tagPayload) insertTag(snapshotId, row.tag, json(row), json(row));
+  for (const row of tagPayload) insertTag(snapshotId, row.tag, json(row), '{}');
 }
 
 function validateReportCounts(counts) {

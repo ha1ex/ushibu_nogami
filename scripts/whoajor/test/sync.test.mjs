@@ -1,16 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import {
-  access, mkdir, mkdtemp, readFile, readdir, rm, writeFile,
+  access, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { gunzipSync, gzipSync } from 'node:zlib';
 import Database from 'better-sqlite3';
 import { collectSnapshot } from '../collect.mjs';
 import { CONTRACT } from '../lib/contract.mjs';
+import { finalizeDatabaseArtifact } from '../lib/database-artifact.mjs';
 import { createHttpClient } from '../lib/http-client.mjs';
 import { buildDatabase } from '../lib/normalize.mjs';
 import { renderSourceSummary } from '../lib/summary.mjs';
@@ -42,6 +45,30 @@ async function publishVerificationArtifacts(dir) {
   return (await readdir(dir)).filter((name) => name.includes('.publish-verify-'));
 }
 
+async function databaseTemporaryArtifacts(dir) {
+  return (await readdir(dir)).filter((name) => name.includes('.whoajor.sqlite.gunzip-'));
+}
+
+async function replaceDatabaseWithGzip(snapshotDir) {
+  const sqlitePath = join(snapshotDir, 'whoajor.sqlite');
+  await writeFile(
+    `${sqlitePath}.gz`,
+    gzipSync(await readFile(sqlitePath), { level: 9, mtime: 0 }),
+  );
+  await rm(sqlitePath);
+}
+
+async function mutateGzipDatabase(snapshotDir, mutate) {
+  const gzipPath = join(snapshotDir, 'whoajor.sqlite.gz');
+  const temporary = join(snapshotDir, 'gzip-mutation.sqlite');
+  await writeFile(temporary, gunzipSync(await readFile(gzipPath)));
+  const db = new Database(temporary);
+  mutate(db);
+  db.close();
+  await writeFile(gzipPath, gzipSync(await readFile(temporary), { level: 9, mtime: 0 }));
+  await rm(temporary);
+}
+
 async function buildCollectedFixture(prefix = 'whoajor-sync-') {
   const stagingDir = await mkdtemp(join(tmpdir(), prefix));
   const fixture = createFixtureApi({
@@ -64,6 +91,10 @@ async function writeReadyArtifacts(stagingDir, rawDir) {
   const report = await validateSnapshot(stagingDir);
   await writeFile(join(stagingDir, 'validation-report.json'), `${JSON.stringify(report, null, 2)}\n`);
   const database = await buildDatabase(stagingDir, join(stagingDir, 'whoajor.sqlite'));
+  database.artifact = 'whoajor.sqlite';
+  database.decompressedSha256 = createHash('sha256')
+    .update(await readFile(join(stagingDir, database.artifact)))
+    .digest('hex');
   await writeFile(join(stagingDir, 'contract.json'), serializeContract());
   const manifest = JSON.parse(await readFile(join(stagingDir, 'manifest.json'), 'utf8'));
   const input = {
@@ -217,6 +248,68 @@ test('publishSnapshot повторно проверяет SQLite integrity, FK �
   }
 });
 
+test('publishSnapshot распаковывает gzip и блокирует неверный snapshot root до публикации', async () => {
+  const { stagingDir, rawDir } = await buildReadyFixture('whoajor-gzip-root-');
+  await replaceDatabaseWithGzip(stagingDir);
+  await writeFile(
+    join(stagingDir, 'source-summary.md'),
+    renderSourceSummary(await createSummaryInput(stagingDir, rawDir)),
+  );
+  await mutateGzipDatabase(stagingDir, (db) => {
+    db.prepare('update snapshots set root_hash = ?').run('0'.repeat(64));
+  });
+
+  await assert.rejects(publishSnapshot(stagingDir, rawDir), /SQLite.*root|snapshot root/i);
+  assert.equal(await exists(rawDir), false);
+  assert.equal(await exists(stagingDir), true);
+});
+
+test('publishSnapshot независимо отклоняет semantic tampering внутри валидного gzip', async () => {
+  const { stagingDir, rawDir } = await buildReadyFixture('whoajor-gzip-semantic-');
+  await replaceDatabaseWithGzip(stagingDir);
+  await mutateGzipDatabase(stagingDir, (db) => {
+    db.prepare('update players set display_name = ? where steamid = ?')
+      .run('Tampered Gzip Player', '76561198000000001');
+  });
+  await writeFile(
+    join(stagingDir, 'source-summary.md'),
+    renderSourceSummary(await createSummaryInput(stagingDir, rawDir)),
+  );
+
+  await assert.rejects(publishSnapshot(stagingDir, rawDir), /independent SQLite|dataFingerprint/i);
+  assert.equal(await exists(rawDir), false);
+  assert.equal(await exists(stagingDir), true);
+});
+
+test('publishSnapshot блокирует неоднозначные одновременно sqlite и gzip artifacts', async () => {
+  const { stagingDir, rawDir } = await buildReadyFixture('whoajor-ambiguous-database-');
+  const sqlitePath = join(stagingDir, 'whoajor.sqlite');
+  await writeFile(
+    `${sqlitePath}.gz`,
+    gzipSync(await readFile(sqlitePath), { level: 9, mtime: 0 }),
+  );
+
+  await assert.rejects(publishSnapshot(stagingDir, rawDir), /exactly one database artifact/i);
+  assert.equal(await exists(rawDir), false);
+  assert.equal(await exists(stagingDir), true);
+});
+
+test('publishSnapshot блокирует усечённый gzip и удаляет временную распаковку', async () => {
+  const { stagingDir, rawDir } = await buildReadyFixture('whoajor-truncated-gzip-');
+  await replaceDatabaseWithGzip(stagingDir);
+  await writeFile(
+    join(stagingDir, 'source-summary.md'),
+    renderSourceSummary(await createSummaryInput(stagingDir, rawDir)),
+  );
+  const gzipPath = join(stagingDir, 'whoajor.sqlite.gz');
+  const compressed = await readFile(gzipPath);
+  await writeFile(gzipPath, compressed.subarray(0, Math.floor(compressed.length / 2)));
+
+  await assert.rejects(publishSnapshot(stagingDir, rawDir), /gzip SQLite verification|unexpected end/i);
+  assert.equal(await exists(rawDir), false);
+  assert.deepEqual(await databaseTemporaryArtifacts(stagingDir), []);
+});
+
 test('publishSnapshot независимо отклоняет tampered discrepancy даже с regenerated summary', async () => {
   const { stagingDir, rawDir } = await buildReadyFixture('whoajor-tampered-discrepancy-');
   const reportPath = join(stagingDir, 'validation-report.json');
@@ -327,6 +420,60 @@ test('sync выполняет полный offline-injected pipeline и публ
   fixture.assertNoUnexpectedCalls();
 });
 
+test('sync детерминированно публикует большую SQLite только как gzip и фиксирует распакованный SHA', async () => {
+  async function publishCompressed(prefix) {
+    const { stagingDir } = await buildCollectedFixture(`${prefix}-staging-`);
+    const rawParent = await mkdtemp(join(tmpdir(), `${prefix}-raw-`));
+    const rawDir = join(rawParent, '2026-08-30-full-snapshot');
+    const result = await sync({
+      publishExisting: stagingDir,
+      rawDir,
+      databaseGzipThresholdBytes: 0,
+    });
+    assert.equal(await exists(join(rawDir, 'whoajor.sqlite')), false);
+    assert.equal(await exists(join(rawDir, 'whoajor.sqlite.gz')), true);
+    const compressed = await readFile(join(rawDir, 'whoajor.sqlite.gz'));
+    const decompressed = gunzipSync(compressed);
+    const decompressedSha256 = createHash('sha256').update(decompressed).digest('hex');
+    assert.equal(result.database.artifact, 'whoajor.sqlite.gz');
+    assert.equal(result.database.decompressedSha256, decompressedSha256);
+    assert.equal(compressed.readUInt32LE(4), 0, 'gzip MTIME must be zero');
+    assert.match(
+      await readFile(join(rawDir, 'source-summary.md'), 'utf8'),
+      new RegExp(`${decompressedSha256}.*whoajor\\.sqlite\\.gz`),
+    );
+    const verificationPath = join(rawParent, 'verification.sqlite');
+    await writeFile(verificationPath, decompressed);
+    const db = new Database(verificationPath, { readonly: true });
+    assert.equal(db.pragma('integrity_check')[0].integrity_check, 'ok');
+    assert.deepEqual(db.pragma('foreign_key_check'), []);
+    assert.equal(db.prepare('select root_hash from snapshots').get().root_hash, result.report.rootHash);
+    db.close();
+    return { compressed, decompressed };
+  }
+
+  const first = await publishCompressed('whoajor-gzip-first');
+  const repeatDir = await mkdtemp(join(tmpdir(), 'whoajor-gzip-repeat-'));
+  const repeatSqlitePath = join(repeatDir, 'whoajor.sqlite');
+  await writeFile(repeatSqlitePath, first.decompressed);
+  const exactThreshold = (await stat(repeatSqlitePath)).size;
+  await finalizeDatabaseArtifact(
+    repeatDir,
+    (path) => {
+      const db = new Database(path, { readonly: true });
+      assert.equal(db.pragma('integrity_check')[0].integrity_check, 'ok');
+      db.close();
+      return {};
+    },
+    { thresholdBytes: exactThreshold },
+  );
+  const repeated = await readFile(join(repeatDir, 'whoajor.sqlite.gz'));
+  assert.equal(
+    createHash('sha256').update(repeated).digest('hex'),
+    createHash('sha256').update(first.compressed).digest('hex'),
+  );
+});
+
 test('failed database build оставляет staging и не создаёт raw', async () => {
   const stagingDir = await mkdtemp(join(tmpdir(), 'whoajor-sync-build-fail-root-'));
   await rm(stagingDir, { recursive: true });
@@ -384,6 +531,7 @@ test('summarize.mjs process CLI атомарно пересоздаёт summary 
   const rawParent = await mkdtemp(join(tmpdir(), 'whoajor-summarize-cli-raw-'));
   const rawDir = join(rawParent, 'summary-process-target');
   await writeReadyArtifacts(stagingDir, rawDir);
+  await replaceDatabaseWithGzip(stagingDir);
   const output = join(stagingDir, 'process-summary.md');
 
   const { stdout, stderr } = await execFileAsync(process.execPath, [
@@ -395,6 +543,8 @@ test('summarize.mjs process CLI атомарно пересоздаёт summary 
   const summary = await readFile(output, 'utf8');
   assert.match(summary, /^---\ntype: source-summary/m);
   assert.match(summary, /summary-process-target/);
+  assert.match(summary, /whoajor\.sqlite\.gz/);
+  assert.match(summary, /SHA-256 распакованной SQLite: `[a-f0-9]{64}`/);
   assert.ok((await readdir(stagingDir)).every((name) => !name.startsWith('process-summary.md.tmp-')));
 });
 

@@ -75,9 +75,16 @@ export function renderSourceSummary(input) {
   }
   const rootHash = requireHash(report.rootHash, 'rootHash');
   const dataFingerprint = requireHash(database.dataFingerprint, 'dataFingerprint');
+  if (!['whoajor.sqlite', 'whoajor.sqlite.gz'].includes(database.artifact)) {
+    throw new TypeError('database artifact must be whoajor.sqlite or whoajor.sqlite.gz');
+  }
+  const decompressedSha256 = requireHash(
+    database.decompressedSha256,
+    'decompressedSha256',
+  );
   const manifestCitation = rawCitation(rawPath, 'manifest.json');
   const reportCitation = rawCitation(rawPath, 'validation-report.json');
-  const databaseCitation = rawCitation(rawPath, 'whoajor.sqlite');
+  const databaseCitation = rawCitation(rawPath, database.artifact);
   const contractCitation = rawCitation(rawPath, 'contract.json');
 
   const lines = [
@@ -101,7 +108,7 @@ export function renderSourceSummary(input) {
     '',
     `FACT: Валидатор подтвердил статус \`complete\`; root hash: \`${rootHash}\`. ${reportCitation}`,
     '',
-    `FACT: Нормализованная SQLite сохранила те же exact counts; data fingerprint SQLite: \`${dataFingerprint}\`. ${databaseCitation}`,
+    `FACT: Нормализованная SQLite сохранила те же exact counts; data fingerprint SQLite: \`${dataFingerprint}\`; SHA-256 распакованной SQLite: \`${decompressedSha256}\`. ${databaseCitation}`,
     '',
     `FACT: Канонический raw evidence — manifest и content-addressed exact HTTP bodies в каталоге \`${rawPath}\`. ${manifestCitation}`,
     '',

@@ -16,7 +16,6 @@ CREATE TABLE requests (
   query_json TEXT NOT NULL,
   body_sha256 TEXT NOT NULL,
   canonical_sha256 TEXT NOT NULL,
-  source_body TEXT NOT NULL,
   source_json TEXT NOT NULL,
   PRIMARY KEY (snapshot_id, request_key, observation_role),
   FOREIGN KEY (snapshot_id) REFERENCES snapshots(snapshot_id)

@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import Database from 'better-sqlite3';
 import { collectSnapshot } from '../collect.mjs';
+import { canonicalStringify, sha256Hex } from '../lib/canonical-json.mjs';
 import { createHttpClient } from '../lib/http-client.mjs';
 import { buildDatabase } from '../lib/normalize.mjs';
 import { validateSnapshot } from '../lib/validation.mjs';
@@ -160,7 +161,7 @@ test('normalizer сохраняет сущности, FK и весь source_json
   assert.equal(db.prepare('select count(*) n from match_rounds').get().n, 4);
   assert.equal(db.prepare('select typeof(steamid) t from players limit 1').get().t, 'text');
   assert.ok(JSON.parse(db.prepare('select source_json j from match_players limit 1').get().j));
-  assert.ok(JSON.parse(db.prepare('select metrics_json j from match_players limit 1').get().j).perRound);
+  assert.deepEqual(JSON.parse(db.prepare('select metrics_json j from match_players limit 1').get().j), {});
   const playerMaster = db.prepare('select display_name, source_json, metrics_json from players where steamid = ?')
     .get(PLAYERS[0]);
   assert.equal(playerMaster.display_name, 'Player 01');
@@ -171,7 +172,15 @@ test('normalizer сохраняет сущности, FK и весь source_json
     rounds_played: 4,
     steamid: PLAYERS[0],
   });
-  assert.ok(JSON.parse(playerMaster.metrics_json).sourceVariants.length >= 4);
+  const playerLineage = JSON.parse(playerMaster.metrics_json);
+  assert.equal(playerLineage.selectedSourceSha256, sha256Hex(playerMaster.source_json));
+  assert.ok(playerLineage.sourceVariants.length >= 4);
+  assert.ok(playerLineage.sourceVariants.every((variant) => (
+    Object.keys(variant).sort().join(',') === 'reference,sha256'
+      && /^[a-f0-9]{64}$/.test(variant.sha256)
+      && typeof variant.reference.requestKey === 'string'
+      && typeof variant.reference.sourcePath === 'string'
+  )));
   const weaponMaster = db.prepare('select source_json, metrics_json from weapons where weapon = ?')
     .get('ak47');
   assert.deepEqual(JSON.parse(weaponMaster.source_json), {
@@ -180,9 +189,30 @@ test('normalizer сохраняет сущности, FK и весь source_json
     shots: 20,
     weapon: 'ak47',
   });
-  assert.ok(JSON.parse(weaponMaster.metrics_json).sourceVariants.some((row) => (
-    row.weapon === 'ak47' && row.kills === 1
-  )));
+  const weaponLineage = JSON.parse(weaponMaster.metrics_json);
+  assert.equal(weaponLineage.selectedSourceSha256, sha256Hex(weaponMaster.source_json));
+  assert.ok(weaponLineage.sourceVariants.length >= 2);
+  assert.ok(!weaponMaster.metrics_json.includes('"kills"'));
+
+  const manifestForLineage = JSON.parse(await readFile(join(snapshotDir, 'manifest.json'), 'utf8'));
+  const resolveSourcePath = (payload, sourcePath) => {
+    assert.match(sourcePath, /^\$(?:(?:\.[A-Za-z_$][A-Za-z0-9_$]*)|(?:\[\d+\]))*$/);
+    const tokens = [...sourcePath.matchAll(/\.([A-Za-z_$][A-Za-z0-9_$]*)|\[(\d+)\]/g)]
+      .map((match) => match[1] ?? Number(match[2]));
+    return tokens.reduce((value, token) => value[token], payload);
+  };
+  for (const lineage of [playerLineage, weaponLineage]) {
+    for (const variant of lineage.sourceVariants) {
+      const entry = manifestForLineage.requests.find((candidate) => (
+        candidate.key === variant.reference.requestKey
+          && (candidate.boundaryRole ?? 'ordinary') === variant.reference.observationRole
+      ));
+      assert.ok(entry, `lineage request must exist: ${variant.reference.requestKey}`);
+      const payload = JSON.parse(await readFile(join(snapshotDir, entry.blob), 'utf8'));
+      const exactSource = resolveSourcePath(payload, variant.reference.sourcePath);
+      assert.equal(sha256Hex(canonicalStringify(exactSource)), variant.sha256);
+    }
+  }
   assert.equal(db.prepare('select count(*) n from match_tags').get().n, 2);
   assert.equal(db.prepare('select count(*) n from player_side_stats').get().n, 8);
   assert.equal(db.prepare('select count(*) n from player_clutches').get().n, 4);
@@ -222,14 +252,67 @@ test('normalizer сохраняет сущности, FK и весь source_json
   const metaStart = manifest.requests.find((entry) => (
     entry.path === '/api/meta' && entry.boundaryRole === 'start'
   ));
+  assert.ok(!db.pragma('table_info(requests)').some(({ name }) => name === 'source_body'));
   const storedMeta = db.prepare(`
-    select source_body from requests
+    select body_sha256, source_json from requests
     where request_key = ? and observation_role = 'start'`).get(metaStart.key);
-  assert.equal(storedMeta.source_body, await readFile(join(snapshotDir, metaStart.blob), 'utf8'));
+  const storedMetaSource = JSON.parse(storedMeta.source_json);
+  const rawMetaBody = await readFile(join(snapshotDir, storedMetaSource.blob), 'utf8');
+  assert.equal(storedMetaSource.blob, metaStart.blob);
+  assert.equal(storedMeta.body_sha256, sha256Hex(rawMetaBody));
   assert.equal(db.prepare(`
     select count(*) n from requests
     where path in ('/api/meta', '/api/matches') and observation_role in ('start', 'end')
   `).get().n, 4);
+
+  const roster = db.prepare(`
+    select rr.source_json, mr.source_json round_source_json
+    from round_rosters rr
+    join match_rounds mr using (match_id, round)
+    limit 1`).get();
+  const rosterSource = JSON.parse(roster.source_json);
+  assert.deepEqual(Object.keys(rosterSource).sort(), ['provenance', 'steamid']);
+  assert.equal(
+    rosterSource.provenance.roundSourceSha256,
+    sha256Hex(roster.round_source_json),
+  );
+  assert.match(rosterSource.provenance.sourcePath, /^\$\.rounds\[\d+\]\.(?:tSteamids|ctSteamids)\[\d+\]$/);
+  const rosterEntry = manifestForLineage.requests.find((candidate) => (
+    candidate.key === rosterSource.provenance.requestKey
+      && (candidate.boundaryRole ?? 'ordinary') === rosterSource.provenance.observationRole
+  ));
+  assert.ok(rosterEntry);
+  const rosterPayload = JSON.parse(await readFile(join(snapshotDir, rosterEntry.blob), 'utf8'));
+  assert.equal(resolveSourcePath(rosterPayload, rosterSource.provenance.sourcePath), rosterSource.steamid);
+
+  const alias = db.prepare('select steamid, alias, source_json from player_aliases limit 1').get();
+  const aliasSource = JSON.parse(alias.source_json);
+  assert.deepEqual(Object.keys(aliasSource).sort(), ['name', 'provenance', 'steamid']);
+  assert.equal(aliasSource.steamid, alias.steamid);
+  assert.equal(aliasSource.name, alias.alias);
+  const aliasEntry = manifestForLineage.requests.find((candidate) => (
+    candidate.key === aliasSource.provenance.requestKey
+      && (candidate.boundaryRole ?? 'ordinary') === aliasSource.provenance.observationRole
+  ));
+  assert.ok(aliasEntry);
+  const aliasPayload = JSON.parse(await readFile(join(snapshotDir, aliasEntry.blob), 'utf8'));
+  const aliasEvidence = resolveSourcePath(aliasPayload, aliasSource.provenance.sourcePath);
+  assert.equal(sha256Hex(canonicalStringify(aliasEvidence)), aliasSource.provenance.sourceSha256);
+  assert.equal(aliasEvidence.steamid, alias.steamid);
+  assert.equal(aliasEvidence.name, alias.alias);
+
+  for (const table of [
+    'leaderboard_snapshots', 'match_player_weapons', 'match_players', 'match_rounds',
+    'meta_maps', 'player_clutches', 'player_map_snapshots', 'player_match_stats',
+    'player_rounds', 'player_side_stats', 'player_weapon_daily_stats',
+    'player_weapon_stats', 'tags', 'weapon_daily_stats', 'weapon_splits',
+  ]) {
+    assert.equal(
+      db.prepare(`select count(*) n from ${table} where metrics_json <> '{}'`).get().n,
+      0,
+      `${table}.metrics_json must not duplicate source_json`,
+    );
+  }
   db.close();
 
   manifest.requests.forEach((entry, index) => {
@@ -422,7 +505,7 @@ test('HTTP transport metadata не меняет fingerprint', async () => {
   assert.equal(second.dataFingerprint, first.dataFingerprint);
 });
 
-test('status, path, query, body и entity mutations меняют fingerprint', async () => {
+test('status, path, query, body hash и entity mutations меняют fingerprint', async () => {
   const snapshotDir = await buildValidatedFixture();
   const dbPath = join(snapshotDir, 'semantic-mutations.sqlite');
   const built = await buildDatabase(snapshotDir, dbPath);
@@ -432,7 +515,7 @@ test('status, path, query, body и entity mutations меняют fingerprint', a
   const mutations = [
     ['update requests set path = ? where rowid = ?', `${request.path}/changed`, request.rowid],
     ['update requests set query_json = ? where rowid = ?', '{"changed":"1"}', request.rowid],
-    ['update requests set source_body = ? where rowid = ?', `${request.source_body} `, request.rowid],
+    ['update requests set body_sha256 = ? where rowid = ?', '0'.repeat(64), request.rowid],
   ];
   for (const [sql, ...params] of mutations) {
     db.exec('BEGIN');

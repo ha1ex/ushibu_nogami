@@ -748,6 +748,11 @@ export async function validateSnapshot(dir) {
   }
   manifest.requests.forEach((entry, index) => {
     if (!isObject(entry) || typeof entry.path !== 'string' || !isObject(entry.query)) return;
+    const classification = classifyRequest(entry);
+    if (classification) {
+      requestScopes.set(index, `CONTRACT.endpoints.${classification.name}`);
+      return;
+    }
     try {
       requestScopes.set(index, requestKey(entry.path, entry.query));
     } catch {
