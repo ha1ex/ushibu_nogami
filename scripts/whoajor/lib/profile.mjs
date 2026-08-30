@@ -8,7 +8,7 @@ import Database from 'better-sqlite3';
 import { canonicalStringify } from './canonical-json.mjs';
 import { computeDataFingerprint } from './normalize.mjs';
 
-const PROFILE_VERSION = 1;
+const PROFILE_VERSION = 2;
 const REQUIRED_TABLES = Object.freeze([
   'draft_config', 'draft_igls', 'draft_players', 'leaderboard_snapshots',
   'match_player_weapons', 'match_players', 'match_rounds', 'match_tags', 'matches',
@@ -16,7 +16,8 @@ const REQUIRED_TABLES = Object.freeze([
   'player_match_stats', 'player_rounds', 'player_side_stats', 'player_weapon_daily_stats',
   'player_weapon_stats', 'players', 'requests', 'round_rosters', 'snapshots',
   'source_discrepancies', 'tags', 'weapon_daily_stats', 'weapon_splits', 'weapons',
-]);
+  'trend_matches', 'trend_players',
+].sort(compareText));
 const COUNT_METRIC_KEYS = Object.freeze([
   'assists', 'bomb_planted', 'cost', 'damage', 'deaths', 'discrepancy_index',
   'duration_seconds', 'headshots', 'hits', 'hs_kills', 'kills', 'matches',
@@ -570,6 +571,12 @@ function profileCrossCounts(recorder, tableNames) {
     roundsActual,
     roundsDeclared: aggregate.rounds_declared,
     roundsPerMatchMismatch,
+    trendsPlayers: tableNames.has('trend_players')
+      ? recorder.one('cross.trends-players', 'SELECT COUNT(*) AS n FROM trend_players').n
+      : 0,
+    trendMatches: tableNames.has('trend_matches')
+      ? recorder.one('cross.trend-matches', 'SELECT COUNT(*) AS n FROM trend_matches').n
+      : 0,
   };
 }
 

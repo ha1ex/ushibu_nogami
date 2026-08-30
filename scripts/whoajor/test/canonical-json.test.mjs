@@ -38,14 +38,14 @@ test('buildUrl кодирует уже подставленный path ID, со�
   assert.throws(() => buildUrl('https://stats.whoajor.com', '/api/../health'), /only \/api\//);
 });
 
-test('CONTRACT v1 содержит полный замороженный API-инвентарь с ключевыми дескрипторами', () => {
-  assert.equal(CONTRACT.version, '1.0.0');
+test('CONTRACT v1.1 содержит полный замороженный API-инвентарь с ключевыми дескрипторами', () => {
+  assert.equal(CONTRACT.version, '1.1.0');
   assert.equal(Object.isFrozen(CONTRACT), true);
   assert.equal(Object.isFrozen(CONTRACT.endpoints), true);
   assert.equal(Object.isFrozen(CONTRACT.endpoints.matches), true);
   assert.deepEqual(Object.keys(CONTRACT.endpoints).sort(), [
     'draftConfig', 'leaderboard', 'matchDetail', 'matches', 'meta', 'playerMaps',
-    'playerMatches', 'playerSummary', 'playerWeapons', 'playerWeaponsByDay', 'tags',
+    'playerMatches', 'playerSummary', 'playerWeapons', 'playerWeaponsByDay', 'tags', 'trends',
     'weaponDetail', 'weaponDetailByDay', 'weaponSplits', 'weapons',
   ]);
   assert.deepEqual(CONTRACT.endpoints.matches.required, {

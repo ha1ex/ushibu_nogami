@@ -29,7 +29,8 @@ const TABLES = [
   'player_match_stats', 'player_rounds', 'player_side_stats', 'player_weapon_daily_stats',
   'player_weapon_stats', 'players', 'requests', 'round_rosters', 'snapshots',
   'source_discrepancies', 'tags', 'weapon_daily_stats', 'weapon_splits', 'weapons',
-];
+  'trend_matches', 'trend_players',
+].sort((left, right) => left.localeCompare(right));
 
 async function buildValidatedFixture({
   duplicateAlias = false,
@@ -149,12 +150,14 @@ test('normalizer сохраняет сущности, FK и весь source_json
   const db = new Database(dbPath, { readonly: true });
   assert.equal(db.pragma('foreign_key_check').length, 0);
   assert.deepEqual(first.counts, {
-    requests: 25,
+    requests: 26,
     matches: 2,
     matchDetails: 2,
     players: 2,
     weapons: 2,
     tags: 1,
+    trendsPlayers: 2,
+    trendMatches: 2,
   });
   assert.equal(db.prepare('select count(*) n from matches').get().n, 2);
   assert.equal(db.prepare('select count(*) n from matches where has_detail = 1').get().n, 2);
@@ -218,6 +221,63 @@ test('normalizer сохраняет сущности, FK и весь source_json
   assert.equal(db.prepare('select count(*) n from player_clutches').get().n, 4);
   assert.equal(db.prepare('select count(*) n from draft_igls').get().n, 1);
 
+  const trendPlayer = db.prepare(`
+    select player_index, steamid, name, rounds_total, source_json, lineage_json
+    from trend_players order by player_index limit 1`).get();
+  assert.equal(trendPlayer.player_index, 0);
+  assert.equal(trendPlayer.steamid, PLAYERS[0]);
+  assert.equal(trendPlayer.name, 'Player 01');
+  assert.equal(trendPlayer.rounds_total, 2);
+  const trendPlayerSource = JSON.parse(trendPlayer.source_json);
+  assert.equal(trendPlayerSource.steamid, PLAYERS[0]);
+  assert.equal(trendPlayerSource.matches.length, 1);
+  assert.deepEqual(JSON.parse(trendPlayer.lineage_json), {
+    endpoint: 'trends',
+    observationRole: 'ordinary',
+    requestKey: 'GET /api/trends?top=2',
+    sourcePath: '$[0]',
+    sourceSha256: sha256Hex(trendPlayer.source_json),
+  });
+
+  const trendMatch = db.prepare(`
+    select player_index, match_index, steamid, started_at, map, match_name,
+           adr, assists, cs_good, cs_graded, cs_stop_fast, cs_stop_slow,
+           damage, deaths, dpr, flash_assists, hs_kills, impact, kast_pct,
+           kast_rounds, kills, kpr, opening_deaths, opening_kills, ping_n,
+           ping_sum, rating2, rounds_played, rounds_won, rws_sum, stop_ms_n,
+           stop_ms_sum, ttd_adj_sum, ttd_n, ttd_sum, source_json, lineage_json
+    from trend_matches order by player_index, match_index limit 1`).get();
+  assert.deepEqual({
+    player_index: trendMatch.player_index,
+    match_index: trendMatch.match_index,
+    steamid: trendMatch.steamid,
+    started_at: trendMatch.started_at,
+    map: trendMatch.map,
+    match_name: trendMatch.match_name,
+  }, {
+    player_index: 0,
+    match_index: 0,
+    steamid: PLAYERS[0],
+    started_at: '2026-08-28T18:00:00Z',
+    map: 'de_mirage',
+    match_name: 'match-1',
+  });
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(JSON.parse(trendMatch.source_json))
+      .filter(([, value]) => typeof value === 'number')),
+    Object.fromEntries(Object.entries(trendMatch)
+      .filter(([key]) => ![
+        'player_index', 'match_index', 'source_json', 'lineage_json',
+      ].includes(key) && typeof trendMatch[key] === 'number')),
+  );
+  assert.deepEqual(JSON.parse(trendMatch.lineage_json), {
+    endpoint: 'trends',
+    observationRole: 'ordinary',
+    requestKey: 'GET /api/trends?top=2',
+    sourcePath: '$[0].matches[0]',
+    sourceSha256: sha256Hex(trendMatch.source_json),
+  });
+
   const actualTables = db.pragma('table_list')
     .filter((row) => row.schema === 'main' && !row.name.startsWith('sqlite_'))
     .sort((left, right) => left.name.localeCompare(right.name));
@@ -245,8 +305,29 @@ test('normalizer сохраняет сущности, FK и весь source_json
   assert.deepEqual(pk('player_map_snapshots'), [
     'snapshot_id', 'query_fingerprint', 'steamid', 'map',
   ]);
+  assert.deepEqual(pk('trend_players'), [
+    'snapshot_id', 'query_fingerprint', 'player_index',
+  ]);
+  assert.deepEqual(pk('trend_matches'), [
+    'snapshot_id', 'query_fingerprint', 'player_index', 'match_index',
+  ]);
+  const trendPlayerColumns = Object.fromEntries(
+    db.pragma('table_info(trend_players)').map(({ name, type }) => [name, type]),
+  );
+  assert.equal(trendPlayerColumns.rounds_total, 'REAL');
+  const trendMatchColumns = Object.fromEntries(
+    db.pragma('table_info(trend_matches)').map(({ name, type }) => [name, type]),
+  );
+  for (const field of [
+    'adr', 'assists', 'cs_good', 'cs_graded', 'cs_stop_fast', 'cs_stop_slow',
+    'damage', 'deaths', 'dpr', 'flash_assists', 'hs_kills', 'impact', 'kast_pct',
+    'kast_rounds', 'kills', 'kpr', 'opening_deaths', 'opening_kills', 'ping_n',
+    'ping_sum', 'rating2', 'rounds_played', 'rounds_won', 'rws_sum', 'stop_ms_n',
+    'stop_ms_sum', 'ttd_adj_sum', 'ttd_n', 'ttd_sum',
+  ]) assert.equal(trendMatchColumns[field], 'REAL', `${field} must preserve CONTRACT number values`);
   assert.ok(db.pragma('foreign_key_list(round_rosters)').length >= 2);
   assert.ok(db.pragma('foreign_key_list(player_rounds)').length >= 2);
+  assert.ok(db.pragma('foreign_key_list(trend_matches)').length >= 2);
 
   const manifest = JSON.parse(await readFile(join(snapshotDir, 'manifest.json'), 'utf8'));
   const metaStart = manifest.requests.find((entry) => (

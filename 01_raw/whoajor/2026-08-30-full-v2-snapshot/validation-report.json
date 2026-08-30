@@ -1,0 +1,3089 @@
+{
+  "status": "complete",
+  "checkedAt": "2026-08-30T11:06:44.172Z",
+  "errors": [],
+  "warnings": [
+    {
+      "code": "INDEX_DETAIL_NAMING_DIFFERENCE",
+      "location": "/api/matches",
+      "message": "index snake_case fields map to detail camelCase fields"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].adr",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].afk_seconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].assists",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].bhop_attempts",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].blank_flashes",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].blocked_teammates",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].bomb_deaths",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].bomb_defuses",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].bomb_plants",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].bomb_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].bunnyhops",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].burst_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].burst_shots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].chat_messages",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].clutch_exposure_seconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].clutch_noise_seconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].clutch_v1_l",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].clutch_v1_w",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].clutch_v2_l",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].clutch_v2_w",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].clutch_v3_l",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].clutch_v3_w",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].clutch_v4_l",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].clutch_v4_w",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].clutch_v5_l",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].clutch_v5_w",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].cs_good",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].cs_graded",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].cs_stop_fast",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].cs_stop_slow",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].death_info_calls",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].deaths",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].deaths_traded",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].decoys_thrown",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].died_with_bomb",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].died_with_nade",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].distraction_assists",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].dpr",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].early_blocked",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].early_got_blocked",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].enemies_flashed",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].enemy_blind_time",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].failed_mollies",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].fake_defuses",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].flash_assists",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].flash_blind_max_n",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].flash_blind_max_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].flash_bounces",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].flashes_late",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].flashes_leading_to_kill",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].flashes_thrown",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].good_flashes",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].good_hes",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].good_mollies",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].got_blocked",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].gun_out_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].gun_out_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].he_damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].he_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].he_team_damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].hes_thrown",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].hostage_pickups",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].hostage_rescues",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].hs_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].hs_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].impact",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].impact_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].insta_smokes",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].jump_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].k2",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].k3",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].k4",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].k5",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].kast_pct",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].kast_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].kast21_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].kill_time_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].kills_blind",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].kills_thru_smoke",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].kit_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].knife_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].kpr",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].lone_index_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].lone_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].match_losses",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].match_wins",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].mollies_thrown",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].molly_damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].molly_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].molly_team_damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].money_spent",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].mvps",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].nades_kept",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].nades_kept_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].no_kit_defuses",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].noscope_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].opening_deaths",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].opening_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].ping_n",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].ping_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].postplant_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].postplant_wins",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].preaim_n",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].preaim_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].retake_attempts",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].retake_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].retake_wins",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].rounds_ct",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].rounds_eco",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].rounds_force",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].rounds_full",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].rounds_pistol",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].rounds_t",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].rounds_won",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].run_seconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].rws_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].saved_value",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].saves",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].self_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].shots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].smokes_broken",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].smokes_broken_against",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].smokes_contested",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].smokes_thrown",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].spray_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].spray_shots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].stop_ms_n",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].stop_ms_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].survived",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].survived_losses",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].talk_dead_seconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].talk_freeze_seconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].talk_longest",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].talk_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].talk_seconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].tap_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].tap_shots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].team_blind_time",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].team_damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].team_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].teammates_flashed",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].time_alive_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].trade_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].ttd_adj_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].ttd_n",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].ttd_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].ttk_n",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].ttk_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].unused_util_deaths",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].unused_util_value",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].util_chains",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].utility_damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].voice_deaths",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].voice_round_seconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].walk_seconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].wallbang_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].wins_eco",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].wins_force",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].wins_full",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].wins_pistol",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].xhair_n",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].xhair_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[375][0].zeus_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].adr",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].afk_seconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].assists",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].bhop_attempts",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].blank_flashes",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].blocked_teammates",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].bomb_deaths",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].bomb_defuses",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].bomb_plants",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].bomb_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].bunnyhops",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].burst_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].burst_shots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].chat_messages",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].clutch_exposure_seconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].clutch_noise_seconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].clutch_v1_l",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].clutch_v1_w",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].clutch_v2_l",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].clutch_v2_w",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].clutch_v3_l",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].clutch_v3_w",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].clutch_v4_l",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].clutch_v4_w",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].clutch_v5_l",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].clutch_v5_w",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].cs_good",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].cs_graded",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].cs_stop_fast",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].cs_stop_slow",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].death_info_calls",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].deaths",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].deaths_traded",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].decoys_thrown",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].died_with_bomb",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].died_with_nade",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].distraction_assists",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].dpr",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].early_blocked",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].early_got_blocked",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].enemies_flashed",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].enemy_blind_time",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].failed_mollies",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].fake_defuses",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].flash_assists",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].flash_blind_max_n",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].flash_blind_max_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].flash_bounces",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].flashes_late",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].flashes_leading_to_kill",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].flashes_thrown",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].good_flashes",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].good_hes",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].good_mollies",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].got_blocked",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].gun_out_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].gun_out_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].he_damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].he_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].he_team_damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].hes_thrown",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].hostage_pickups",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].hostage_rescues",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].hs_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].hs_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].impact",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].impact_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].insta_smokes",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].jump_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].k2",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].k3",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].k4",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].k5",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].kast_pct",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].kast_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].kast21_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].kill_time_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].kills_blind",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].kills_thru_smoke",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].kit_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].knife_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].kpr",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].lone_index_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].lone_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].match_losses",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].match_wins",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].mollies_thrown",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].molly_damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].molly_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].molly_team_damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].money_spent",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].mvps",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].nades_kept",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].nades_kept_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].no_kit_defuses",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].noscope_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].opening_deaths",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].opening_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].ping_n",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].ping_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].postplant_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].postplant_wins",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].preaim_n",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].preaim_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].retake_attempts",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].retake_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].retake_wins",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].rounds_ct",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].rounds_eco",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].rounds_force",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].rounds_full",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].rounds_pistol",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].rounds_t",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].rounds_won",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].run_seconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].rws_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].saved_value",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].saves",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].self_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].shots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].smokes_broken",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].smokes_broken_against",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].smokes_contested",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].smokes_thrown",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].spray_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].spray_shots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].stop_ms_n",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].stop_ms_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].survived",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].survived_losses",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].talk_dead_seconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].talk_freeze_seconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].talk_longest",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].talk_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].talk_seconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].tap_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].tap_shots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].team_blind_time",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].team_damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].team_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].teammates_flashed",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].time_alive_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].trade_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].ttd_adj_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].ttd_n",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].ttd_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].ttk_n",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].ttk_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].unused_util_deaths",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].unused_util_value",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].util_chains",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].utility_damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].voice_deaths",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].voice_round_seconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].walk_seconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].wallbang_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].wins_eco",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].wins_force",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].wins_full",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].wins_pistol",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].xhair_n",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].xhair_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[376][0].zeus_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[377][0].adr",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[377][0].assists",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[377][0].damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[377][0].dpr",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[377][0].flash_assists",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[377][0].impact",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[377][0].kast_pct",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[377][0].kast_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[377][0].kpr",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[378][0].burst_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[378][0].burst_shots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[378][0].cs_good",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[378][0].cs_graded",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[378][0].cs_stop_fast",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[378][0].cs_stop_slow",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[378][0].damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[378][0].hs_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[378][0].hs_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[378][0].saved_with",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[378][0].spray_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[378][0].spray_shots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[378][0].stop_ms_n",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[378][0].stop_ms_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[378][0].tap_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[378][0].tap_shots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[379][0].burst_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[379][0].burst_shots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[379][0].cs_good",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[379][0].cs_graded",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[379][0].cs_stop_fast",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[379][0].cs_stop_slow",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[379][0].damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[379][0].hs_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[379][0].hs_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[379][0].saved_with",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[379][0].spray_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[379][0].spray_shots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[379][0].stop_ms_n",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[379][0].stop_ms_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[379][0].tap_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[379][0].tap_shots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].adr",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].assists",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].dpr",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].flash_assists",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].hs_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].impact",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].kast_pct",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].kast_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].kast21_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].kpr",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].match_name",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].match_result",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].mixed_teams",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].mvps",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].opening_deaths",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].opening_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].rws_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].tags",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].team_a_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].team_b_rounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].time_alive_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[380][0].trade_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].accuracy",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].adr",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].afkSeconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].apr",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].assists",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].bhopAttempts",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].blankFlashes",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].blockedTeammates",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].bombDeaths",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].bombDefuses",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].bombPlants",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].bombRounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].bunnyhops",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].burstAccuracy",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].burstHits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].burstShots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].chatMessages",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].clutches",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].clutchExposureSeconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].clutchLostByVs",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].clutchNoiseSeconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].clutchWonByVs",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].counterStrafeGood",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].counterStrafeGraded",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].counterStrafePercent",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].counterStrafeStopFast",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].counterStrafeStopSlow",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].deathInfoCalls",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].deaths",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].deathsTraded",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].decoysThrown",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].diedWithBomb",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].diedWithNade",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].distractionAssists",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].dpr",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].earlyBlockedTeammates",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].earlyGotBlocked",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].enemiesFlashed",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].enemyBlindTime",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].failedMollies",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].fakeDefuses",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].flashAssists",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].flashBlindMaxN",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].flashBlindMaxSum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].flashBounces",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].flashesLateFollow",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].flashesLeadingToKill",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].flashesThrown",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].goodFlashes",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].goodHes",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].goodMollies",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].gotBlocked",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].gunOutRounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].gunOutSum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].headshotHitPercent",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].headshotKills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].heDamage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].heKills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].hesThrown",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].heTeamDamage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].hostagePickups",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].hostageRescues",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].hsPercent",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].impact",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].impactGrenadeKills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].instaSmokes",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].jumpKills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].kast21Percent",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].kastPercent",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].kd",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].killsThroughSmoke",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].killsWhileBlind",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].killTimeSum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].kitRounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].knifeKills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].kpr",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].loneRounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].loneWolfIndex",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].matchResult",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].molliesThrown",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].mollyDamage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].mollyKills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].mollyTeamDamage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].moneySpentTotal",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].multikills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].mvps",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].nadesKept",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].nadesKeptRounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].noKitDefuses",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].noscopeKills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].openingAttempts",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].openingDeaths",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].openingKills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].openingSuccess",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].afkSeconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].assists",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].bombDefused",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].bombPlanted",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].buyType",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].cashSpent",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].clutch",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].deathWasTraded",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].diedToBomb",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].equipValue",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].flashAssists",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].headshotKills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].hostagePickups",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].hostageRescues",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].kast",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].kast21",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].openingDeath",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].openingKill",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].runSeconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].rws",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].save",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].savedValue",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].survived",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].teamDamage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].timeAlive",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].tradeKills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].unusedUtilValue",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].utilityDamage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].perRound[0].walkSeconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].pingAvg",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].pingN",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].pingSum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].postplantRounds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].postplantWins",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].preaimAvgDeg",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].preaimDegSum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].preaimN",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].rating2",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].retakeAttempts",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].retakeKills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].retakeWins",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].roundsByBuy",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].roundsCT",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].roundsPlayed",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].roundsT",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].roundsWon",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].runSeconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].rws",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].savedValueTotal",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].saves",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].score",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].selfKills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].shots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].smokesBrokenAgainst",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].smokesBrokenByHE",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].smokesContested",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].smokesThrown",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].sprayAccuracy",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].sprayHits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].sprayShots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].stopMsAvg",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].stopMsN",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].stopMsSum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].survivalRate",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].survived",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].survivedLosses",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].talkDeadSeconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].talkFreezeSeconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].talkLongestSeconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].talkSeconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].tapAccuracy",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].tapHits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].tapShots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].teamBlindTime",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].teamDamage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].teamKills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].teammatesFlashed",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].timeAliveAvg",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].timeAliveTotal",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].timeToKillAvgMs",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].tradeKills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].ttdAdjAvgMs",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].ttdAdjSum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].ttdAvgMs",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].ttdN",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].ttdSum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].ttkN",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].ttkSum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].unusedUtilValueAvgOnDeath",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].unusedUtilValueTotal",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].utilChains",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].utilityDamage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].voiceDeaths",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].voiceRoundSeconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].walkSeconds",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].wallbangKills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].winsByBuy",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].xhairOffsetAvgDeg",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].xhairOffsetDegSum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].xhairOffsetN",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[7].players[0].zeusKills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[782][0].burst_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[782][0].burst_shots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[782][0].cs_good",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[782][0].cs_graded",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[782][0].cs_stop_fast",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[782][0].cs_stop_slow",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[782][0].damage",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[782][0].hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[782][0].hs_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[782][0].hs_kills",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[782][0].rounds_with",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[782][0].saved_with",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[782][0].spray_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[782][0].spray_shots",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[782][0].stop_ms_n",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[782][0].stop_ms_sum",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[782][0].tap_hits",
+      "message": "field is outside CONTRACT v1 minimum"
+    },
+    {
+      "code": "UNKNOWN_FIELD",
+      "location": "manifest.requests[782][0].tap_shots",
+      "message": "field is outside CONTRACT v1 minimum"
+    }
+  ],
+  "discrepancies": [],
+  "counts": {
+    "requests": 864,
+    "matches": 368,
+    "matchDetails": 368,
+    "players": 81,
+    "weapons": 39,
+    "tags": 1,
+    "trendsPlayers": 20,
+    "trendMatches": 2987
+  },
+  "rootHash": "84a051d7989725f22fd8bc37969f9308b2282edcdc61bf6b3477a021d8c71ee2"
+}

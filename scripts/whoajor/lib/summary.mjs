@@ -1,5 +1,8 @@
-const COUNT_KEYS = Object.freeze([
+const LEGACY_COUNT_KEYS = Object.freeze([
   'requests', 'matches', 'matchDetails', 'players', 'weapons', 'tags',
+]);
+const COUNT_KEYS = Object.freeze([
+  ...LEGACY_COUNT_KEYS, 'trendsPlayers', 'trendMatches',
 ]);
 
 function requireHash(value, name) {
@@ -14,13 +17,15 @@ function requireCounts(value, name) {
     throw new TypeError(`${name} counts are required`);
   }
   const keys = Object.keys(value).sort();
-  const expected = [...COUNT_KEYS].sort();
-  if (
-    keys.length !== expected.length
-      || keys.some((key, index) => key !== expected[index])
-      || keys.some((key) => !Number.isInteger(value[key]) || value[key] < 0)
-  ) {
-    throw new TypeError(`${name} counts must contain exactly ${expected.join(', ')}`);
+  const schemas = [LEGACY_COUNT_KEYS, COUNT_KEYS].map((schema) => [...schema].sort());
+  const exactSchema = schemas.find((schema) => (
+    keys.length === schema.length
+      && keys.every((key, index) => key === schema[index])
+  ));
+  if (!exactSchema || keys.some((key) => !Number.isInteger(value[key]) || value[key] < 0)) {
+    throw new TypeError(
+      `${name} counts must contain exactly ${schemas.map((schema) => schema.join(', ')).join(' or ')}`,
+    );
   }
   return value;
 }
@@ -68,7 +73,13 @@ export function renderSourceSummary(input) {
   }
   const reportCounts = requireCounts(report.counts, 'validation report');
   const databaseCounts = requireCounts(database?.counts, 'database');
-  for (const key of COUNT_KEYS) {
+  const reportCountKeys = Object.keys(reportCounts).sort();
+  const databaseCountKeys = Object.keys(databaseCounts).sort();
+  if (
+    reportCountKeys.length !== databaseCountKeys.length
+      || reportCountKeys.some((key, index) => key !== databaseCountKeys[index])
+  ) throw new Error('database counts schema differs from validation report counts schema');
+  for (const key of reportCountKeys) {
     if (reportCounts[key] !== databaseCounts[key]) {
       throw new Error(`database counts mismatch for ${key}: ${databaseCounts[key]} != ${reportCounts[key]}`);
     }
@@ -87,6 +98,9 @@ export function renderSourceSummary(input) {
   const reportCitation = rawCitation(rawPath, 'validation-report.json');
   const databaseCitation = rawCitation(rawPath, database.artifact);
   const contractCitation = rawCitation(rawPath, 'contract.json');
+  const inventoryTail = Object.hasOwn(reportCounts, 'trendsPlayers')
+    ? `${reportCounts.weapons} видов оружия, ${reportCounts.tags} тегов, ${reportCounts.trendsPlayers} игроков trends и ${reportCounts.trendMatches} строк матчей trends`
+    : `${reportCounts.weapons} видов оружия и ${reportCounts.tags} тегов`;
 
   const lines = [
     '---',
@@ -103,7 +117,7 @@ export function renderSourceSummary(input) {
     '',
     '## Provenance и полнота',
     '',
-    `FACT: Снимок содержит ровно ${reportCounts.requests} HTTP-ответов, ${reportCounts.matches} матчей, ${reportCounts.matchDetails} карточек матчей, ${reportCounts.players} игроков, ${reportCounts.weapons} видов оружия и ${reportCounts.tags} тегов. ${reportCitation}`,
+    `FACT: Снимок содержит ровно ${reportCounts.requests} HTTP-ответов, ${reportCounts.matches} матчей, ${reportCounts.matchDetails} карточек матчей, ${reportCounts.players} игроков, ${inventoryTail}. ${reportCitation}`,
     '',
     `FACT: Точный временной диапазон источника: \`${sourceRange.minDate}\` — \`${sourceRange.maxDate}\`. ${rawCitation(rawPath, sourceRange.artifact)}`,
     '',
@@ -111,7 +125,7 @@ export function renderSourceSummary(input) {
     '',
     `FACT: Нормализованная SQLite сохранила те же exact counts; data fingerprint SQLite: \`${dataFingerprint}\`; SHA-256 распакованной SQLite: \`${decompressedSha256}\`; SHA-256 файла ${database.artifact}: \`${artifactSha256}\`. ${databaseCitation}`,
     '',
-    `FACT: Канонический raw evidence — manifest и content-addressed exact HTTP bodies в каталоге \`${rawPath}\`. ${manifestCitation}`,
+    `FACT: Канонический raw evidence — manifest и content-addressed сохранённые JSON-тела HTTP-ответов в каталоге \`${rawPath}\`. ${manifestCitation}`,
     '',
     'INFERENCE: Совпадение counts в независимом validation report и SQLite позволяет использовать базу как производное представление raw-снимка, но не заменяет raw evidence. '
       + `${reportCitation} ${databaseCitation}`,

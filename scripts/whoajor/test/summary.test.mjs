@@ -27,6 +27,8 @@ function fixtureSummaryInput() {
         players: 3,
         weapons: 2,
         tags: 1,
+        trendsPlayers: 2,
+        trendMatches: 2,
       },
       discrepancies: [
         {
@@ -49,6 +51,8 @@ function fixtureSummaryInput() {
         players: 3,
         weapons: 2,
         tags: 1,
+        trendsPlayers: 2,
+        trendMatches: 2,
       },
       dataFingerprint: DATA_FINGERPRINT,
       artifact: 'whoajor.sqlite.gz',
@@ -65,7 +69,7 @@ test('summary содержит полный frontmatter, provenance, exact count
   for (const field of ['title:', 'date: 2026-08-30', 'raw:', 'source:', 'confidence:', 'tags:']) {
     assert.match(markdown, new RegExp(`^${field}`, 'm'));
   }
-  assert.match(markdown, /FACT: Снимок содержит ровно 25 HTTP-ответов, 2 матчей, 2 карточек матчей, 3 игроков, 2 видов оружия и 1 тегов\./);
+  assert.match(markdown, /FACT: Снимок содержит ровно 25 HTTP-ответов, 2 матчей, 2 карточек матчей, 3 игроков, 2 видов оружия, 1 тегов, 2 игроков trends и 2 строк матчей trends\./);
   assert.match(markdown, new RegExp(`root hash: \`${ROOT_HASH}\``));
   assert.match(markdown, new RegExp(`data fingerprint SQLite: \`${DATA_FINGERPRINT}\``));
   assert.match(markdown, new RegExp(`SHA-256 распакованной SQLite: \`${'d'.repeat(64)}\``));
@@ -114,4 +118,21 @@ test('summary отклоняет stale counts и invalid fingerprints', () => {
   const invalidArtifactHash = fixtureSummaryInput();
   invalidArtifactHash.database.artifactSha256 = 'not-a-hash';
   assert.throws(() => renderSourceSummary(invalidArtifactHash), /artifactSha256/i);
+});
+
+test('summary строго принимает legacy six-count interface без выдуманных trends counts', () => {
+  const legacy = fixtureSummaryInput();
+  for (const counts of [legacy.report.counts, legacy.database.counts]) {
+    delete counts.trendsPlayers;
+    delete counts.trendMatches;
+  }
+
+  const markdown = renderSourceSummary(legacy);
+
+  assert.match(markdown, /2 видов оружия и 1 тегов\./);
+  assert.doesNotMatch(markdown, /игроков trends|строк матчей trends/);
+
+  const mixed = fixtureSummaryInput();
+  delete mixed.database.counts.trendMatches;
+  assert.throws(() => renderSourceSummary(mixed), /counts must contain exactly/i);
 });

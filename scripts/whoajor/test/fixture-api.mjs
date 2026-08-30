@@ -178,6 +178,48 @@ export function createFixtureApi({
         publishedAt: '2026-08-29T06:00:00Z',
       };
     }
+    if (key === `/api/trends?top=${expectedPlayers.length}`) {
+      return expectedPlayers.slice(0, 2).map((steamid, index) => ({
+        steamid,
+        name: `Player ${steamid.slice(-2)}`,
+        roundsTotal: 2,
+        matches: [{
+          steamid,
+          started_at: `2026-08-${String(28 - index).padStart(2, '0')}T18:00:00Z`,
+          map: index === 0 ? 'de_mirage' : 'de_inferno',
+          match_name: `match-${index + 1}`,
+          adr: 75 + index,
+          assists: 1,
+          cs_good: 2,
+          cs_graded: 2,
+          cs_stop_fast: 1,
+          cs_stop_slow: 1,
+          damage: 150 + index,
+          deaths: 1,
+          dpr: 0.5,
+          flash_assists: 0,
+          hs_kills: 1,
+          impact: 1.1,
+          kast_pct: 100,
+          kast_rounds: 2,
+          kills: 2,
+          kpr: 1,
+          opening_deaths: 0,
+          opening_kills: 1,
+          ping_n: 1,
+          ping_sum: 40,
+          rating2: 1.05,
+          rounds_played: 2,
+          rounds_won: 1,
+          rws_sum: 20,
+          stop_ms_n: 2,
+          stop_ms_sum: 300,
+          ttd_adj_sum: 180,
+          ttd_sum: 200,
+          ttd_n: 1,
+        }],
+      }));
+    }
 
     const matchPage = key.match(/^\/api\/matches\?limit=(\d+)&offset=(\d+)$/);
     if (matchPage) {
@@ -255,6 +297,7 @@ export function createFixtureApi({
     assert.equal(routeCounts.get('/api/meta'), 2, 'meta must be checked at both boundaries');
     assert.equal(routeCounts.get('/api/tags'), 1);
     assert.equal(routeCounts.get('/api/draft-config'), 1);
+    assert.equal(routeCounts.get(`/api/trends?top=${expectedPlayers.length}`), 1);
     assert.equal(routeCounts.get('/api/leaderboard'), 1);
     assert.equal(routeCounts.get('/api/weapons'), 1);
     assert.equal(routeCounts.get('/api/weapon-splits'), 1);
@@ -283,7 +326,7 @@ export function createFixtureApi({
       assert.equal(routeCounts.get(`/api/weapons/${weapon}`), 1);
       assert.equal(routeCounts.get(`/api/weapons/${weapon}?by=day`), 1);
     }
-    const expectedRouteCount = 6 + expectedPageOffsets.length
+    const expectedRouteCount = 7 + expectedPageOffsets.length
       + matchIds.length + (expectedPlayers.length * 5) + (weapons.length * 2);
     assert.equal(routeCounts.size, expectedRouteCount, 'every known URL must be expected exactly');
   }

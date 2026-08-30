@@ -1,0 +1,493 @@
+{
+  "version": 1,
+  "snapshotId": "2026-08-30-full-v2",
+  "contractVersion": "1.1.0",
+  "rootHash": "84a051d7989725f22fd8bc37969f9308b2282edcdc61bf6b3477a021d8c71ee2",
+  "snapshotStatus": "collected",
+  "checkedAt": "2026-08-30T11:06:44.171Z",
+  "status": "complete",
+  "entityCount": 488,
+  "sampleTarget": 30,
+  "candidateCount": 862,
+  "selectedCount": 30,
+  "selectionAlgorithm": {
+    "mandatoryCoverage": "all CONTRACT endpoint families + first/last match pages + oldest/newest/lexicographic-first/lexicographic-last match detail + map + non-empty relationship",
+    "score": "sha256(snapshotId + identity)",
+    "target": "max(30, ceil((matches + players + weapons) * 0.01))"
+  },
+  "coverage": {
+    "requiredEndpointFamilies": [
+      "meta",
+      "tags",
+      "draftConfig",
+      "trends",
+      "matches",
+      "matchDetail",
+      "leaderboard",
+      "playerSummary",
+      "playerMaps",
+      "playerWeapons",
+      "playerWeaponsByDay",
+      "playerMatches",
+      "weapons",
+      "weaponDetail",
+      "weaponDetailByDay",
+      "weaponSplits"
+    ],
+    "endpointFamilies": {
+      "meta": "GET /api/meta",
+      "tags": "GET /api/tags",
+      "draftConfig": "GET /api/draft-config",
+      "trends": "GET /api/trends?top=81",
+      "matches": "GET /api/matches?limit=100&offset=297",
+      "matchDetail": "GET /api/matches/auto-20260610-2212-de_rooftop-OVOSCHI",
+      "leaderboard": "GET /api/leaderboard",
+      "playerSummary": "GET /api/players/76561199813460153/summary",
+      "playerMaps": "GET /api/players/76561199256725993/maps",
+      "playerWeapons": "GET /api/players/76561199564198529/weapons",
+      "playerWeaponsByDay": "GET /api/players/76561198128897169/weapons?by=day",
+      "playerMatches": "GET /api/players/76561198690825442/matches",
+      "weapons": "GET /api/weapons",
+      "weaponDetail": "GET /api/weapons/hkp2000",
+      "weaponDetailByDay": "GET /api/weapons/mag7?by=day",
+      "weaponSplits": "GET /api/weapon-splits"
+    },
+    "missingEndpointFamilies": [],
+    "dataEvidence": {
+      "map": "GET /api/players/76561199256725993/maps",
+      "nonEmptyRelationship": "GET /api/matches/auto-20260610-2212-de_rooftop-OVOSCHI"
+    },
+    "matchIndexPages": {
+      "first": "GET /api/matches?limit=100&offset=0",
+      "last": "GET /api/matches?limit=100&offset=297"
+    },
+    "matchDetails": {
+      "oldest": "GET /api/matches/auto-20231116-1908-de_anubis-Whoajor",
+      "newest": "GET /api/matches/auto-20260827-2004-de_nuke-OVOSCHI",
+      "lexicographicFirst": "GET /api/matches/auto-20231116-1908-de_anubis-Whoajor",
+      "lexicographicLast": "GET /api/matches/auto-20260827-2004-de_nuke-OVOSCHI"
+    }
+  },
+  "reasons": [],
+  "checks": [
+    {
+      "identity": "GET /api/players/76561199564198529/weapons",
+      "family": "playerWeapons",
+      "path": "/api/players/76561199564198529/weapons",
+      "query": {},
+      "score": "0003be7dc9892f938d2d21bc08073a2f80889cb0aa74b9547fe0a6cdcef26d0c",
+      "selectionReasons": [
+        "endpoint-family:playerWeapons"
+      ],
+      "expectedCanonicalSha256": "cdbfd40731b7d8793845eb8c6a80c34f7aefac1382f3b3c87489755a91f62326",
+      "actualCanonicalSha256": "cdbfd40731b7d8793845eb8c6a80c34f7aefac1382f3b3c87489755a91f62326",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/players/76561198128897169/weapons?by=day",
+      "family": "playerWeaponsByDay",
+      "path": "/api/players/76561198128897169/weapons",
+      "query": {
+        "by": "day"
+      },
+      "score": "002d08daad53171dc3ac33999251caac104a75674c1cb75e17a98d46a38bb8cb",
+      "selectionReasons": [
+        "endpoint-family:playerWeaponsByDay"
+      ],
+      "expectedCanonicalSha256": "7c9e4ddd7af7c473b5a40f6bf2eb0d046ea23de6f7c60bc95221d9ec51db0cba",
+      "actualCanonicalSha256": "7c9e4ddd7af7c473b5a40f6bf2eb0d046ea23de6f7c60bc95221d9ec51db0cba",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/players/76561199256725993/maps",
+      "family": "playerMaps",
+      "path": "/api/players/76561199256725993/maps",
+      "query": {},
+      "score": "003354faae3f42249e16b9f3c7cabd8387c0f9be6036e0e96a60e8fc43e3be68",
+      "selectionReasons": [
+        "data-evidence:map",
+        "endpoint-family:playerMaps"
+      ],
+      "expectedCanonicalSha256": "84bb8cd071c93eafe4cd2a7d284488172256a47489afc2cb946f93afed96c350",
+      "actualCanonicalSha256": "84bb8cd071c93eafe4cd2a7d284488172256a47489afc2cb946f93afed96c350",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/matches/auto-20260610-2212-de_rooftop-OVOSCHI",
+      "family": "matchDetail",
+      "path": "/api/matches/auto-20260610-2212-de_rooftop-OVOSCHI",
+      "query": {},
+      "score": "0051b9bcfb46251be012ca7941643add12edea2c33ffdaece2e9c73f9c45e143",
+      "selectionReasons": [
+        "data-evidence:non-empty-relationship",
+        "endpoint-family:matchDetail"
+      ],
+      "expectedCanonicalSha256": "5b904b199f82e6d906e31cbb72cb147ed627997ba6170713c9471b9bea00ad78",
+      "actualCanonicalSha256": "5b904b199f82e6d906e31cbb72cb147ed627997ba6170713c9471b9bea00ad78",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/players/76561199564198529/maps",
+      "family": "playerMaps",
+      "path": "/api/players/76561199564198529/maps",
+      "query": {},
+      "score": "011c315d5171288f7784e634f7c932418e9759fa21eca055e49002be9f2c9b87",
+      "selectionReasons": [],
+      "expectedCanonicalSha256": "78425d611421c6073596d171246668fd58811b9c95a10e09513941f8016cb43b",
+      "actualCanonicalSha256": "78425d611421c6073596d171246668fd58811b9c95a10e09513941f8016cb43b",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/players/76561199813460153/summary",
+      "family": "playerSummary",
+      "path": "/api/players/76561199813460153/summary",
+      "query": {},
+      "score": "0124ba7dacf9a4e9169143907b6b0bc00ca7e65cc2489f275573949b370e9ea9",
+      "selectionReasons": [
+        "endpoint-family:playerSummary"
+      ],
+      "expectedCanonicalSha256": "7659bc7f210b509ee14633c8beec96b69c929d4330c06b2d3c72e110c094c8a4",
+      "actualCanonicalSha256": "7659bc7f210b509ee14633c8beec96b69c929d4330c06b2d3c72e110c094c8a4",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/players/76561198012717103/maps",
+      "family": "playerMaps",
+      "path": "/api/players/76561198012717103/maps",
+      "query": {},
+      "score": "017b1cd85150e777e3f9751ffd36d173eb353729cb944b83d6dc19321975b95f",
+      "selectionReasons": [],
+      "expectedCanonicalSha256": "013158fb0beb5c397dce57856f6e644d4abdbced2e3320f56c8917b0ae7e4e5a",
+      "actualCanonicalSha256": "013158fb0beb5c397dce57856f6e644d4abdbced2e3320f56c8917b0ae7e4e5a",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/players/76561199164974760/weapons?by=day",
+      "family": "playerWeaponsByDay",
+      "path": "/api/players/76561199164974760/weapons",
+      "query": {
+        "by": "day"
+      },
+      "score": "01fec9da37d1a5f59baf23a0910b379b21c0f15cd908517ba1e0647f7867d0c0",
+      "selectionReasons": [],
+      "expectedCanonicalSha256": "958a379562e19b0fe7973e7ee52b6a26419b6c793c9d40c50e43e94e12748be7",
+      "actualCanonicalSha256": "958a379562e19b0fe7973e7ee52b6a26419b6c793c9d40c50e43e94e12748be7",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/matches/auto-20231122-1854-de_anubis-Whoajor",
+      "family": "matchDetail",
+      "path": "/api/matches/auto-20231122-1854-de_anubis-Whoajor",
+      "query": {},
+      "score": "022b6653dc8a67e736e2d28e64b08cafd979124629cb02d10b61fd7e26701f1f",
+      "selectionReasons": [],
+      "expectedCanonicalSha256": "0a7d9e90bf57cf5075862324036b73554508b14225b931e857f5a0b0ccc2e214",
+      "actualCanonicalSha256": "0a7d9e90bf57cf5075862324036b73554508b14225b931e857f5a0b0ccc2e214",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/players/76561199220422956/maps",
+      "family": "playerMaps",
+      "path": "/api/players/76561199220422956/maps",
+      "query": {},
+      "score": "023f6ba28350f871f025c1d3aa285d8ee99c8749b5039bc8d68763a61bd16b50",
+      "selectionReasons": [],
+      "expectedCanonicalSha256": "6fe266cd410283cd6b51cdb7ca0b53a43c208a347be0696d7bf3963c8d249003",
+      "actualCanonicalSha256": "6fe266cd410283cd6b51cdb7ca0b53a43c208a347be0696d7bf3963c8d249003",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/matches/auto-20260415-2328-de_whistle-OVOSCHI",
+      "family": "matchDetail",
+      "path": "/api/matches/auto-20260415-2328-de_whistle-OVOSCHI",
+      "query": {},
+      "score": "024716c4e2b88517d3e36b63eb03d0bf867e48104bc133ee4b9f74f0cb479ac2",
+      "selectionReasons": [],
+      "expectedCanonicalSha256": "a6d9df7f662d9fd64d2b9a8c863ddcd90f0f471ef7dcf6e18ed7bd1041a16b12",
+      "actualCanonicalSha256": "a6d9df7f662d9fd64d2b9a8c863ddcd90f0f471ef7dcf6e18ed7bd1041a16b12",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/players/76561198733119239/weapons?by=day",
+      "family": "playerWeaponsByDay",
+      "path": "/api/players/76561198733119239/weapons",
+      "query": {
+        "by": "day"
+      },
+      "score": "02e787376c582aecf248cc22503046d0503726adf42bb8eea03b2cc2c6cfa1ca",
+      "selectionReasons": [],
+      "expectedCanonicalSha256": "83e291b6e3f44aabdb2afc7458726e6c8eda718c2a5502045c43f8ddb2348d8d",
+      "actualCanonicalSha256": "83e291b6e3f44aabdb2afc7458726e6c8eda718c2a5502045c43f8ddb2348d8d",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/players/76561198003507847/weapons",
+      "family": "playerWeapons",
+      "path": "/api/players/76561198003507847/weapons",
+      "query": {},
+      "score": "02f77b53d26a2941bb233c7883b57380e149af7ba8a4e78fdd21130363a703a2",
+      "selectionReasons": [],
+      "expectedCanonicalSha256": "1bbe200dd6181696eac67383e44d91dc5696cb7b299972dee3e83426d753fcb1",
+      "actualCanonicalSha256": "1bbe200dd6181696eac67383e44d91dc5696cb7b299972dee3e83426d753fcb1",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/players/76561198034119116/weapons",
+      "family": "playerWeapons",
+      "path": "/api/players/76561198034119116/weapons",
+      "query": {},
+      "score": "032e6ec35c1803633024cd8c39395cb8cc7e83f62a228003ee6d2a21bca2afc3",
+      "selectionReasons": [],
+      "expectedCanonicalSha256": "f8af85afb3af041a382d12f0d28d20800735cc976442df9391b58d2ef78d6089",
+      "actualCanonicalSha256": "f8af85afb3af041a382d12f0d28d20800735cc976442df9391b58d2ef78d6089",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/weapons/mag7?by=day",
+      "family": "weaponDetailByDay",
+      "path": "/api/weapons/mag7",
+      "query": {
+        "by": "day"
+      },
+      "score": "0370f562e0e775287d89b95949e9547c144cda34a33ac61ebe6d0a1dbd537370",
+      "selectionReasons": [
+        "endpoint-family:weaponDetailByDay"
+      ],
+      "expectedCanonicalSha256": "7072c8f43700eaa7e0ce809ed3833f492e1d88a2ddc8683ec3cc04415df57b32",
+      "actualCanonicalSha256": "7072c8f43700eaa7e0ce809ed3833f492e1d88a2ddc8683ec3cc04415df57b32",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/players/76561198924002730/maps",
+      "family": "playerMaps",
+      "path": "/api/players/76561198924002730/maps",
+      "query": {},
+      "score": "03c47bffcc83b81dc4e3be9e49bd512981d8545b59491400f4531ad3d3d65fd4",
+      "selectionReasons": [],
+      "expectedCanonicalSha256": "da6bf9d34f578f87170cb2586a94f90659ff9728eea41ed69f5f6aae58b231c4",
+      "actualCanonicalSha256": "da6bf9d34f578f87170cb2586a94f90659ff9728eea41ed69f5f6aae58b231c4",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/players/76561198055937473/weapons",
+      "family": "playerWeapons",
+      "path": "/api/players/76561198055937473/weapons",
+      "query": {},
+      "score": "03d4c616d0b9dabb0cdc87242d698f13d484ed281a6241937110490ea45597e7",
+      "selectionReasons": [],
+      "expectedCanonicalSha256": "cc3c53d1691bf87d4a027a5f125bf3449fbd0ccb0c75cbc213574d6c47ac5d1c",
+      "actualCanonicalSha256": "cc3c53d1691bf87d4a027a5f125bf3449fbd0ccb0c75cbc213574d6c47ac5d1c",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/players/76561198690825442/matches",
+      "family": "playerMatches",
+      "path": "/api/players/76561198690825442/matches",
+      "query": {},
+      "score": "06478f65f5ada35f72c70909208eec3a552b58855dcc2c522afc58fbca049199",
+      "selectionReasons": [
+        "endpoint-family:playerMatches"
+      ],
+      "expectedCanonicalSha256": "06419d03497b1c57f163d39ba5e50679fc7090d15524384324b00815e283f494",
+      "actualCanonicalSha256": "06419d03497b1c57f163d39ba5e50679fc7090d15524384324b00815e283f494",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/weapons/hkp2000",
+      "family": "weaponDetail",
+      "path": "/api/weapons/hkp2000",
+      "query": {},
+      "score": "0990fbeca862ef28fa71fed993253efb9892039d011ef96c6ff2d2f42b4f0916",
+      "selectionReasons": [
+        "endpoint-family:weaponDetail"
+      ],
+      "expectedCanonicalSha256": "3e88c2514939b809ce3dca8b10eecf1d5117f6310c5806dd7e67aab8bec2b1d6",
+      "actualCanonicalSha256": "3e88c2514939b809ce3dca8b10eecf1d5117f6310c5806dd7e67aab8bec2b1d6",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/matches?limit=100&offset=297",
+      "family": "matches",
+      "path": "/api/matches",
+      "query": {
+        "limit": 100,
+        "offset": 297
+      },
+      "score": "122035466f6971b0dcfbd7606a71fc38ee24ae70256a05636e5eee411188a1d3",
+      "selectionReasons": [
+        "endpoint-family:matches",
+        "match-index:last"
+      ],
+      "expectedCanonicalSha256": "a71f8e25dcdb411a0af16ef79f45d9628ea7d5e9691de72181bb0cec7363f237",
+      "actualCanonicalSha256": "a71f8e25dcdb411a0af16ef79f45d9628ea7d5e9691de72181bb0cec7363f237",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/matches?limit=100&offset=0",
+      "family": "matches",
+      "path": "/api/matches",
+      "query": {
+        "limit": 100,
+        "offset": 0
+      },
+      "score": "22ad88a3bb5f28d9605f1e1970bc89278ed7dc8ac30a9ccd1835463458673568",
+      "selectionReasons": [
+        "match-index:first"
+      ],
+      "expectedCanonicalSha256": "9861b620248cead4565593d9a4bb6208c8e4cdbcc6c55e8a4b1c37eef7cc1baa",
+      "actualCanonicalSha256": "9861b620248cead4565593d9a4bb6208c8e4cdbcc6c55e8a4b1c37eef7cc1baa",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/meta",
+      "family": "meta",
+      "path": "/api/meta",
+      "query": {},
+      "score": "4c4e2fbc17d5fbbabcecab39be1a14522f2a84cd6cdfde07c6cb07761130f46e",
+      "selectionReasons": [
+        "endpoint-family:meta"
+      ],
+      "expectedCanonicalSha256": "b74e1b10ee232f65bab4277a2daf41b94d6ff2e0b7dba0399d70448ed11e871f",
+      "actualCanonicalSha256": "b74e1b10ee232f65bab4277a2daf41b94d6ff2e0b7dba0399d70448ed11e871f",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/matches/auto-20231116-1908-de_anubis-Whoajor",
+      "family": "matchDetail",
+      "path": "/api/matches/auto-20231116-1908-de_anubis-Whoajor",
+      "query": {},
+      "score": "505c27266b2da1286695d2a64b377014c647a2a13f094f8608b80221abce3a02",
+      "selectionReasons": [
+        "match-detail:lexicographicFirst",
+        "match-detail:oldest"
+      ],
+      "expectedCanonicalSha256": "c52bc9057b3a7ac69308a603527714a307d336715b48e13530aab7962f15a1d5",
+      "actualCanonicalSha256": "c52bc9057b3a7ac69308a603527714a307d336715b48e13530aab7962f15a1d5",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/leaderboard",
+      "family": "leaderboard",
+      "path": "/api/leaderboard",
+      "query": {},
+      "score": "507b7e400a8054870094ec8a17951dbde7759bebd69d2360572a25fb7ae936c4",
+      "selectionReasons": [
+        "endpoint-family:leaderboard"
+      ],
+      "expectedCanonicalSha256": "6680fb10df41ea8c4fc69dcf93be43132c1eda992d3e70b28409c5b8e304da22",
+      "actualCanonicalSha256": "6680fb10df41ea8c4fc69dcf93be43132c1eda992d3e70b28409c5b8e304da22",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/matches/auto-20260827-2004-de_nuke-OVOSCHI",
+      "family": "matchDetail",
+      "path": "/api/matches/auto-20260827-2004-de_nuke-OVOSCHI",
+      "query": {},
+      "score": "6551e1b57d77a2f97a74930675be3359574424ac69d5b51af12a2bd1a20a2749",
+      "selectionReasons": [
+        "match-detail:lexicographicLast",
+        "match-detail:newest"
+      ],
+      "expectedCanonicalSha256": "73fc4af2894ffffefe73f6871109d6fea25ceb882a62140ac6b44d1bf4014235",
+      "actualCanonicalSha256": "73fc4af2894ffffefe73f6871109d6fea25ceb882a62140ac6b44d1bf4014235",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/trends?top=81",
+      "family": "trends",
+      "path": "/api/trends",
+      "query": {
+        "top": 81
+      },
+      "score": "6c5830a2dc383cf5b29c738780e74a6c2f4dc1dc0bae175c9de212427b662065",
+      "selectionReasons": [
+        "endpoint-family:trends"
+      ],
+      "expectedCanonicalSha256": "f9803b05573b1f4350dedc40b960d81257eae626f294598d092059fc75bb8891",
+      "actualCanonicalSha256": "f9803b05573b1f4350dedc40b960d81257eae626f294598d092059fc75bb8891",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/weapons",
+      "family": "weapons",
+      "path": "/api/weapons",
+      "query": {},
+      "score": "b166ad12a8d3421f219c4fd7abaa0ab3f0098355c38d5782273cb0616c30293d",
+      "selectionReasons": [
+        "endpoint-family:weapons"
+      ],
+      "expectedCanonicalSha256": "6926f7e6073649553fd4551cd2298d9a7e5820b98a16baef7df085788f5f89c9",
+      "actualCanonicalSha256": "6926f7e6073649553fd4551cd2298d9a7e5820b98a16baef7df085788f5f89c9",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/weapon-splits",
+      "family": "weaponSplits",
+      "path": "/api/weapon-splits",
+      "query": {},
+      "score": "c2390d06ba719c5a84f4339bca711153716a1ea41b1482eb9ba8f11afa1e87f4",
+      "selectionReasons": [
+        "endpoint-family:weaponSplits"
+      ],
+      "expectedCanonicalSha256": "493b2d7abd15564c1a603d06b4b59c3124fe68c0594a73e6737ed6f7ae119d0c",
+      "actualCanonicalSha256": "493b2d7abd15564c1a603d06b4b59c3124fe68c0594a73e6737ed6f7ae119d0c",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/draft-config",
+      "family": "draftConfig",
+      "path": "/api/draft-config",
+      "query": {},
+      "score": "dff12ffabdbc660e29b11b6ea54c60442228390516a5ac7eb3671f60070db3e5",
+      "selectionReasons": [
+        "endpoint-family:draftConfig"
+      ],
+      "expectedCanonicalSha256": "821af579f442c27a1981aa585ef5bd07b4c5cf789cc9e3ca019d93d850cf992b",
+      "actualCanonicalSha256": "821af579f442c27a1981aa585ef5bd07b4c5cf789cc9e3ca019d93d850cf992b",
+      "status": "match",
+      "reason": null
+    },
+    {
+      "identity": "GET /api/tags",
+      "family": "tags",
+      "path": "/api/tags",
+      "query": {},
+      "score": "ef33e6c9f82a5546e456c10632f62805d12fdbae757d8dfb27afc0058699c68c",
+      "selectionReasons": [
+        "endpoint-family:tags"
+      ],
+      "expectedCanonicalSha256": "dc519987c89c7c146ce6177549a9554e424e431fff3806cdcd9d9c9cb9bc8eb6",
+      "actualCanonicalSha256": "dc519987c89c7c146ce6177549a9554e424e431fff3806cdcd9d9c9cb9bc8eb6",
+      "status": "match",
+      "reason": null
+    }
+  ]
+}

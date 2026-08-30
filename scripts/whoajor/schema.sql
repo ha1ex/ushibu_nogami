@@ -299,3 +299,63 @@ CREATE TABLE tags (
   PRIMARY KEY (snapshot_id, tag),
   FOREIGN KEY (snapshot_id) REFERENCES snapshots(snapshot_id)
 ) STRICT;
+
+CREATE TABLE trend_players (
+  snapshot_id TEXT NOT NULL,
+  query_fingerprint TEXT NOT NULL,
+  player_index INTEGER NOT NULL,
+  steamid TEXT NOT NULL,
+  name TEXT NOT NULL,
+  rounds_total REAL NOT NULL,
+  source_json TEXT NOT NULL,
+  lineage_json TEXT NOT NULL,
+  PRIMARY KEY (snapshot_id, query_fingerprint, player_index),
+  FOREIGN KEY (snapshot_id) REFERENCES snapshots(snapshot_id),
+  FOREIGN KEY (steamid) REFERENCES players(steamid)
+) STRICT;
+
+CREATE TABLE trend_matches (
+  snapshot_id TEXT NOT NULL,
+  query_fingerprint TEXT NOT NULL,
+  player_index INTEGER NOT NULL,
+  match_index INTEGER NOT NULL,
+  steamid TEXT NOT NULL,
+  started_at TEXT NOT NULL,
+  map TEXT NOT NULL,
+  match_name TEXT NOT NULL,
+  adr REAL NOT NULL,
+  assists REAL NOT NULL,
+  cs_good REAL NOT NULL,
+  cs_graded REAL NOT NULL,
+  cs_stop_fast REAL NOT NULL,
+  cs_stop_slow REAL NOT NULL,
+  damage REAL NOT NULL,
+  deaths REAL NOT NULL,
+  dpr REAL NOT NULL,
+  flash_assists REAL NOT NULL,
+  hs_kills REAL NOT NULL,
+  impact REAL NOT NULL,
+  kast_pct REAL NOT NULL,
+  kast_rounds REAL NOT NULL,
+  kills REAL NOT NULL,
+  kpr REAL NOT NULL,
+  opening_deaths REAL NOT NULL,
+  opening_kills REAL NOT NULL,
+  ping_n REAL NOT NULL,
+  ping_sum REAL NOT NULL,
+  rating2 REAL NOT NULL,
+  rounds_played REAL NOT NULL,
+  rounds_won REAL NOT NULL,
+  rws_sum REAL NOT NULL,
+  stop_ms_n REAL NOT NULL,
+  stop_ms_sum REAL NOT NULL,
+  ttd_adj_sum REAL NOT NULL,
+  ttd_n REAL NOT NULL,
+  ttd_sum REAL NOT NULL,
+  source_json TEXT NOT NULL,
+  lineage_json TEXT NOT NULL,
+  PRIMARY KEY (snapshot_id, query_fingerprint, player_index, match_index),
+  FOREIGN KEY (snapshot_id, query_fingerprint, player_index)
+    REFERENCES trend_players(snapshot_id, query_fingerprint, player_index),
+  FOREIGN KEY (steamid) REFERENCES players(steamid)
+) STRICT;

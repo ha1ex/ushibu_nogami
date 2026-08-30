@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { collectSnapshot, parseCliArgs } from '../collect.mjs';
+import { CONTRACT } from '../lib/contract.mjs';
 import { discoverPlayers, discoverWeapons } from '../lib/discovery.mjs';
 import { createHttpClient } from '../lib/http-client.mjs';
 import { createFixtureApi } from './fixture-api.mjs';
@@ -32,6 +33,22 @@ async function runFixture(fixture, options = {}) {
   return { manifest, outputDir };
 }
 
+test('CONTRACT 1.1 описывает exhaustive trends query и live response grain', () => {
+  assert.equal(CONTRACT.version, '1.1.0');
+  assert.deepEqual(CONTRACT.endpoints.trends, {
+    path: '/api/trends',
+    requiredQuery: { top: 'positive-integer' },
+    collectionTop: 'discoveredPlayers',
+    responseKind: 'array',
+    required: {
+      steamid: 'string', name: 'string', roundsTotal: 'number', matches: 'array',
+    },
+    itemDescriptor: 'trendMatch',
+    primaryKey: CONTRACT.endpoints.trends.primaryKey,
+  });
+  assert.equal(CONTRACT.endpoints.trends.primaryKey({}, { sourceIndex: 3 }), '3');
+});
+
 test('collector обходит все конечные сущности ровно один раз', async () => {
   const fixture = createFixtureApi();
   const { manifest } = await runFixture(fixture);
@@ -56,7 +73,77 @@ test('collector обходит все конечные сущности ровн
     row.key.includes('/api/players/76561198000000003/maps')
   )));
   assert.ok(manifest.requests.some((row) => row.key.includes('/api/weapons/ak47?by=day')));
+  assert.deepEqual(
+    manifest.requests.filter(({ path }) => path === '/api/trends')
+      .map(({ query, boundaryRole }) => ({ query, boundaryRole })),
+    [{ query: { top: 3 }, boundaryRole: null }],
+  );
   fixture.assertNoUnexpectedCalls();
+});
+
+test('collector блокирует trends response вне минимальной SPA-consumer schema', async () => {
+  const fixture = createFixtureApi();
+  const outputDir = await mkdtemp(join(tmpdir(), 'whoajor-collect-bad-trends-'));
+  const client = createHttpClient({
+    baseUrl: fixture.baseUrl,
+    fetchImpl: async (url, options) => {
+      if (new URL(url).pathname === '/api/trends') {
+        return new Response(JSON.stringify([{
+          steamid: ID_1,
+          name: 'Player 01',
+          roundsTotal: 2,
+          matches: [{
+            steamid: ID_1,
+            started_at: '2026-08-28T18:00:00Z',
+            map: 'de_mirage',
+            match_name: 'match-1',
+            adr: 75,
+            assists: 1,
+            cs_good: 2,
+            cs_graded: 2,
+            cs_stop_fast: 1,
+            cs_stop_slow: 1,
+            damage: 150,
+            deaths: 1,
+            dpr: 0.5,
+            flash_assists: 0,
+            hs_kills: 1,
+            impact: 1.1,
+            kast_pct: 100,
+            kast_rounds: 2,
+            kills: 2,
+            kpr: 1,
+            opening_deaths: 0,
+            ping_n: 1,
+            ping_sum: 40,
+            rating2: 1.05,
+            rounds_played: 2,
+            rounds_won: 1,
+            rws_sum: 20,
+            stop_ms_n: 2,
+            stop_ms_sum: 300,
+            ttd_adj_sum: 180,
+            ttd_n: 1,
+            ttd_sum: 200,
+          }],
+        }]), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
+      }
+      return fixture.fetch(url, options);
+    },
+    delayMs: 0,
+    maxRetries: 0,
+  });
+
+  await assert.rejects(
+    collectSnapshot({ outputDir, client, now: NOW, pageSize: 1 }),
+    /trends\[0\]\.matches\[0\]\.opening_kills must be number/i,
+  );
+  const manifest = JSON.parse(await readFile(join(outputDir, 'manifest.json'), 'utf8'));
+  assert.equal(manifest.status, 'incomplete');
+  assert.ok(manifest.requests.some(({ path }) => path === '/api/trends'));
 });
 
 test('match pagination делает overlap, удаляет дубль ID и запрашивает detail один раз', async () => {
@@ -365,6 +452,42 @@ test('resume проверяет partial snapshot и не повторяет уж
     ['start', 'end'],
   );
   fixture.assertNoUnexpectedCalls();
+});
+
+test('resume не смешивает partial snapshot другого CONTRACT version', async () => {
+  const fixture = createFixtureApi();
+  const outputDir = await mkdtemp(join(tmpdir(), 'whoajor-collect-resume-version-'));
+  let failDraftOnce = true;
+  const client = createHttpClient({
+    baseUrl: fixture.baseUrl,
+    fetchImpl: async (url, options) => {
+      if (new URL(url).pathname === '/api/draft-config' && failDraftOnce) {
+        failDraftOnce = false;
+        return new Response('{"error":"temporary"}', {
+          status: 503,
+          headers: { 'content-type': 'application/json' },
+        });
+      }
+      return fixture.fetch(url, options);
+    },
+    delayMs: 0,
+    maxRetries: 0,
+  });
+  await assert.rejects(
+    collectSnapshot({ outputDir, client, now: NOW, pageSize: 1 }),
+    /status 503/,
+  );
+  const manifestPath = join(outputDir, 'manifest.json');
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  manifest.contractVersion = '1.0.0';
+  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+  const callsBeforeResume = fixture.calls.length;
+
+  await assert.rejects(
+    collectSnapshot({ outputDir, client, now: NOW, pageSize: 1, resume: true }),
+    /contract version 1\.0\.0 differs from current 1\.1\.0/i,
+  );
+  assert.equal(fixture.calls.length, callsBeforeResume);
 });
 
 test('CLI принимает output, base URL, pacing, page size и resume без скрытых defaults', () => {

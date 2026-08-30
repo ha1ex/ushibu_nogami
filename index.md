@@ -11,6 +11,10 @@
 ## Источники
 
 - [Все source summaries](./02_sources/)
+- [Аудит SPA surface whoajor 2026-08-30](./02_sources/2026-08-30-whoajor-spa-surface-audit.md) —
+  7 exact HTML/JS ресурсов, 24 GET call site и все 16 семейств CONTRACT v1.1
+- [Полный снимок whoajor v2 2026-08-30](./02_sources/2026-08-30-whoajor-full-snapshot.md) — 864 ответа,
+  368 карточек матчей, trends и проверенная SQLite с 29 таблицами
 - [Снимок whoajor 2026-08-29](./02_sources/2026-08-29-cs2-whoajor-intelligence.md) — статистика пяти составов CS2
 
 ## Wiki (концепты)
@@ -33,6 +37,8 @@
 ## Decisions
 
 - [Все принятые решения](./05_decisions/)
+- [Граница сбора Whoajor](./05_decisions/whoajor-collection-scope.md) — разовый импорт;
+  повторный обход требует нового явного решения владельца сообщества
 
 ## Outputs
 

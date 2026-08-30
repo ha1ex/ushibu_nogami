@@ -49,3 +49,16 @@
 - 04_synthesis | cs2-team-diagnostics, cs2-veto-strategy, cs2-opponent-plans; open-questions переписаны под домен (Q1–Q5), добавлено противоречие C1 (Dust 2: голос команды против статистики).
 - 00_context | product.md — команда, расписание, пул карт, ограничения данных.
 - (init) домен проекта зафиксирован: скаутинг CS2 для «Ушибу ногами»; walkthrough-пример шаблона удалён.
+
+## 2026-08-30
+
+- FACT: 01_raw/whoajor + 02_sources | импортирован канонический полный снимок Whoajor v2: 864 ответа,
+  368 карточек матчей, 7 903 раунда, trends для 20 игроков и проверенная SQLite с 29 таблицами;
+  предшествующий v1 сохранён как superseded history без trends.
+  [source: /02_sources/2026-08-30-whoajor-full-snapshot.md]
+- FACT: 01_raw/whoajor + 02_sources | добавлен immutable audit публичного SPA surface:
+  8 GET-наблюдений 7 HTML/JS ресурсов, 24 GET call site, все 16 семейств CONTRACT v1.1 и два
+  явно исключённых POST.
+  [source: /02_sources/2026-08-30-whoajor-spa-surface-audit.md]
+- DECISION: Сбор выполнен в однократном scope; регулярный автоматический обход в него не входит.
+  [source: /05_decisions/whoajor-collection-scope.md]

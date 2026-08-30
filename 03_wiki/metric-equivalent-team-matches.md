@@ -1,11 +1,12 @@
 ---
 type: wiki
 title: equivalent_team_matches — почему это не «сыгранные вместе матчи»
-date: 2026-08-29
+date: 2026-08-30
 confidence: high
 tags: [cs2, metrics, methodology]
 related:
   - /02_sources/2026-08-29-cs2-whoajor-intelligence.md
+  - /02_sources/2026-08-30-whoajor-full-snapshot.md
   - /03_wiki/metric-estimated-strength.md
 ---
 
@@ -27,6 +28,21 @@ related:
   наборе индивидуальной формы»**, а не как «так эта пятёрка играет».
 - Сыгранность в снимке не измерена вовсе: поле `cohesion` = `not_measured`, причина — проектные
   ростеры и минимизация обхода сайта. [source: /02_sources/2026-08-29-cs2-whoajor-intelligence.md]
+
+## Что изменил полный снимок v2 2026-08-30
+
+FACT: Теперь в KB есть все 368 карточек матчей, 7 903 раунда, 76 516 player-round записей и
+76 516 записей ростеров раундов. Это позволяет отдельно исследовать совместные появления игроков
+в конкретных матчах и раундах. [source: /02_sources/2026-08-30-whoajor-full-snapshot.md] [conf: high]
+
+FACT: CONTRACT v1.1 дополнительно сохраняет trends для 20 игроков и 2 987 строк матчей, но в нём
+по-прежнему нет сущности команды или метрики cohesion: описаны игроки, матчи, раунды и персональные
+показатели. [source: /02_sources/2026-08-30-whoajor-full-snapshot.md] [conf: high]
+
+INFERENCE: Полные match/round/trends данные повышают проверяемость истории составов, но сами по себе не
+делают `equivalent_team_matches` командной метрикой. Для вывода о сыгранности сначала нужен отдельный
+расчёт совместных пятёрок, а затем evidence о качестве их совместной игры.
+[source: /02_sources/2026-08-30-whoajor-full-snapshot.md] [conf: high]
 
 ## Объём наблюдений, окно recent
 

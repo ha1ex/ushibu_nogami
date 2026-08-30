@@ -108,12 +108,14 @@ test('валидный fixture проходит и фиксирует небло
   assert.ok(hasCode(report, 'discrepancies', 'META_MAP_SUM_MISMATCH'));
   assert.ok(hasCode(report, 'warnings', 'INDEX_DETAIL_NAMING_DIFFERENCE'));
   assert.deepEqual(report.counts, {
-    requests: 32,
+    requests: 33,
     matches: 3,
     matchDetails: 3,
     players: 3,
     weapons: 2,
     tags: 1,
+    trendsPlayers: 2,
+    trendMatches: 2,
   });
   assert.match(report.rootHash, /^[a-f0-9]{64}$/);
 });
@@ -151,6 +153,36 @@ test('REQUEST_MISSING блокирует отсутствие контрактн
   await expectHardError('REQUEST_MISSING', (dir) => (
     removeRequests(dir, (entry) => entry.path === '/api/tags')
   ));
+});
+
+test('REQUEST_MISSING блокирует отсутствие exhaustive trends query', async () => {
+  await expectHardError('REQUEST_MISSING', (dir) => (
+    removeRequests(dir, (entry) => entry.path === '/api/trends')
+  ));
+});
+
+test('FIELD_TYPE_MISMATCH блокирует drift вложенной trends match schema', async () => {
+  await expectHardError('FIELD_TYPE_MISMATCH', (dir) => rewritePayload(
+    dir,
+    (entry) => entry.path === '/api/trends',
+    (players) => { players[0].matches[0].rating2 = '1.05'; },
+  ));
+});
+
+test('trends query требует канонический положительный integer без leading zero', async () => {
+  const dir = await buildCollectedFixture();
+  const manifest = await readManifest(dir);
+  const entry = manifest.requests.find(({ path }) => path === '/api/trends');
+  entry.query = { top: '03' };
+  entry.key = requestKey(entry.path, entry.query);
+  entry.url = entry.url.replace('top=3', 'top=03');
+  manifest.rootHash = computeRootHash(manifest.requests);
+  await writeManifest(dir, manifest);
+
+  const report = await validateSnapshot(dir);
+
+  assert.equal(report.status, 'incomplete');
+  assert.ok(hasCode(report, 'errors', 'REQUEST_MISSING'));
 });
 
 test('PAGE_GAP блокирует пропущенный ruling offset pageSize-1', async () => {

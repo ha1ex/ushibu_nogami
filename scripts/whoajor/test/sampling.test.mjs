@@ -65,12 +65,13 @@ function storedResponseClient(snapshot, { mismatchKey = null } = {}) {
   };
 }
 
-test('endpoint classifier различает ровно 15 CONTRACT families и exact query', () => {
+test('endpoint classifier различает ровно 16 CONTRACT families и exact query', () => {
   const steamid = '76561198000000001';
   const cases = [
     ['meta', '/api/meta', {}],
     ['tags', '/api/tags', {}],
     ['draftConfig', '/api/draft-config', {}],
+    ['trends', '/api/trends', { top: 81 }],
     ['matches', '/api/matches', { limit: 100, offset: 0 }],
     ['matchDetail', '/api/matches/match-1', {}],
     ['leaderboard', '/api/leaderboard', {}],
@@ -85,7 +86,7 @@ test('endpoint classifier различает ровно 15 CONTRACT families и 
     ['weaponSplits', '/api/weapon-splits', {}],
   ];
 
-  assert.equal(cases.length, 15);
+  assert.equal(cases.length, 16);
   assert.deepEqual(cases.map(([expected, path, query]) => (
     classifyEndpointFamily(path, query) === expected ? expected : null
   )), cases.map(([expected]) => expected));
@@ -97,6 +98,10 @@ test('endpoint classifier различает ровно 15 CONTRACT families и 
   assert.equal(classifyEndpointFamily('/api/matches', { limit: 100 }), null);
   assert.equal(classifyEndpointFamily('/api/matches/match-1/rounds', {}), null);
   assert.equal(classifyEndpointFamily('/api/players/1/summary', {}), null);
+  assert.equal(classifyEndpointFamily('/api/trends', {}), null);
+  assert.equal(classifyEndpointFamily('/api/trends', { top: 0 }), null);
+  assert.equal(classifyEndpointFamily('/api/trends', { top: 1.5 }), null);
+  assert.equal(classifyEndpointFamily('/api/trends', { top: 81, extra: 1 }), null);
 });
 
 test('sample score равен sha256(snapshotId + identity) без разделителя', async () => {
@@ -230,16 +235,16 @@ test('canonical mismatch пишет unstable report, а CLI возвращает
   )));
 });
 
-test('default target не уменьшается и блокирует snapshot с менее чем 30 candidates', async (t) => {
+test('default target не уменьшается и 16-я family доводит fixture до 30 candidates', async (t) => {
   const { snapshot, snapshotDir } = await collectFixture(t);
   const client = storedResponseClient(snapshot);
 
   const report = await verifySample({ snapshotDir, client, now: NOW });
 
   assert.equal(report.sampleTarget, 30);
-  assert.equal(report.candidateCount, 29);
-  assert.equal(report.status, 'unstable');
-  assert.ok(report.reasons.some(({ code }) => code === 'INSUFFICIENT_CANDIDATES'));
+  assert.equal(report.candidateCount, 30);
+  assert.equal(report.status, 'complete');
+  assert.deepEqual(report.reasons, []);
 });
 
 test('atomic sampling report очищает temp, если destination нельзя заменить', async (t) => {

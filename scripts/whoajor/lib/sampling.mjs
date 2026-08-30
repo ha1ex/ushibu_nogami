@@ -80,6 +80,13 @@ export function classifyEndpointFamily(path, query = {}) {
       return family;
     }
 
+    if (family === 'trends') {
+      if (!exactQuery(query, { top: query.top })) continue;
+      if (!/^[1-9]\d*$/.test(String(query.top))) continue;
+      if (Object.keys(query).length !== 1) continue;
+      return family;
+    }
+
     if (!exactQuery(query, descriptor.fixedQuery ?? {})) continue;
     return family;
   }

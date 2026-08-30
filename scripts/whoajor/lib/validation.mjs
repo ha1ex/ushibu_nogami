@@ -45,6 +45,11 @@ function decodeIdentifier(value) {
 function classifyRequest(entry) {
   const { path, query = {} } = entry;
   if (typeof path !== 'string' || !isObject(query)) return null;
+  if (
+    path === CONTRACT.endpoints.trends.path
+      && Object.keys(query).length === 1
+      && /^[1-9]\d*$/.test(String(query.top))
+  ) return { name: 'trends', context: {} };
   for (const name of STATIC_ENDPOINTS) {
     if (path === CONTRACT.endpoints[name].path && queryEquals(query, {})) return { name, context: {} };
   }
@@ -185,7 +190,7 @@ function validateRows(rows, descriptor, location, context, add) {
     if (!validateObject(row, descriptor.required, rowLocation, add)) return;
     let key;
     try {
-      key = descriptor.primaryKey(row, context);
+      key = descriptor.primaryKey(row, { ...context, sourceIndex: index });
     } catch {
       return;
     }
@@ -294,6 +299,16 @@ function validateEndpointPayload(observation, add) {
     validateRows(payload.maps, CONTRACT.entities.metaMap, `${location}.maps`, {}, add);
   } else if (name === 'draftConfig' && isObject(payload)) {
     validateRows(payload.players, CONTRACT.entities.draftPlayer, `${location}.players`, {}, add);
+  } else if (name === 'trends' && Array.isArray(payload)) {
+    for (let playerIndex = 0; playerIndex < payload.length; playerIndex += 1) {
+      validateRows(
+        payload[playerIndex]?.matches,
+        CONTRACT.entities.trendMatch,
+        `${location}[${playerIndex}].matches`,
+        { playerIndex },
+        add,
+      );
+    }
   } else if (name === 'matchDetail' && isObject(payload)) {
     const matchContext = { matchId: context.matchId };
     validateRows(
@@ -337,6 +352,26 @@ function requireSingletons(classified, add) {
   }
   if (!classified.some((row) => row.name === 'matches' && row.payload !== undefined)) {
     add('errors', 'REQUEST_MISSING', CONTRACT.endpoints.matches.path, 'required matches request is missing');
+  }
+  const trends = classified.filter((row) => row.name === 'trends' && row.payload !== undefined);
+  if (trends.length === 0) {
+    add('errors', 'REQUEST_MISSING', CONTRACT.endpoints.trends.path, 'required trends request is missing');
+  } else if (trends.length > 1) {
+    add('errors', 'DUPLICATE_PK', CONTRACT.endpoints.trends.path, 'trends request is repeated');
+  }
+}
+
+function validateTrendsRequest(classified, discoveredPlayerCount, add) {
+  const observations = classified.filter((row) => row.name === 'trends' && row.payload !== undefined);
+  for (const row of observations) {
+    if (Number(row.entry.query.top) !== discoveredPlayerCount) {
+      add(
+        'errors',
+        'TOTAL_MISMATCH',
+        row.entry.key,
+        `trends top ${row.entry.query.top} differs from discovered player count ${discoveredPlayerCount}`,
+      );
+    }
   }
 }
 
@@ -728,7 +763,16 @@ export async function validateSnapshot(dir) {
     errors: [],
     warnings: [],
     discrepancies: [],
-    counts: { requests: 0, matches: 0, matchDetails: 0, players: 0, weapons: 0, tags: 0 },
+    counts: {
+      requests: 0,
+      matches: 0,
+      matchDetails: 0,
+      players: 0,
+      weapons: 0,
+      tags: 0,
+      trendsPlayers: 0,
+      trendMatches: 0,
+    },
     rootHash: EMPTY_ROOT_HASH,
   };
   const requestScopes = new Map();
@@ -775,15 +819,17 @@ export async function validateSnapshot(dir) {
     scanKnownDiscrepancies(row.payload, row.location, add);
   }
 
-  const validSteamids = new Set(discoverPlayers({
+  const discoveredPlayers = discoverPlayers({
     leaderboard: onePayload(classified, 'leaderboard'),
     draftConfig: onePayload(classified, 'draftConfig'),
     matchDetails: classified
       .filter((row) => row.name === 'matchDetail')
       .map((row) => row.payload),
-  }).filter(isSteamId64));
+  }).filter(isSteamId64);
+  const validSteamids = new Set(discoveredPlayers);
   for (const row of classified) scanSteamids(row.payload, row.location, add, validSteamids);
   requireSingletons(classified, add);
+  validateTrendsRequest(classified, discoveredPlayers.length, add);
   validateBoundaries(classified, add);
   const meta = onePayload(classified, 'meta');
   if (isObject(meta) && Array.isArray(meta.maps)) {
@@ -808,6 +854,11 @@ export async function validateSnapshot(dir) {
   report.counts.weapons = weapons.size;
   report.counts.tags = Array.isArray(onePayload(classified, 'tags'))
     ? onePayload(classified, 'tags').length
+    : 0;
+  const trends = onePayload(classified, 'trends');
+  report.counts.trendsPlayers = Array.isArray(trends) ? trends.length : 0;
+  report.counts.trendMatches = Array.isArray(trends)
+    ? trends.reduce((sum, player) => sum + (Array.isArray(player?.matches) ? player.matches.length : 0), 0)
     : 0;
   for (const bucket of ['errors', 'warnings', 'discrepancies']) sortEvents(report[bucket]);
   report.status = report.errors.length === 0 ? 'complete' : 'incomplete';

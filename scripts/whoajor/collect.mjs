@@ -56,6 +56,15 @@ function validatePayload(name, payload) {
   if (name === 'draftConfig') {
     validateRows(payload.players, CONTRACT.entities.draftPlayer.required, 'draftConfig.players');
   }
+  if (name === 'trends') {
+    payload.forEach((player, playerIndex) => {
+      validateRows(
+        player.matches,
+        CONTRACT.entities.trendMatch.required,
+        `trends[${playerIndex}].matches`,
+      );
+    });
+  }
   if (name === 'matchDetail') {
     validateRows(payload.rounds, CONTRACT.entities.matchRound.required, 'matchDetail.rounds');
     validateRows(payload.players, CONTRACT.entities.matchPlayer.required, 'matchDetail.players');
@@ -188,6 +197,11 @@ export async function collectSnapshot({
       contractVersion: CONTRACT.version,
       startedAt,
     });
+  if (resume && snapshot.manifest.contractVersion !== CONTRACT.version) {
+    throw new Error(
+      `snapshot cannot resume: contract version ${snapshot.manifest.contractVersion ?? 'missing'} differs from current ${CONTRACT.version}`,
+    );
+  }
   snapshot.manifest.status = 'staging';
   delete snapshot.manifest.failure;
 
@@ -262,6 +276,17 @@ export async function collectSnapshot({
       snapshot, client, 'leaderboard', CONTRACT.endpoints.leaderboard.path, {}, { reuse: resume },
     );
     const players = discoverPlayers({ leaderboard, draftConfig, matchDetails });
+    if (players.length === 0) {
+      throw new Error('trends top requires at least one discovered player');
+    }
+    const trends = await requestPayload(
+      snapshot,
+      client,
+      'trends',
+      CONTRACT.endpoints.trends.path,
+      { top: players.length },
+      { reuse: resume },
+    );
     for (const steamid of players) {
       const pathValues = { steamid };
       await requestPayload(snapshot, client, 'playerSummary', renderPath(
@@ -318,6 +343,8 @@ export async function collectSnapshot({
       players: players.length,
       weapons: weapons.length,
       tags: tags.length,
+      trendsPlayers: trends.length,
+      trendMatches: trends.reduce((sum, player) => sum + player.matches.length, 0),
     };
     snapshot.manifest.discovered = { players, weapons };
     snapshot.manifest.finishedAt = now().toISOString();

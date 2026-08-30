@@ -43,6 +43,13 @@ jobs:
       - name: Install frozen dependencies
         run: corepack pnpm run setup
 
+      - name: Validate whoajor snapshots
+        timeout-minutes: 60
+        run: |
+          corepack pnpm -C scripts/whoajor install --frozen-lockfile
+          corepack pnpm whoajor:test
+          corepack pnpm whoajor:verify
+
       # Единый offline-гейт: agent parity, retrieval/control/red-team fixtures, doctor и provenance.
       - name: Run deterministic quality gate
         run: corepack pnpm kb:check

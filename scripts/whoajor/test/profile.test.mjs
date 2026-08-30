@@ -50,7 +50,10 @@ async function buildValidatedFixture() {
   const db = new Database(dbPath);
   const snapshot = db.prepare('SELECT snapshot_id, source_json FROM snapshots').get();
   const snapshotSource = JSON.parse(snapshot.source_json);
-  snapshotSource.sourceCounts = { matches: validation.counts.matches };
+  snapshotSource.sourceCounts = {
+    ...snapshotSource.sourceCounts,
+    matches: validation.counts.matches,
+  };
   db.prepare('UPDATE snapshots SET source_json = ? WHERE snapshot_id = ?')
     .run(JSON.stringify(snapshotSource), snapshot.snapshot_id);
   db.close();
@@ -65,11 +68,11 @@ test('profile фиксирует структуру, grain, SQL-сверки и 
   const { dbPath, snapshotDir } = await buildValidatedFixture();
   const first = profileDatabase(snapshotDir, dbPath);
 
-  assert.equal(first.version, 1);
+  assert.equal(first.version, 2);
   assert.equal(first.status, 'complete', JSON.stringify(first.anomalies));
   assert.equal(first.blockingChecks, 0);
   assert.deepEqual(first.snapshot, {
-    contractVersion: '1.0.0',
+    contractVersion: '1.1.0',
     id: basename(snapshotDir),
     rootHash: first.snapshot.rootHash,
     status: 'complete',
@@ -97,6 +100,8 @@ test('profile фиксирует структуру, grain, SQL-сверки и 
     roundsActual: 4,
     roundsDeclared: 4,
     roundsPerMatchMismatch: 0,
+    trendsPlayers: 2,
+    trendMatches: 2,
   });
   assert.deepEqual(first.anomalies, {
     fractionalCountMetrics: 0,
@@ -293,7 +298,7 @@ test('match date min/max вычисляются хронологически с 
   assert.equal(report.status, 'complete');
 });
 
-test('profile требует полный набор из 27 normalized tables', async () => {
+test('profile требует полный набор из 29 normalized tables', async () => {
   const { dbPath, snapshotDir } = await buildValidatedFixture();
   const db = new Database(dbPath);
   db.pragma('foreign_keys = OFF');

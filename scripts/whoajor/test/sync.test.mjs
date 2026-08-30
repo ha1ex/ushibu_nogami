@@ -141,6 +141,8 @@ test('contract.json сериализует весь CONTRACT, fixed queries, pag
   assert.equal(serialized.version, CONTRACT.version);
   assert.deepEqual(Object.keys(serialized.endpoints).sort(), Object.keys(CONTRACT.endpoints).sort());
   assert.deepEqual(serialized.endpoints.playerWeaponsByDay.fixedQuery, { by: 'day' });
+  assert.deepEqual(serialized.endpoints.trends.requiredQuery, { top: 'positive-integer' });
+  assert.equal(serialized.endpoints.trends.collectionTop, 'discoveredPlayers');
   assert.equal(serialized.endpoints.matches.limitParam, 'limit');
   assert.equal(serialized.endpoints.matches.offsetParam, 'offset');
   assert.deepEqual(serialized.endpoints.weaponSplits.required, CONTRACT.endpoints.weaponSplits.required);

@@ -7,7 +7,8 @@ import { loadSnapshot } from './raw-store.mjs';
 
 const SCHEMA_URL = new URL('../schema.sql', import.meta.url);
 const EXPECTED_COUNT_KEYS = Object.freeze([
-  'matchDetails', 'matches', 'players', 'requests', 'tags', 'weapons',
+  'matchDetails', 'matches', 'players', 'requests', 'tags', 'trendMatches',
+  'trendsPlayers', 'weapons',
 ]);
 let temporarySequence = 0;
 
@@ -39,6 +40,11 @@ function classify(entry) {
   if (staticEndpoints.has(path) && queryEquals(query, {})) {
     return { name: staticEndpoints.get(path), context: {} };
   }
+  if (
+    path === '/api/trends'
+      && Object.keys(query).length === 1
+      && /^[1-9]\d*$/.test(String(query.top))
+  ) return { name: 'trends', context: {} };
   if (path === '/api/matches') return { name: 'matches', context: {} };
   if (path.startsWith('/api/matches/')) {
     return { name: 'matchDetail', context: { matchId: decodeIdentifier(path.slice(13)) } };
@@ -136,6 +142,13 @@ function sourceReference(observation, sourcePath) {
     observationRole: observationRole(observation.entry),
     requestKey: observation.entry.key,
     sourcePath,
+  };
+}
+
+function directLineage(observation, sourcePath, source) {
+  return {
+    ...sourceReference(observation, sourcePath),
+    sourceSha256: sha256Hex(json(source)),
   };
 }
 
@@ -347,6 +360,87 @@ function populate(db, snapshotId, manifest, report, observations) {
       json(row.source),
       json(row.lineage),
     );
+  }
+
+  const insertTrendPlayer = statement(db, `
+    INSERT INTO trend_players(
+      snapshot_id, query_fingerprint, player_index, steamid, name, rounds_total,
+      source_json, lineage_json
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
+  const insertTrendMatch = statement(db, `
+    INSERT INTO trend_matches(
+      snapshot_id, query_fingerprint, player_index, match_index, steamid,
+      started_at, map, match_name, adr, assists, cs_good, cs_graded,
+      cs_stop_fast, cs_stop_slow, damage, deaths, dpr, flash_assists,
+      hs_kills, impact, kast_pct, kast_rounds, kills, kpr, opening_deaths,
+      opening_kills, ping_n, ping_sum, rating2, rounds_played, rounds_won,
+      rws_sum, stop_ms_n, stop_ms_sum, ttd_adj_sum, ttd_n, ttd_sum,
+      source_json, lineage_json
+    ) VALUES (
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    )`);
+  for (const observation of observationsOf(observations, 'trends')) {
+    const fingerprint = queryFingerprint(observation.entry);
+    for (const [playerIndex, player] of observation.payload.entries()) {
+      insertTrendPlayer(
+        snapshotId,
+        fingerprint,
+        playerIndex,
+        player.steamid,
+        player.name,
+        player.roundsTotal,
+        json(player),
+        json(directLineage(observation, `$[${playerIndex}]`, player)),
+      );
+      for (const [matchIndex, match] of player.matches.entries()) {
+        insertTrendMatch(
+          snapshotId,
+          fingerprint,
+          playerIndex,
+          matchIndex,
+          match.steamid,
+          match.started_at,
+          match.map,
+          match.match_name,
+          match.adr,
+          match.assists,
+          match.cs_good,
+          match.cs_graded,
+          match.cs_stop_fast,
+          match.cs_stop_slow,
+          match.damage,
+          match.deaths,
+          match.dpr,
+          match.flash_assists,
+          match.hs_kills,
+          match.impact,
+          match.kast_pct,
+          match.kast_rounds,
+          match.kills,
+          match.kpr,
+          match.opening_deaths,
+          match.opening_kills,
+          match.ping_n,
+          match.ping_sum,
+          match.rating2,
+          match.rounds_played,
+          match.rounds_won,
+          match.rws_sum,
+          match.stop_ms_n,
+          match.stop_ms_sum,
+          match.ttd_adj_sum,
+          match.ttd_n,
+          match.ttd_sum,
+          json(match),
+          json(directLineage(
+            observation,
+            `$[${playerIndex}].matches[${matchIndex}]`,
+            match,
+          )),
+        );
+      }
+    }
   }
 
   const indexMatches = new Map();
@@ -638,6 +732,8 @@ function verifyCounts(db, report) {
     players: db.prepare('SELECT count(*) AS n FROM players').get().n,
     weapons: db.prepare('SELECT count(*) AS n FROM weapons').get().n,
     tags: db.prepare('SELECT count(*) AS n FROM tags').get().n,
+    trendsPlayers: db.prepare('SELECT count(*) AS n FROM trend_players').get().n,
+    trendMatches: db.prepare('SELECT count(*) AS n FROM trend_matches').get().n,
   };
   for (const name of EXPECTED_COUNT_KEYS) {
     const expected = report.counts[name];

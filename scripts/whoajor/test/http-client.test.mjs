@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { createHttpClient } from '../lib/http-client.mjs';
 
 test('client запрещает не-API path и не имеет mutation methods', async () => {
@@ -30,11 +31,36 @@ test('client повторяет 429 по Retry-After и возвращает exa
 
   const result = await client.get('/api/meta');
 
-  assert.equal(result.body, '{"matches":2}');
+  assert.deepEqual(result.body, Buffer.from('{"matches":2}'));
   assert.equal(result.status, 200);
   assert.equal(result.url, 'https://stats.whoajor.com/api/meta');
   assert.deepEqual(result.headers, { 'content-type': 'application/json' });
   assert.deepEqual(sleeps, [1000]);
+});
+
+test('client сохраняет исходные байты native Response без UTF-8 декодирования', async () => {
+  const responseBytes = Buffer.from(
+    'efbbbf7b226c6162656c223a22d0a3d188d0b8d0b1d18320f09fa6b6227d',
+    'hex',
+  );
+  const client = createHttpClient({
+    baseUrl: 'https://stats.whoajor.com',
+    delayMs: 0,
+    fetchImpl: async () => new Response(responseBytes, {
+      status: 200,
+      headers: { 'content-type': 'application/json; charset=utf-8' },
+    }),
+  });
+
+  const result = await client.get('/api/meta');
+
+  assert.equal(Buffer.isBuffer(result.body), true);
+  assert.deepEqual(result.body, responseBytes);
+  assert.equal(result.body.byteLength, 30);
+  assert.equal(
+    createHash('sha256').update(result.body).digest('hex'),
+    '289bb52eef0ed3509c8c2f30bc30d3712ceb929a51a4023f5cff5dfb66d21922',
+  );
 });
 
 test('client повторяет 503 с exponential backoff', async () => {
@@ -61,9 +87,9 @@ test('client требует JSON content-type и читает successful body р
   const response = {
     status: 200,
     headers: new Headers({ 'content-type': 'text/plain' }),
-    text: async () => {
+    arrayBuffer: async () => {
       bodyReads += 1;
-      return '{"matches":2}';
+      return new TextEncoder().encode('{"matches":2}').buffer;
     },
   };
   const client = createHttpClient({
@@ -81,9 +107,9 @@ test('client читает JSON body ровно один раз', async () => {
   const response = {
     status: 200,
     headers: new Headers({ 'content-type': 'application/json; charset=utf-8' }),
-    text: async () => {
+    arrayBuffer: async () => {
       bodyReads += 1;
-      return '{"matches":2}';
+      return new TextEncoder().encode('{"matches":2}').buffer;
     },
   };
   const client = createHttpClient({
@@ -94,7 +120,7 @@ test('client читает JSON body ровно один раз', async () => {
 
   const record = await client.get('/api/meta');
 
-  assert.equal(record.body, '{"matches":2}');
+  assert.deepEqual(record.body, Buffer.from('{"matches":2}'));
   assert.equal(bodyReads, 1);
 });
 
@@ -112,7 +138,7 @@ test('client повторяет network error при чтении JSON body', as
         return {
           status: 200,
           headers: new Headers({ 'content-type': 'application/json' }),
-          text: async () => {
+          arrayBuffer: async () => {
             throw new Error('body stream interrupted');
           },
         };
@@ -126,7 +152,7 @@ test('client повторяет network error при чтении JSON body', as
 
   const result = await client.get('/api/meta');
 
-  assert.equal(result.body, '{"matches":2}');
+  assert.deepEqual(result.body, Buffer.from('{"matches":2}'));
   assert.equal(fetchCalls, 2);
   assert.deepEqual(sleeps, [250]);
 });
@@ -141,7 +167,7 @@ test('client сообщает context после исчерпания retries п
     fetchImpl: async () => ({
       status: 200,
       headers: new Headers({ 'content-type': 'application/json' }),
-      text: async () => {
+      arrayBuffer: async () => {
         throw new Error('body stream interrupted');
       },
     }),

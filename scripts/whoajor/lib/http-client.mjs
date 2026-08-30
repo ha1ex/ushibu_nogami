@@ -130,7 +130,7 @@ export function createHttpClient({
         }
         let body;
         try {
-          body = await response.text();
+          body = Buffer.from(await response.arrayBuffer());
         } catch (error) {
           if (attempts > retryLimit) {
             throw requestError({

@@ -123,6 +123,8 @@ function readDatabaseResult(dbPath, expectedRootHash) {
       players: db.prepare('SELECT count(*) AS n FROM players').get().n,
       weapons: db.prepare('SELECT count(*) AS n FROM weapons').get().n,
       tags: db.prepare('SELECT count(*) AS n FROM tags').get().n,
+      trendsPlayers: db.prepare('SELECT count(*) AS n FROM trend_players').get().n,
+      trendMatches: db.prepare('SELECT count(*) AS n FROM trend_matches').get().n,
     };
     return { counts, dataFingerprint: computeDataFingerprint(db) };
   } catch (error) {
