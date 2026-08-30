@@ -65,13 +65,14 @@ async function removeRequests(dir, predicate) {
   await writeManifest(dir, manifest);
 }
 
-async function buildCollectedFixture() {
+async function buildCollectedFixture(fixtureOptions = {}) {
   const dir = await mkdtemp(join(tmpdir(), 'whoajor-validation-'));
   const fixture = createFixtureApi({
     pageSize: 2,
     matchIds: ['match-3', 'match-2', 'match-1'],
     detailPlayers: [PLAYER_1, PLAYER_2],
     roundPlayers: [PLAYER_1, PLAYER_2],
+    ...fixtureOptions,
   });
   const client = createHttpClient({
     baseUrl: fixture.baseUrl,
@@ -235,6 +236,15 @@ test('REQUIRED_FIELD_MISSING блокирует required-field schema drift', as
   ));
 });
 
+test('optional descriptor принимает отсутствие workshopMap и voiceRecorded из live schema', async () => {
+  const dir = await buildCollectedFixture({ legacyOptionalMatchFields: true });
+
+  const report = await validateSnapshot(dir);
+
+  assert.equal(report.status, 'complete');
+  assert.equal(report.errors.length, 0);
+});
+
 test('FIELD_TYPE_MISMATCH блокирует required type drift', async () => {
   await expectHardError('FIELD_TYPE_MISMATCH', (dir) => rewritePayload(
     dir,
@@ -376,6 +386,30 @@ test('все документированные discrepancy/warning остают
   }
 });
 
+test('UNKNOWN_FIELD дедуплицируется по структурному пути без миллионов row warnings', async () => {
+  const dir = await buildCollectedFixture();
+  await rewritePayload(dir, (entry) => entry.path.endsWith('/maps'), (rows) => {
+    rows.splice(0, rows.length, ...Array.from({ length: 100 }, (_, index) => ({
+      map: `fixture_map_${index}`,
+      matches: 1,
+      rounds_played: 2,
+      rounds_won: 1,
+      kills: 2,
+      deaths: 1,
+      rating2: 1.05,
+      upstream_note: 'same schema extension',
+    })));
+  }, { all: true });
+
+  const report = await validateSnapshot(dir);
+  const upstreamWarnings = report.warnings.filter(({ code, location }) => (
+    code === 'UNKNOWN_FIELD' && location.endsWith('.upstream_note')
+  ));
+
+  assert.equal(report.status, 'complete');
+  assert.equal(upstreamWarnings.length, 1);
+});
+
 test('повторный аудит детерминирован кроме operational checkedAt', async () => {
   const dir = await buildCollectedFixture();
   const first = await validateSnapshot(dir);
@@ -404,4 +438,13 @@ test('CLI атомарно пишет validation-report.json и возвраща
   assert.equal(incompleteReport.status, 'incomplete');
   assert.ok(hasCode(incompleteReport, 'errors', 'REQUEST_MISSING'));
   assert.ok((await readdir(incompleteDir)).every((name) => !name.startsWith('validation-report.json.tmp-')));
+});
+
+test('CLI принимает literal -- из корневой pnpm-команды', async () => {
+  const completeDir = await buildCollectedFixture();
+
+  await execFileAsync(process.execPath, [VALIDATE_CLI, '--', completeDir]);
+
+  const report = JSON.parse(await readFile(join(completeDir, 'validation-report.json'), 'utf8'));
+  assert.equal(report.status, 'complete');
 });

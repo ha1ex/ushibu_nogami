@@ -87,7 +87,10 @@ function makeReporter(report) {
   const seen = new Set();
   return (bucket, code, location, message) => {
     const event = { code, location, message };
-    const identity = `${bucket}\0${code}\0${location}\0${message}`;
+    const identityLocation = code === 'UNKNOWN_FIELD'
+      ? location.replace(/\[\d+\]/g, '[]')
+      : location;
+    const identity = `${bucket}\0${code}\0${identityLocation}\0${message}`;
     if (!seen.has(identity)) {
       seen.add(identity);
       report[bucket].push(event);
@@ -139,6 +142,7 @@ function validateObject(value, required, location, add, { unknownFields = true }
   for (const [field, expected] of Object.entries(required)) {
     const fieldLocation = `${location}.${field}`;
     if (!Object.hasOwn(value, field)) {
+      if (matchesType(undefined, expected)) continue;
       add('errors', 'REQUIRED_FIELD_MISSING', fieldLocation, 'required field is absent');
       continue;
     }

@@ -15,8 +15,11 @@ async function writeReportAtomically(dir, report) {
 }
 
 export async function runValidationCli(args) {
-  if (args.length !== 1 || !args[0]) throw new Error('usage: whoajor:validate -- <snapshot-dir>');
-  const dir = args[0];
+  const positionals = args[0] === '--' ? args.slice(1) : args;
+  if (positionals.length !== 1 || !positionals[0]) {
+    throw new Error('usage: whoajor:validate -- <snapshot-dir>');
+  }
+  const dir = positionals[0];
   const report = await validateSnapshot(dir);
   await writeReportAtomically(dir, report);
   return report;
