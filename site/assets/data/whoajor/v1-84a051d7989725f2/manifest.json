@@ -160,6 +160,4410 @@
       "sourceRows": 39
     }
   ],
+  "detailIndexes": {
+    "matchRounds": {
+      "matchId": {
+        "auto-20231116-1908-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231116-1956-de_ancient-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231116-2039-de_nuke-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231118-1757-de_nuke-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231118-1902-de_inferno-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231118-1956-de_ancient-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231122-1758-de_ancient-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231122-1854-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231122-1955-de_mirage-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231124-1629-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231124-1718-de_nuke-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231124-1759-de_mirage-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231125-1805-de_nuke-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231125-1905-de_inferno-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231128-1758-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231128-1911-de_ancient-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231128-2035-de_nuke-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231201-1814-de_vertigo-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231201-1915-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231201-2002-de_inferno-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231203-1758-de_nuke-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231203-1922-de_mirage-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231203-2002-de_vertigo-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231206-1758-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231206-1852-de_mirage-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231206-2022-de_nuke-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231210-1759-de_vertigo-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231210-1918-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231214-1841-de_nuke-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231214-1916-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231215-1857-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231215-1948-de_vertigo-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231215-2128-de_overpass-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231221-1830-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231221-1917-de_mirage-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231221-2007-de_nuke-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231221-2056-de_inferno-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231227-1758-de_nuke-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20231227-1838-de_ancient-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20240204-1806-de_nuke-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20240204-1901-de_inferno-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20240204-1938-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20240227-0605-de_dust2-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20240227-0612-de_dust2-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241016-2013-de_inferno-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241016-2047-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241016-2207-de_nuke-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241024-1751-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241024-1848-de_nuke-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241027-1737-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241027-1857-de_vertigo-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241027-1948-de_inferno-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241031-1914-de_inferno-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241031-2030-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241031-2117-de_ancient-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241104-1738-de_ancient-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241104-1902-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241118-1838-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241118-1929-de_vertigo-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241124-1801-de_ancient-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241124-1907-de_nuke-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241127-1925-de_ancient-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241127-2022-de_nuke-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241127-2107-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241128-1920-de_inferno-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241128-2000-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241130-1658-de_mirage-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241130-1758-de_nuke-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241130-1844-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241204-1957-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20241204-2012-de_ancient-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20250601-1728-de_inferno-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20250601-1823-de_anubis-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20250601-1948-de_train-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20250601-2032-de_ancient-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20250601-2119-de_nuke-Whoajor": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20260311-2008-de_anubis-OVOSCHI": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20260311-2053-de_mirage-OVOSCHI": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20260311-2131-de_overpass-OVOSCHI": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20260311-2209-de_inferno-OVOSCHI": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20260311-2306-de_palais-OVOSCHI": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20260311-2336-de_whistle-OVOSCHI": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20260318-1851-de_mirage-OVOSCHI": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20260318-1931-de_anubis-OVOSCHI": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20260318-2007-de_ancient-OVOSCHI": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20260318-2039-de_overpass-OVOSCHI": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20260318-2134-de_nuke-OVOSCHI": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20260318-2241-de_palais-OVOSCHI": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20260318-2303-de_hive-OVOSCHI": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20260318-2332-de_rainfall-OVOSCHI": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20260322-2205-fy_iceworld-OVOSCHI": [
+          "data/matchRounds-000.json"
+        ],
+        "auto-20260322-2214-de_rooftop-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260322-2242-de_memento-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260322-2307-de_palais-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260325-1806-de_poseidon-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260325-1832-shortdust-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260325-1853-de_nuke-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260325-1934-de_train-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260325-2024-de_overpass-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260325-2109-de_ancient_night-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260325-2146-de_anubis-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260325-2228-de_warden-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260325-2302-de_ravine-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260325-2322-de_dogtown-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260325-2349-de_palais-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260326-0014-de_memento-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260401-1919-de_mirage_100changes-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260401-1947-de_anubis-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260401-2024-de_nuke-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260401-2210-de_outback-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260401-2241-cs_mansion-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260401-2311-de_palais-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260401-2339-de_whistle-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260408-1807-de_poseidon-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260408-1833-de_dust2-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260408-1916-de_ancient-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260408-1953-de_anubis-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260408-2029-de_train-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260408-2117-de_nuke-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260408-2208-cs_militia-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260408-2237-de_rainfall-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260408-2308-de_palais-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260408-2334-aim_redline-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260415-1823-acs2_assault-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260415-1855-de_train-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260415-1931-de_inferno-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260415-2016-de_dust2-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260415-2051-de_nuke-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260415-2128-de_anubis-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260415-2207-de_palais-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260415-2232-de_sanctum-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260415-2254-de_transit-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260415-2328-de_whistle-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260415-2350-de_memento-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260421-1831-de_inferno-Whoajor": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260421-1931-de_ancient-Whoajor": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260421-2009-de_mirage-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260421-2047-de_train-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260421-2113-de_anubis-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260421-2155-de_whistle-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260421-2219-de_palais-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260422-1825-de_dust2-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260422-1951-de_overpass-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260422-2040-de_cache-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260422-2122-de_nuke-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260422-2154-de_calavera-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260422-2300-de_palais-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260422-2329-de_rainfall-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260423-1819-de_inferno-Whoajor": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260423-1907-de_mirage-Whoajor": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260423-1946-de_nuke-Whoajor": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260423-2038-de_poseidon-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260428-1810-de_ancient-Whoajor": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260428-1914-de_dust2-Whoajor": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260428-2030-de_anubis-Whoajor": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260429-1826-de_ancient-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260429-1910-de_dust2-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260429-1951-de_overpass-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260429-2026-de_cache-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260429-2103-de_inferno-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260429-2142-cs_mansion-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260429-2214-de_palais-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260429-2236-de_hive-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260429-2302-de_whistle-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260430-1822-de_overpass-Whoajor": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260430-1922-de_anubis-Whoajor": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260430-2021-de_ancient-Whoajor": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260505-2028-de_train-Whoajor": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260505-2140-de_rainfall-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260505-2207-de_palais-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260505-2228-de_calavera-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260506-1809-fy_iceworld-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260506-1843-de_cache-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260506-1927-de_anubis-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260506-2006-de_nuke-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260506-2123-de_train-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260506-2201-de_overpass-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260506-2229-de_blagai_d-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260506-2255-de_memento-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260506-2319-de_palais-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260513-1806-fy_iceworld-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260513-1818-de_sanctum-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260513-1840-acs2_assault-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260513-1922-de_ancient_night-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260513-2000-de_nuke-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260513-2041-de_cache-OVOSCHI": [
+          "data/matchRounds-001.json"
+        ],
+        "auto-20260513-2118-de_overpass-OVOSCHI": [
+          "data/matchRounds-001.json",
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260513-2154-de_anubis-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260513-2233-de_mirage-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260513-2309-de_train-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260513-2359-de_lake-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260514-0025-de_outback-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260520-1816-de_mirage-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260520-1903-de_dust2-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260520-1936-de_cache-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260520-2017-de_nuke-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260520-2053-de_anubis-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260520-2133-de_whistle-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260520-2158-de_rooftop-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260520-2249-de_palais-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260527-1820-acs2_assault-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260527-1937-de_train-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260527-2000-de_cache-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260527-2043-de_overpass-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260527-2124-de_rainfall-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260527-2147-de_hive-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260527-2239-de_palais-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260527-2305-de_whistle-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260527-2328-de_memento-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260530-1956-de_foroglio-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260530-2100-de_splinter-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260530-2134-cs_militia-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260530-2208-de_outback-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260530-2231-de_blagai_d-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260530-2256-de_assembly-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260531-0909-de_dust2-Whoajor": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260531-0953-de_anubis-Whoajor": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260531-1027-de_overpass-Whoajor": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260531-1103-de_mirage-Whoajor": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260531-1140-de_dust2-Whoajor": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260603-1840-cs_militia-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260603-1918-de_cache-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260603-2036-de_ancient-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260603-2111-de_inferno-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260603-2146-de_nuke-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260603-2218-de_memento-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260603-2245-de_rainfall-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260603-2313-de_outback-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260610-1819-de_dust_hr-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260610-1856-de_cache-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260610-2029-de_anubis-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260610-2103-de_nuke-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260610-2133-de_whistle-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260610-2152-de_rainfall-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260610-2212-de_rooftop-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260610-2228-de_sakura-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260610-2249-de_palais-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260610-2312-de_memento-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260610-2332-de_hive-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260617-1907-de_ancient-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260617-1947-de_overpass-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260617-2030-de_cache-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260617-2107-de_mirage-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260617-2140-de_nuke-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260617-2220-de_anubis-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260617-2331-de_palais-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260617-2351-de_memento-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260618-1832-de_dust2-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260618-1953-de_transit-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260618-2023-de_whistle-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260618-2115-de_rainfall-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260624-1816-cs_italy-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260624-1856-de_dust2-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260624-1935-de_cache-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260624-2017-de_train-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260624-2129-de_inferno-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260624-2203-de_nuke-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260624-2259-de_cbble_d-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260624-2330-de_blagai_d-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260624-2353-de_palais-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260628-1835-de_assembly-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260628-1852-fy_iceworld-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260628-1905-de_outback-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260628-1929-de_calavera-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260628-1955-de_memento-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260701-1803-fy_iceworld-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260701-1823-acs2_assault-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260701-1901-de_dust2-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260701-2028-de_mirage-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260701-2107-de_nuke-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260701-2143-de_inferno-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260701-2229-de_hive-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260701-2304-de_palais-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260701-2329-de_whistle-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260701-2351-de_rainfall-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260702-0020-de_memento-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260704-2041-cs_militia-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260704-2118-boyard-OVOSCHI": [
+          "data/matchRounds-002.json"
+        ],
+        "auto-20260708-1828-de_mirage-OVOSCHI": [
+          "data/matchRounds-002.json",
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260708-1914-de_cache-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260708-2040-de_overpass-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260708-2124-de_inferno-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260708-2203-shortdust-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260708-2228-de_whistle-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260715-1758-de_debris-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260715-1822-de_fachwerk-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260715-1849-de_mirage-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260715-2034-de_anubis-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260715-2100-de_boulder-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260715-2129-de_nuke-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260715-2208-de_palais-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260715-2228-de_calavera-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260715-2259-de_hive-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260715-2331-de_rainfall-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260718-0233-de_debris-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260718-0258-shortdust-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260718-0340-cs_mansion-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260718-0405-de_rainfall-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260718-0447-de_dust2-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260718-1855-fy_iceworld-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260718-1906-de_ravine-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260718-1951-de_brewery-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260718-2021-de_rainfall-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260718-2047-de_palais-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260722-1747-de_debris-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260722-1813-de_cache-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260722-1928-de_mirage-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260722-2002-de_nuke-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260722-2037-de_train-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260722-2107-de_inferno-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260722-2136-de_blagai_d-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260722-2209-de_sanctum-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260729-1817-de_train-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260729-1849-de_mirage-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260729-1928-de_anubis-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260729-2007-de_overpass-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260729-2053-de_cache-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260729-2137-de_nuke-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260729-2213-de_inferno-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260729-2242-de_whistle-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260729-2308-de_rainfall-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260729-2342-de_palais-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260730-0005-de_hive-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260730-0029-de_memento-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260805-1803-fy_iceworld-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260805-1813-de_dust2-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260805-1903-de_ancient-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260805-1948-de_anubis-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260805-2021-de_cache-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260805-2105-de_mirage-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260805-2140-de_inferno-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260805-2207-de_blagai_d-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260805-2231-de_hive-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260805-2258-de_palais-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260805-2322-de_whistle-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260812-1808-fy_iceworld-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260812-1820-de_lake-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260812-1849-de_mirage-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260812-1939-de_cache-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260812-2016-de_dust2-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260812-2053-de_nuke-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260812-2120-de_anubis-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260812-2158-de_calavera-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260812-2219-de_palais-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260812-2242-de_rainfall-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260815-0449-cs_mansion-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260819-1828-de_inferno-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260819-1928-de_dust2-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260819-2000-de_cache-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260819-2041-de_ancient_night-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260819-2119-de_mirage-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260819-2200-de_nuke-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260819-2241-de_anubis-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260819-2319-de_memento-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260819-2350-de_palais-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260820-1804-de_inferno-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260820-1905-de_cache-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260826-1821-de_mirage-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260826-1915-de_dust2-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260826-1957-de_anubis-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260826-2049-de_ancient_night-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260826-2123-de_inferno-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260826-2159-de_blagai_d-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260826-2226-de_rooftop-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260826-2254-de_rainfall-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260827-1852-de_anubis-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260827-1936-de_dust2-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ],
+        "auto-20260827-2004-de_nuke-OVOSCHI": [
+          "data/matchRounds-003.json"
+        ]
+      }
+    },
+    "matchPlayers": {
+      "matchId": {
+        "auto-20231116-1908-de_anubis-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231116-1956-de_ancient-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231116-2039-de_nuke-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231118-1757-de_nuke-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231118-1902-de_inferno-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231118-1956-de_ancient-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231122-1758-de_ancient-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231122-1854-de_anubis-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231122-1955-de_mirage-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231124-1629-de_anubis-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231124-1718-de_nuke-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231124-1759-de_mirage-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231125-1805-de_nuke-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231125-1905-de_inferno-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231128-1758-de_anubis-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231128-1911-de_ancient-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231128-2035-de_nuke-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231201-1814-de_vertigo-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231201-1915-de_anubis-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231201-2002-de_inferno-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231203-1758-de_nuke-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231203-1922-de_mirage-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231203-2002-de_vertigo-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231206-1758-de_anubis-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231206-1852-de_mirage-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231206-2022-de_nuke-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231210-1759-de_vertigo-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231210-1918-de_anubis-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231214-1841-de_nuke-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231214-1916-de_anubis-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231215-1857-de_anubis-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231215-1948-de_vertigo-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231215-2128-de_overpass-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231221-1830-de_anubis-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231221-1917-de_mirage-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231221-2007-de_nuke-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231221-2056-de_inferno-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231227-1758-de_nuke-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20231227-1838-de_ancient-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20240204-1806-de_nuke-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20240204-1901-de_inferno-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20240204-1938-de_anubis-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20240227-0605-de_dust2-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20240227-0612-de_dust2-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20241016-2013-de_inferno-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20241016-2047-de_anubis-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20241016-2207-de_nuke-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20241024-1751-de_anubis-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20241024-1848-de_nuke-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20241027-1737-de_anubis-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20241027-1857-de_vertigo-Whoajor": [
+          "data/matchPlayers-000.json"
+        ],
+        "auto-20241027-1948-de_inferno-Whoajor": [
+          "data/matchPlayers-000.json",
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241031-1914-de_inferno-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241031-2030-de_anubis-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241031-2117-de_ancient-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241104-1738-de_ancient-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241104-1902-de_anubis-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241118-1838-de_anubis-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241118-1929-de_vertigo-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241124-1801-de_ancient-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241124-1907-de_nuke-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241127-1925-de_ancient-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241127-2022-de_nuke-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241127-2107-de_anubis-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241128-1920-de_inferno-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241128-2000-de_anubis-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241130-1658-de_mirage-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241130-1758-de_nuke-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241130-1844-de_anubis-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241204-1957-de_anubis-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20241204-2012-de_ancient-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20250601-1728-de_inferno-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20250601-1823-de_anubis-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20250601-1948-de_train-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20250601-2032-de_ancient-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20250601-2119-de_nuke-Whoajor": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260311-2008-de_anubis-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260311-2053-de_mirage-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260311-2131-de_overpass-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260311-2209-de_inferno-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260311-2306-de_palais-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260311-2336-de_whistle-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260318-1851-de_mirage-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260318-1931-de_anubis-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260318-2007-de_ancient-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260318-2039-de_overpass-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260318-2134-de_nuke-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260318-2241-de_palais-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260318-2303-de_hive-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260318-2332-de_rainfall-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260322-2205-fy_iceworld-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260322-2214-de_rooftop-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260322-2242-de_memento-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260322-2307-de_palais-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260325-1806-de_poseidon-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260325-1832-shortdust-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260325-1853-de_nuke-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260325-1934-de_train-OVOSCHI": [
+          "data/matchPlayers-001.json"
+        ],
+        "auto-20260325-2024-de_overpass-OVOSCHI": [
+          "data/matchPlayers-001.json",
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260325-2109-de_ancient_night-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260325-2146-de_anubis-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260325-2228-de_warden-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260325-2302-de_ravine-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260325-2322-de_dogtown-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260325-2349-de_palais-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260326-0014-de_memento-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260401-1919-de_mirage_100changes-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260401-1947-de_anubis-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260401-2024-de_nuke-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260401-2210-de_outback-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260401-2241-cs_mansion-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260401-2311-de_palais-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260401-2339-de_whistle-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260408-1807-de_poseidon-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260408-1833-de_dust2-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260408-1916-de_ancient-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260408-1953-de_anubis-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260408-2029-de_train-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260408-2117-de_nuke-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260408-2208-cs_militia-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260408-2237-de_rainfall-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260408-2308-de_palais-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260408-2334-aim_redline-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260415-1823-acs2_assault-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260415-1855-de_train-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260415-1931-de_inferno-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260415-2016-de_dust2-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260415-2051-de_nuke-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260415-2128-de_anubis-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260415-2207-de_palais-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260415-2232-de_sanctum-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260415-2254-de_transit-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260415-2328-de_whistle-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260415-2350-de_memento-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260421-1831-de_inferno-Whoajor": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260421-1931-de_ancient-Whoajor": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260421-2009-de_mirage-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260421-2047-de_train-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260421-2113-de_anubis-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260421-2155-de_whistle-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260421-2219-de_palais-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260422-1825-de_dust2-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260422-1951-de_overpass-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260422-2040-de_cache-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260422-2122-de_nuke-OVOSCHI": [
+          "data/matchPlayers-002.json"
+        ],
+        "auto-20260422-2154-de_calavera-OVOSCHI": [
+          "data/matchPlayers-002.json",
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260422-2300-de_palais-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260422-2329-de_rainfall-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260423-1819-de_inferno-Whoajor": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260423-1907-de_mirage-Whoajor": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260423-1946-de_nuke-Whoajor": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260423-2038-de_poseidon-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260428-1810-de_ancient-Whoajor": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260428-1914-de_dust2-Whoajor": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260428-2030-de_anubis-Whoajor": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260429-1826-de_ancient-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260429-1910-de_dust2-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260429-1951-de_overpass-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260429-2026-de_cache-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260429-2103-de_inferno-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260429-2142-cs_mansion-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260429-2214-de_palais-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260429-2236-de_hive-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260429-2302-de_whistle-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260430-1822-de_overpass-Whoajor": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260430-1922-de_anubis-Whoajor": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260430-2021-de_ancient-Whoajor": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260505-2028-de_train-Whoajor": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260505-2140-de_rainfall-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260505-2207-de_palais-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260505-2228-de_calavera-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260506-1809-fy_iceworld-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260506-1843-de_cache-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260506-1927-de_anubis-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260506-2006-de_nuke-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260506-2123-de_train-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260506-2201-de_overpass-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260506-2229-de_blagai_d-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260506-2255-de_memento-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260506-2319-de_palais-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260513-1806-fy_iceworld-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260513-1818-de_sanctum-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260513-1840-acs2_assault-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260513-1922-de_ancient_night-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260513-2000-de_nuke-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260513-2041-de_cache-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260513-2118-de_overpass-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260513-2154-de_anubis-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260513-2233-de_mirage-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260513-2309-de_train-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260513-2359-de_lake-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260514-0025-de_outback-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260520-1816-de_mirage-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260520-1903-de_dust2-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260520-1936-de_cache-OVOSCHI": [
+          "data/matchPlayers-003.json"
+        ],
+        "auto-20260520-2017-de_nuke-OVOSCHI": [
+          "data/matchPlayers-003.json",
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260520-2053-de_anubis-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260520-2133-de_whistle-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260520-2158-de_rooftop-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260520-2249-de_palais-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260527-1820-acs2_assault-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260527-1937-de_train-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260527-2000-de_cache-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260527-2043-de_overpass-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260527-2124-de_rainfall-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260527-2147-de_hive-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260527-2239-de_palais-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260527-2305-de_whistle-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260527-2328-de_memento-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260530-1956-de_foroglio-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260530-2100-de_splinter-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260530-2134-cs_militia-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260530-2208-de_outback-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260530-2231-de_blagai_d-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260530-2256-de_assembly-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260531-0909-de_dust2-Whoajor": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260531-0953-de_anubis-Whoajor": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260531-1027-de_overpass-Whoajor": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260531-1103-de_mirage-Whoajor": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260531-1140-de_dust2-Whoajor": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260603-1840-cs_militia-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260603-1918-de_cache-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260603-2036-de_ancient-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260603-2111-de_inferno-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260603-2146-de_nuke-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260603-2218-de_memento-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260603-2245-de_rainfall-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260603-2313-de_outback-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260610-1819-de_dust_hr-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260610-1856-de_cache-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260610-2029-de_anubis-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260610-2103-de_nuke-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260610-2133-de_whistle-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260610-2152-de_rainfall-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260610-2212-de_rooftop-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260610-2228-de_sakura-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260610-2249-de_palais-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260610-2312-de_memento-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260610-2332-de_hive-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260617-1907-de_ancient-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260617-1947-de_overpass-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260617-2030-de_cache-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260617-2107-de_mirage-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260617-2140-de_nuke-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260617-2220-de_anubis-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260617-2331-de_palais-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260617-2351-de_memento-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260618-1832-de_dust2-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260618-1953-de_transit-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260618-2023-de_whistle-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260618-2115-de_rainfall-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260624-1816-cs_italy-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260624-1856-de_dust2-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260624-1935-de_cache-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260624-2017-de_train-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260624-2129-de_inferno-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260624-2203-de_nuke-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260624-2259-de_cbble_d-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260624-2330-de_blagai_d-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260624-2353-de_palais-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260628-1835-de_assembly-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260628-1852-fy_iceworld-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260628-1905-de_outback-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260628-1929-de_calavera-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260628-1955-de_memento-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260701-1803-fy_iceworld-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260701-1823-acs2_assault-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260701-1901-de_dust2-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260701-2028-de_mirage-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260701-2107-de_nuke-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260701-2143-de_inferno-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260701-2229-de_hive-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260701-2304-de_palais-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260701-2329-de_whistle-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260701-2351-de_rainfall-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260702-0020-de_memento-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260704-2041-cs_militia-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260704-2118-boyard-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260708-1828-de_mirage-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260708-1914-de_cache-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260708-2040-de_overpass-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260708-2124-de_inferno-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260708-2203-shortdust-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260708-2228-de_whistle-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260715-1758-de_debris-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260715-1822-de_fachwerk-OVOSCHI": [
+          "data/matchPlayers-004.json"
+        ],
+        "auto-20260715-1849-de_mirage-OVOSCHI": [
+          "data/matchPlayers-004.json",
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260715-2034-de_anubis-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260715-2100-de_boulder-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260715-2129-de_nuke-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260715-2208-de_palais-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260715-2228-de_calavera-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260715-2259-de_hive-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260715-2331-de_rainfall-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260718-0233-de_debris-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260718-0258-shortdust-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260718-0340-cs_mansion-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260718-0405-de_rainfall-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260718-0447-de_dust2-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260718-1855-fy_iceworld-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260718-1906-de_ravine-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260718-1951-de_brewery-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260718-2021-de_rainfall-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260718-2047-de_palais-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260722-1747-de_debris-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260722-1813-de_cache-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260722-1928-de_mirage-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260722-2002-de_nuke-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260722-2037-de_train-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260722-2107-de_inferno-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260722-2136-de_blagai_d-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260722-2209-de_sanctum-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260729-1817-de_train-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260729-1849-de_mirage-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260729-1928-de_anubis-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260729-2007-de_overpass-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260729-2053-de_cache-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260729-2137-de_nuke-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260729-2213-de_inferno-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260729-2242-de_whistle-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260729-2308-de_rainfall-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260729-2342-de_palais-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260730-0005-de_hive-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260730-0029-de_memento-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260805-1803-fy_iceworld-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260805-1813-de_dust2-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260805-1903-de_ancient-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260805-1948-de_anubis-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260805-2021-de_cache-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260805-2105-de_mirage-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260805-2140-de_inferno-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260805-2207-de_blagai_d-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260805-2231-de_hive-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260805-2258-de_palais-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260805-2322-de_whistle-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260812-1808-fy_iceworld-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260812-1820-de_lake-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260812-1849-de_mirage-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260812-1939-de_cache-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260812-2016-de_dust2-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260812-2053-de_nuke-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260812-2120-de_anubis-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260812-2158-de_calavera-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260812-2219-de_palais-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260812-2242-de_rainfall-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260815-0449-cs_mansion-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260819-1828-de_inferno-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260819-1928-de_dust2-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260819-2000-de_cache-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260819-2041-de_ancient_night-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260819-2119-de_mirage-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260819-2200-de_nuke-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260819-2241-de_anubis-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260819-2319-de_memento-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260819-2350-de_palais-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260820-1804-de_inferno-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260820-1905-de_cache-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260826-1821-de_mirage-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260826-1915-de_dust2-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260826-1957-de_anubis-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260826-2049-de_ancient_night-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260826-2123-de_inferno-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260826-2159-de_blagai_d-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260826-2226-de_rooftop-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260826-2254-de_rainfall-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260827-1852-de_anubis-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260827-1936-de_dust2-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ],
+        "auto-20260827-2004-de_nuke-OVOSCHI": [
+          "data/matchPlayers-005.json"
+        ]
+      }
+    },
+    "playerClutches": {
+      "steamid": {
+        "76561197971908153": [
+          "data/playerClutches-000.json"
+        ],
+        "76561197988005676": [
+          "data/playerClutches-000.json"
+        ],
+        "76561198003507847": [
+          "data/playerClutches-000.json"
+        ],
+        "76561198005359240": [
+          "data/playerClutches-000.json"
+        ],
+        "76561198008778799": [
+          "data/playerClutches-000.json"
+        ],
+        "76561198012717103": [
+          "data/playerClutches-000.json"
+        ],
+        "76561198013401371": [
+          "data/playerClutches-000.json"
+        ],
+        "76561198024728544": [
+          "data/playerClutches-000.json"
+        ],
+        "76561198028699724": [
+          "data/playerClutches-000.json"
+        ],
+        "76561198033124797": [
+          "data/playerClutches-000.json"
+        ],
+        "76561198034119116": [
+          "data/playerClutches-000.json"
+        ],
+        "76561198038091211": [
+          "data/playerClutches-000.json",
+          "data/playerClutches-001.json"
+        ],
+        "76561198039033727": [
+          "data/playerClutches-001.json"
+        ],
+        "76561198050158798": [
+          "data/playerClutches-001.json"
+        ],
+        "76561198055937473": [
+          "data/playerClutches-001.json"
+        ],
+        "76561198067208940": [
+          "data/playerClutches-001.json"
+        ],
+        "76561198071750874": [
+          "data/playerClutches-001.json"
+        ],
+        "76561198079669564": [
+          "data/playerClutches-001.json"
+        ],
+        "76561198110346636": [
+          "data/playerClutches-001.json"
+        ],
+        "76561198121354723": [
+          "data/playerClutches-001.json"
+        ],
+        "76561198123985656": [
+          "data/playerClutches-001.json"
+        ],
+        "76561198128897169": [
+          "data/playerClutches-001.json"
+        ],
+        "76561198142573448": [
+          "data/playerClutches-001.json"
+        ],
+        "76561198155235330": [
+          "data/playerClutches-001.json"
+        ],
+        "76561198163689744": [
+          "data/playerClutches-001.json"
+        ],
+        "76561198174637217": [
+          "data/playerClutches-001.json"
+        ],
+        "76561198181685545": [
+          "data/playerClutches-001.json"
+        ],
+        "76561198187382895": [
+          "data/playerClutches-001.json",
+          "data/playerClutches-002.json"
+        ],
+        "76561198191390323": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198251990202": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198258567958": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198260121051": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198320022105": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198349509112": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198379566151": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198442916794": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198687532510": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198687788083": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198690825442": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198713382270": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198722181835": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198726487216": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198733119239": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198761381418": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198807335719": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198924002730": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198929855343": [
+          "data/playerClutches-002.json"
+        ],
+        "76561198954146584": [
+          "data/playerClutches-002.json"
+        ],
+        "76561199001827259": [
+          "data/playerClutches-002.json",
+          "data/playerClutches-003.json"
+        ],
+        "76561199010390513": [
+          "data/playerClutches-003.json"
+        ],
+        "76561199054893458": [
+          "data/playerClutches-003.json"
+        ],
+        "76561199055150760": [
+          "data/playerClutches-003.json"
+        ],
+        "76561199057420823": [
+          "data/playerClutches-003.json"
+        ],
+        "76561199121744233": [
+          "data/playerClutches-003.json",
+          "data/playerClutches-004.json"
+        ],
+        "76561199142248628": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199164639457": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199164974760": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199166248133": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199170327250": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199220422956": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199223950506": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199236099142": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199241623213": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199256725993": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199377638432": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199395039271": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199446477360": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199479957398": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199544878316": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199553001678": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199557294944": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199564198529": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199626663910": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199732051823": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199798014198": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199811519979": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199813460153": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199819276935": [
+          "data/playerClutches-004.json"
+        ],
+        "76561199819797389": [
+          "data/playerClutches-004.json"
+        ]
+      }
+    },
+    "matchPlayerWeapons": {
+      "matchId": {
+        "auto-20231116-1908-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231116-1956-de_ancient-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231116-2039-de_nuke-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231118-1757-de_nuke-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231118-1902-de_inferno-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231118-1956-de_ancient-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231122-1758-de_ancient-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231122-1854-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231122-1955-de_mirage-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231124-1629-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231124-1718-de_nuke-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231124-1759-de_mirage-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231125-1805-de_nuke-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231125-1905-de_inferno-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231128-1758-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231128-1911-de_ancient-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231128-2035-de_nuke-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231201-1814-de_vertigo-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231201-1915-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231201-2002-de_inferno-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231203-1758-de_nuke-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231203-1922-de_mirage-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231203-2002-de_vertigo-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231206-1758-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-000.json"
+        ],
+        "auto-20231206-1852-de_mirage-Whoajor": [
+          "data/matchPlayerWeapons-000.json",
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20231206-2022-de_nuke-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20231210-1759-de_vertigo-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20231210-1918-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20231214-1841-de_nuke-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20231214-1916-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20231215-1857-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20231215-1948-de_vertigo-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20231215-2128-de_overpass-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20231221-1830-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20231221-1917-de_mirage-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20231221-2007-de_nuke-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20231221-2056-de_inferno-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20231227-1758-de_nuke-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20231227-1838-de_ancient-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20240204-1806-de_nuke-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20240204-1901-de_inferno-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20240204-1938-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20241016-2013-de_inferno-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20241016-2047-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20241016-2207-de_nuke-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20241024-1751-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20241024-1848-de_nuke-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20241027-1737-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20241027-1857-de_vertigo-Whoajor": [
+          "data/matchPlayerWeapons-001.json"
+        ],
+        "auto-20241027-1948-de_inferno-Whoajor": [
+          "data/matchPlayerWeapons-001.json",
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241031-1914-de_inferno-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241031-2030-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241031-2117-de_ancient-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241104-1738-de_ancient-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241104-1902-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241118-1838-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241118-1929-de_vertigo-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241124-1801-de_ancient-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241124-1907-de_nuke-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241127-1925-de_ancient-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241127-2022-de_nuke-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241127-2107-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241128-1920-de_inferno-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241128-2000-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241130-1658-de_mirage-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241130-1758-de_nuke-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241130-1844-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241204-1957-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20241204-2012-de_ancient-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20250601-1728-de_inferno-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20250601-1823-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20250601-1948-de_train-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20250601-2032-de_ancient-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20250601-2119-de_nuke-Whoajor": [
+          "data/matchPlayerWeapons-002.json"
+        ],
+        "auto-20260311-2008-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-002.json",
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260311-2053-de_mirage-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260311-2131-de_overpass-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260311-2209-de_inferno-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260311-2306-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260311-2336-de_whistle-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260318-1851-de_mirage-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260318-1931-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260318-2007-de_ancient-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260318-2039-de_overpass-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260318-2134-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260318-2241-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260318-2303-de_hive-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260318-2332-de_rainfall-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260322-2205-fy_iceworld-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260322-2214-de_rooftop-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260322-2242-de_memento-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260322-2307-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260325-1806-de_poseidon-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260325-1832-shortdust-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260325-1853-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260325-1934-de_train-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260325-2024-de_overpass-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json"
+        ],
+        "auto-20260325-2109-de_ancient_night-OVOSCHI": [
+          "data/matchPlayerWeapons-003.json",
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260325-2146-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260325-2228-de_warden-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260325-2302-de_ravine-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260325-2322-de_dogtown-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260325-2349-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260326-0014-de_memento-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260401-1919-de_mirage_100changes-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260401-1947-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260401-2024-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260401-2210-de_outback-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260401-2241-cs_mansion-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260401-2311-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260401-2339-de_whistle-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260408-1807-de_poseidon-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260408-1833-de_dust2-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260408-1916-de_ancient-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260408-1953-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260408-2029-de_train-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260408-2117-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260408-2208-cs_militia-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260408-2237-de_rainfall-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260408-2308-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260408-2334-aim_redline-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json"
+        ],
+        "auto-20260415-1823-acs2_assault-OVOSCHI": [
+          "data/matchPlayerWeapons-004.json",
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260415-1855-de_train-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260415-1931-de_inferno-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260415-2016-de_dust2-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260415-2051-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260415-2128-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260415-2207-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260415-2232-de_sanctum-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260415-2254-de_transit-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260415-2328-de_whistle-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260415-2350-de_memento-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260421-1831-de_inferno-Whoajor": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260421-1931-de_ancient-Whoajor": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260421-2009-de_mirage-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260421-2047-de_train-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260421-2113-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260421-2155-de_whistle-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260421-2219-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260422-1825-de_dust2-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260422-1951-de_overpass-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260422-2040-de_cache-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260422-2122-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260422-2154-de_calavera-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260422-2300-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260422-2329-de_rainfall-OVOSCHI": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260423-1819-de_inferno-Whoajor": [
+          "data/matchPlayerWeapons-005.json"
+        ],
+        "auto-20260423-1907-de_mirage-Whoajor": [
+          "data/matchPlayerWeapons-005.json",
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260423-1946-de_nuke-Whoajor": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260423-2038-de_poseidon-OVOSCHI": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260428-1810-de_ancient-Whoajor": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260428-1914-de_dust2-Whoajor": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260428-2030-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260429-1826-de_ancient-OVOSCHI": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260429-1910-de_dust2-OVOSCHI": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260429-1951-de_overpass-OVOSCHI": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260429-2026-de_cache-OVOSCHI": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260429-2103-de_inferno-OVOSCHI": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260429-2142-cs_mansion-OVOSCHI": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260429-2214-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260429-2236-de_hive-OVOSCHI": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260429-2302-de_whistle-OVOSCHI": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260430-1822-de_overpass-Whoajor": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260430-1922-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260430-2021-de_ancient-Whoajor": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260505-2028-de_train-Whoajor": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260505-2140-de_rainfall-OVOSCHI": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260505-2207-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260505-2228-de_calavera-OVOSCHI": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260506-1809-fy_iceworld-OVOSCHI": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260506-1843-de_cache-OVOSCHI": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260506-1927-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-006.json"
+        ],
+        "auto-20260506-2006-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-006.json",
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260506-2123-de_train-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260506-2201-de_overpass-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260506-2229-de_blagai_d-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260506-2255-de_memento-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260506-2319-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260513-1806-fy_iceworld-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260513-1818-de_sanctum-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260513-1840-acs2_assault-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260513-1922-de_ancient_night-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260513-2000-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260513-2041-de_cache-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260513-2118-de_overpass-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260513-2154-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260513-2233-de_mirage-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260513-2309-de_train-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260513-2359-de_lake-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260514-0025-de_outback-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260520-1816-de_mirage-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260520-1903-de_dust2-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260520-1936-de_cache-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260520-2017-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json"
+        ],
+        "auto-20260520-2053-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-007.json",
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260520-2133-de_whistle-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260520-2158-de_rooftop-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260520-2249-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260527-1820-acs2_assault-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260527-1937-de_train-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260527-2000-de_cache-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260527-2043-de_overpass-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260527-2124-de_rainfall-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260527-2147-de_hive-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260527-2239-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260527-2305-de_whistle-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260527-2328-de_memento-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260530-1956-de_foroglio-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260530-2100-de_splinter-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260530-2134-cs_militia-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260530-2208-de_outback-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260530-2231-de_blagai_d-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260530-2256-de_assembly-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260531-0909-de_dust2-Whoajor": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260531-0953-de_anubis-Whoajor": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260531-1027-de_overpass-Whoajor": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260531-1103-de_mirage-Whoajor": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260531-1140-de_dust2-Whoajor": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260603-1840-cs_militia-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260603-1918-de_cache-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260603-2036-de_ancient-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json"
+        ],
+        "auto-20260603-2111-de_inferno-OVOSCHI": [
+          "data/matchPlayerWeapons-008.json",
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260603-2146-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260603-2218-de_memento-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260603-2245-de_rainfall-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260603-2313-de_outback-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260610-1819-de_dust_hr-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260610-1856-de_cache-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260610-2029-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260610-2103-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260610-2133-de_whistle-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260610-2152-de_rainfall-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260610-2212-de_rooftop-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260610-2228-de_sakura-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260610-2249-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260610-2312-de_memento-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260610-2332-de_hive-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260617-1907-de_ancient-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260617-1947-de_overpass-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260617-2030-de_cache-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260617-2107-de_mirage-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260617-2140-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260617-2220-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260617-2331-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260617-2351-de_memento-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260618-1832-de_dust2-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260618-1953-de_transit-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260618-2023-de_whistle-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json"
+        ],
+        "auto-20260618-2115-de_rainfall-OVOSCHI": [
+          "data/matchPlayerWeapons-009.json",
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260624-1816-cs_italy-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260624-1856-de_dust2-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260624-1935-de_cache-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260624-2017-de_train-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260624-2129-de_inferno-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260624-2203-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260624-2259-de_cbble_d-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260624-2330-de_blagai_d-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260624-2353-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260628-1835-de_assembly-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260628-1852-fy_iceworld-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260628-1905-de_outback-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260628-1929-de_calavera-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260628-1955-de_memento-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260701-1803-fy_iceworld-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260701-1823-acs2_assault-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260701-1901-de_dust2-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260701-2028-de_mirage-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260701-2107-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260701-2143-de_inferno-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260701-2229-de_hive-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260701-2304-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260701-2329-de_whistle-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260701-2351-de_rainfall-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json"
+        ],
+        "auto-20260702-0020-de_memento-OVOSCHI": [
+          "data/matchPlayerWeapons-010.json",
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260704-2041-cs_militia-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260704-2118-boyard-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260708-1828-de_mirage-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260708-1914-de_cache-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260708-2040-de_overpass-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260708-2124-de_inferno-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260708-2203-shortdust-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260708-2228-de_whistle-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260715-1758-de_debris-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260715-1822-de_fachwerk-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260715-1849-de_mirage-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260715-2034-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260715-2100-de_boulder-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260715-2129-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260715-2208-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260715-2228-de_calavera-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260715-2259-de_hive-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260715-2331-de_rainfall-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260718-0233-de_debris-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260718-0258-shortdust-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260718-0340-cs_mansion-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260718-0405-de_rainfall-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260718-0447-de_dust2-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260718-1855-fy_iceworld-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260718-1906-de_ravine-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260718-1951-de_brewery-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260718-2021-de_rainfall-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260718-2047-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260722-1747-de_debris-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json"
+        ],
+        "auto-20260722-1813-de_cache-OVOSCHI": [
+          "data/matchPlayerWeapons-011.json",
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260722-1928-de_mirage-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260722-2002-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260722-2037-de_train-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260722-2107-de_inferno-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260722-2136-de_blagai_d-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260722-2209-de_sanctum-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260729-1817-de_train-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260729-1849-de_mirage-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260729-1928-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260729-2007-de_overpass-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260729-2053-de_cache-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260729-2137-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260729-2213-de_inferno-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260729-2242-de_whistle-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260729-2308-de_rainfall-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260729-2342-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260730-0005-de_hive-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260730-0029-de_memento-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260805-1803-fy_iceworld-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260805-1813-de_dust2-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json"
+        ],
+        "auto-20260805-1903-de_ancient-OVOSCHI": [
+          "data/matchPlayerWeapons-012.json",
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260805-1948-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260805-2021-de_cache-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260805-2105-de_mirage-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260805-2140-de_inferno-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260805-2207-de_blagai_d-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260805-2231-de_hive-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260805-2258-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260805-2322-de_whistle-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260812-1808-fy_iceworld-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260812-1820-de_lake-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260812-1849-de_mirage-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260812-1939-de_cache-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260812-2016-de_dust2-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260812-2053-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260812-2120-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260812-2158-de_calavera-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260812-2219-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260812-2242-de_rainfall-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260815-0449-cs_mansion-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260819-1828-de_inferno-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260819-1928-de_dust2-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json"
+        ],
+        "auto-20260819-2000-de_cache-OVOSCHI": [
+          "data/matchPlayerWeapons-013.json",
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260819-2041-de_ancient_night-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260819-2119-de_mirage-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260819-2200-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260819-2241-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260819-2319-de_memento-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260819-2350-de_palais-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260820-1804-de_inferno-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260820-1905-de_cache-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260826-1821-de_mirage-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260826-1915-de_dust2-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260826-1957-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260826-2049-de_ancient_night-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260826-2123-de_inferno-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260826-2159-de_blagai_d-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260826-2226-de_rooftop-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260826-2254-de_rainfall-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260827-1852-de_anubis-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260827-1936-de_dust2-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ],
+        "auto-20260827-2004-de_nuke-OVOSCHI": [
+          "data/matchPlayerWeapons-014.json"
+        ]
+      }
+    },
+    "playerMapStats": {
+      "steamid": {
+        "76561197971908153": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561197988005676": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198003507847": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198005359240": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198008778799": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198012717103": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198013401371": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198024728544": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198028699724": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198033124797": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198034119116": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198038091211": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198039033727": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198050158798": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198055937473": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198067208940": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198071750874": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198079669564": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198110346636": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198121354723": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198123985656": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198128897169": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198142573448": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198155235330": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198163689744": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198174637217": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198181685545": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198187382895": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198191390323": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198251990202": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198258567958": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198260121051": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198275061083": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198320022105": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198349509112": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198379566151": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198442916794": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198687532510": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198687788083": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198690825442": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198713382270": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198722181835": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198726487216": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198733119239": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198761381418": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198807335719": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198924002730": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198929855343": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561198954146584": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199001827259": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199010390513": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199054893458": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199055150760": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199057420823": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199121744233": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199142248628": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199164639457": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199164974760": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199166248133": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199170327250": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199220422956": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199223950506": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199236099142": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199238187689": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199241623213": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199256725993": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199377638432": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199395039271": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199446477360": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199479957398": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199544878316": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199553001678": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199557294944": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199564198529": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199626663910": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199732051823": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199798014198": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199811519979": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199813460153": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199819276935": [
+          "data/playerMapStats-000.json"
+        ],
+        "76561199819797389": [
+          "data/playerMapStats-000.json"
+        ]
+      },
+      "map": {
+        "acs2_assault": [
+          "data/playerMapStats-000.json"
+        ],
+        "aim_redline": [
+          "data/playerMapStats-000.json"
+        ],
+        "boyard": [
+          "data/playerMapStats-000.json"
+        ],
+        "cs_italy": [
+          "data/playerMapStats-000.json"
+        ],
+        "cs_mansion": [
+          "data/playerMapStats-000.json"
+        ],
+        "cs_militia": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_ancient": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_ancient_night": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_anubis": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_assembly": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_blagai_d": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_boulder": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_brewery": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_cache": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_calavera": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_cbble_d": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_debris": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_dogtown": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_dust2": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_dust_hr": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_fachwerk": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_foroglio": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_hive": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_inferno": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_lake": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_memento": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_mirage": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_mirage_100changes": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_nuke": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_outback": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_overpass": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_palais": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_poseidon": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_rainfall": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_ravine": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_rooftop": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_sakura": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_sanctum": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_splinter": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_train": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_transit": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_vertigo": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_warden": [
+          "data/playerMapStats-000.json"
+        ],
+        "de_whistle": [
+          "data/playerMapStats-000.json"
+        ],
+        "fy_iceworld": [
+          "data/playerMapStats-000.json"
+        ],
+        "shortdust": [
+          "data/playerMapStats-000.json"
+        ]
+      }
+    },
+    "playerWeaponStats": {
+      "steamid": {
+        "76561197971908153": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561197988005676": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198003507847": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198005359240": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198008778799": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198012717103": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198013401371": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198024728544": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198028699724": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198033124797": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198034119116": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198038091211": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198039033727": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198050158798": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198055937473": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198067208940": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198071750874": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198079669564": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198110346636": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198121354723": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198123985656": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198128897169": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198142573448": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198155235330": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198163689744": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198174637217": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198181685545": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198187382895": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198191390323": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198251990202": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198258567958": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198260121051": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198275061083": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198320022105": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198349509112": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198379566151": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198442916794": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198687532510": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198687788083": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198690825442": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198713382270": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198722181835": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198726487216": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198733119239": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198761381418": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198807335719": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198924002730": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198929855343": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561198954146584": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199001827259": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199010390513": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199054893458": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199055150760": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199057420823": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199121744233": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199142248628": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199164639457": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199164974760": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199166248133": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199170327250": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199220422956": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199223950506": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199236099142": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199238187689": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199241623213": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199256725993": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199377638432": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199395039271": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199446477360": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199479957398": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199544878316": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199553001678": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199557294944": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199564198529": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199626663910": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199732051823": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199798014198": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199811519979": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199813460153": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199819276935": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "76561199819797389": [
+          "data/playerWeaponStats-000.json"
+        ]
+      },
+      "weapon": {
+        "ak47": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "aug": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "awp": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "bizon": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "cz75a": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "deagle": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "elite": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "famas": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "fiveseven": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "g3sg1": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "galilar": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "glock": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "hegrenade": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "hkp2000": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "inferno": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "knife": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "m249": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "m4a1": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "m4a1_silencer": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "mac10": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "mag7": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "molotov": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "mp5sd": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "mp7": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "mp9": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "negev": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "nova": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "p250": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "p90": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "revolver": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "sawedoff": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "scar20": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "sg556": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "ssg08": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "taser": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "tec9": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "ump45": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "usp_silencer": [
+          "data/playerWeaponStats-000.json"
+        ],
+        "xm1014": [
+          "data/playerWeaponStats-000.json"
+        ]
+      }
+    },
+    "trendMatches": {
+      "steamid": {
+        "76561198003507847": [
+          "data/trendMatches-000.json"
+        ],
+        "76561198033124797": [
+          "data/trendMatches-000.json",
+          "data/trendMatches-001.json"
+        ],
+        "76561198038091211": [
+          "data/trendMatches-000.json"
+        ],
+        "76561198163689744": [
+          "data/trendMatches-000.json"
+        ],
+        "76561198187382895": [
+          "data/trendMatches-000.json"
+        ],
+        "76561199001827259": [
+          "data/trendMatches-000.json"
+        ],
+        "76561199055150760": [
+          "data/trendMatches-000.json"
+        ],
+        "76561199057420823": [
+          "data/trendMatches-000.json"
+        ],
+        "76561199121744233": [
+          "data/trendMatches-000.json"
+        ],
+        "76561199236099142": [
+          "data/trendMatches-000.json"
+        ],
+        "76561198024728544": [
+          "data/trendMatches-001.json"
+        ],
+        "76561198034119116": [
+          "data/trendMatches-001.json"
+        ],
+        "76561198039033727": [
+          "data/trendMatches-001.json"
+        ],
+        "76561198050158798": [
+          "data/trendMatches-001.json"
+        ],
+        "76561198110346636": [
+          "data/trendMatches-001.json"
+        ],
+        "76561198191390323": [
+          "data/trendMatches-001.json"
+        ],
+        "76561198349509112": [
+          "data/trendMatches-001.json"
+        ],
+        "76561198442916794": [
+          "data/trendMatches-001.json"
+        ],
+        "76561199164974760": [
+          "data/trendMatches-001.json"
+        ],
+        "76561199223950506": [
+          "data/trendMatches-001.json"
+        ]
+      }
+    }
+  },
   "assets": [
     {
       "dataset": "players",
@@ -949,41 +5353,41 @@
       "dataset": "playerClutches",
       "path": "data/playerClutches-000.json",
       "count": 2000,
-      "bytes": 343658,
-      "gzipBytes": 24678,
-      "sha256": "e9db7db1d76f96eee6906e34a1541ffce2c0c67b2ebeb07137d27a0e278982c2"
+      "bytes": 343501,
+      "gzipBytes": 26813,
+      "sha256": "588622c0e34aa9d578cafc542d45e1e23e7460e2e28c1713eed6eb7087b9511b"
     },
     {
       "dataset": "playerClutches",
       "path": "data/playerClutches-001.json",
       "count": 2000,
-      "bytes": 343345,
-      "gzipBytes": 24594,
-      "sha256": "08995b02b6f6d467dc1cbad12a3536725f978c27863216f7aefbd9994ac80ed6"
+      "bytes": 343524,
+      "gzipBytes": 27013,
+      "sha256": "71520dd2cedc799ee9876778f6b512725499498f1a3731b89a0ae4d2d81a4423"
     },
     {
       "dataset": "playerClutches",
       "path": "data/playerClutches-002.json",
       "count": 2000,
-      "bytes": 343633,
-      "gzipBytes": 24343,
-      "sha256": "9f9f57b2c2e033696d38a4423720726706297cba96ac274aba45a18d5c418490"
+      "bytes": 343540,
+      "gzipBytes": 26952,
+      "sha256": "265665ab70b70881ffe27558d1f54c6fbf75c75e1597f565dbfa6713b9b93037"
     },
     {
       "dataset": "playerClutches",
       "path": "data/playerClutches-003.json",
       "count": 2000,
-      "bytes": 343284,
-      "gzipBytes": 24080,
-      "sha256": "444e2e8e31405b27750b5213c288f3a815495313c2fcc45061a7db394cafa815"
+      "bytes": 343322,
+      "gzipBytes": 26436,
+      "sha256": "c8aaaf7f389ff4acc8fa269a27a995bcd98280ff1986f8db68c9adb8ba4aaee8"
     },
     {
       "dataset": "playerClutches",
       "path": "data/playerClutches-004.json",
       "count": 1629,
-      "bytes": 279744,
-      "gzipBytes": 20274,
-      "sha256": "6b52f84c3e61ead225d2af1d6f76f99c921091ac9ba0a530893c8d76a3a191af"
+      "bytes": 279777,
+      "gzipBytes": 21998,
+      "sha256": "1c0b20d7e0fed6dcd0684c0f308f81a5aa9bc670a4b3e4a9eec9240a61e06094"
     },
     {
       "dataset": "weapons",

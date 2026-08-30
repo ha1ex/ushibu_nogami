@@ -15,6 +15,11 @@
   var DATASET_RE = /^[A-Za-z][A-Za-z0-9]*$/;
   var ASSET_RE = /^data\/[A-Za-z][A-Za-z0-9]*-\d{3}\.json$/;
   var SHA_RE = /^[a-f0-9]{64}$/;
+  var DETAIL_INDEX_FIELDS = {
+    matchPlayers: ['matchId'], matchRounds: ['matchId'], matchPlayerWeapons: ['matchId'],
+    playerClutches: ['steamid'], playerMapStats: ['steamid', 'map'],
+    playerWeaponStats: ['steamid', 'weapon'], trendMatches: ['steamid']
+  };
 
   function invalid(reason) {
     return { tab: 'statistics', view: 'invalid', path: '#/statistika', reason: 'Нет данных: ' + reason };
@@ -89,8 +94,29 @@
       if (!asset || !DATASET_RE.test(asset.dataset || '')) throw new Error('Неверный dataset в manifest');
       if (!ASSET_RE.test(asset.path || '')) throw new Error('Небезопасный путь asset в manifest');
       if (seen[asset.path]) throw new Error('Повтор пути asset в manifest');
-      seen[asset.path] = true;
+      seen[asset.path] = asset.dataset;
       if (!Number.isInteger(asset.count) || asset.count < 0 || !SHA_RE.test(asset.sha256 || '')) throw new Error('Неверные метаданные asset');
+    });
+    if (!manifest.detailIndexes || Array.isArray(manifest.detailIndexes) || typeof manifest.detailIndexes !== 'object') {
+      throw new Error('Manifest не содержит detail indexes');
+    }
+    Object.keys(manifest.detailIndexes).forEach(function (dataset) {
+      if (!DETAIL_INDEX_FIELDS[dataset]) throw new Error('Неизвестный detail index dataset');
+      var fields = manifest.detailIndexes[dataset];
+      if (!fields || Array.isArray(fields) || typeof fields !== 'object') throw new Error('Неверный detail index');
+      Object.keys(fields).forEach(function (field) {
+        if (DETAIL_INDEX_FIELDS[dataset].indexOf(field) === -1) throw new Error('Неизвестное поле detail index');
+        var keys = fields[field];
+        if (!keys || Array.isArray(keys) || typeof keys !== 'object') throw new Error('Неверный detail index mapping');
+        Object.keys(keys).forEach(function (key) {
+          var validKey = field === 'steamid' ? PLAYER_RE.test(key) : MATCH_RE.test(key);
+          var paths = keys[key];
+          if (!validKey || !Array.isArray(paths) || !paths.length || new Set(paths).size !== paths.length) throw new Error('Неверный ключ detail index');
+          paths.forEach(function (path) {
+            if (seen[path] !== dataset) throw new Error('Detail index ссылается на неверный asset');
+          });
+        });
+      });
     });
     return manifest;
   }
@@ -152,7 +178,7 @@
   function datasetsForRoute(route) {
     var view = route && route.view;
     if (view === 'overview' || view === 'team') return ['rosters', 'teamMetrics', 'mapEdges', 'recommendations', 'evidence'];
-    if (view === 'player') return ['players', 'playerMetrics', 'playerMapStats', 'playerWeaponStats', 'trendMatches', 'rosters'];
+    if (view === 'player') return ['players', 'playerMetrics', 'rosters'];
     if (view === 'match') return ['recommendations', 'evidence', 'rosters', 'matches'];
     if (view === 'maps') return ['maps'];
     if (view === 'weapons') return ['weapons'];
@@ -187,10 +213,8 @@
       return opened;
     }
 
-    async function dataset(name) {
+    async function loadEntries(name, entries) {
       var state = await open();
-      var entries = assetsFor(state.manifest, name);
-      if (!entries.length) throw new Error('Нет dataset: ' + name);
       var key = entries.map(function (entry) { return entry.path; }).join('|');
       if (!datasetCache[key]) datasetCache[key] = Promise.all(entries.map(async function (entry) {
         var bytes = await responseBytes(base + state.manifest.version + '/' + entry.path);
@@ -204,8 +228,31 @@
       return datasetCache[key];
     }
 
+    async function dataset(name) {
+      var state = await open();
+      if (state.manifest.detailIndexes[name]) throw new Error('Keyed detail dataset требует ключ');
+      var entries = assetsFor(state.manifest, name);
+      if (!entries.length) throw new Error('Нет dataset: ' + name);
+      return loadEntries(name, entries);
+    }
+
+    async function datasetForKey(name, field, value) {
+      var state = await open();
+      var index = state.manifest.detailIndexes[name] && state.manifest.detailIndexes[name][field];
+      var key = String(value);
+      if (!index || (field === 'steamid' && typeof value !== 'string')) throw new Error('Нет keyed detail index');
+      var paths = index[key];
+      if (!paths) return [];
+      var entries = paths.map(function (path) {
+        return state.manifest.assets.filter(function (asset) { return asset.dataset === name && asset.path === path; })[0];
+      });
+      if (entries.some(function (entry) { return !entry; })) throw new Error('Detail index не прошёл allowlist');
+      var rows = await loadEntries(name, entries);
+      return rows.filter(function (row) { return String(row[field]) === key; });
+    }
+
     function clear() { opened = null; datasetCache = Object.create(null); }
-    return { open: open, dataset: dataset, clear: clear };
+    return { open: open, dataset: dataset, datasetForKey: datasetForKey, clear: clear };
   }
 
   root.StatsCore = {

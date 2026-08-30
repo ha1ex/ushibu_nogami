@@ -29,6 +29,7 @@ function fixture() {
     root: pointer.root,
     window: { recentStart: '2026-05-29', recentEnd: '2026-08-27' },
     counts: { players: 81, matches: 368 },
+    detailIndexes: {},
     assets: [
       { dataset: 'players', path: 'data/players-000.json', count: 81, bytes: 10, gzipBytes: 8, sha256: 'c'.repeat(64) },
       { dataset: 'recommendations', path: 'data/recommendations-000.json', count: 4, bytes: 10, gzipBytes: 8, sha256: 'd'.repeat(64) }
@@ -153,6 +154,7 @@ test('data client revalidates only the mutable pointer and lets immutable assets
     root: 'a'.repeat(64),
     window: { recentStart: '2026-05-29', recentEnd: '2026-08-27' },
     counts: { players: 1 },
+    detailIndexes: {},
     assets: [{ dataset: 'players', path: 'data/players-000.json', count: 1, sha256: sha(dataset) }]
   });
   const pointer = JSON.stringify({

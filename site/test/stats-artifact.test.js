@@ -30,7 +30,7 @@ test('route loading plan requests only decision datasets for overview and bounde
     'rosters', 'teamMetrics', 'mapEdges', 'recommendations', 'evidence'
   ]);
   assert.deepEqual(Array.from(Core.datasetsForRoute({ view: 'player', steamid: '76561198050158798' })), [
-    'players', 'playerMetrics', 'playerMapStats', 'playerWeaponStats', 'trendMatches', 'rosters'
+    'players', 'playerMetrics', 'rosters'
   ]);
   assert.deepEqual(Array.from(Core.datasetsForRoute({ view: 'match', matchId: 'm01' })), [
     'recommendations', 'evidence', 'rosters', 'matches'
@@ -63,4 +63,22 @@ test('canonical artifact exposes every dashboard population through verified man
     assert.equal(Core.validateRecommendation(recommendation, state.manifest, evidenceIds), recommendation);
   }
   for (const player of players) assert.equal(typeof player.steamid, 'string');
+});
+
+test('keyed detail API verifies and fetches only the indexed shard for one source match', async () => {
+  const matchId = 'auto-20231116-1908-de_anubis-Whoajor';
+  const seen = [];
+  const client = Core.createClient((url) => {
+    seen.push(url);
+    return fileFetch(url);
+  });
+  const rows = await client.datasetForKey('matchPlayers', 'matchId', matchId);
+  assert.ok(rows.length > 0);
+  assert.ok(rows.every((row) => row.matchId === matchId));
+  assert.deepEqual(seen, [
+    '/assets/data/whoajor/current.json',
+    '/assets/data/whoajor/v1-84a051d7989725f2/manifest.json',
+    '/assets/data/whoajor/v1-84a051d7989725f2/data/matchPlayers-000.json',
+  ]);
+  await assert.rejects(() => client.dataset('matchPlayers'), /keyed detail|ключ/i);
 });

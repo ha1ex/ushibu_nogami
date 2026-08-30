@@ -34,6 +34,15 @@ export const GAMEPLAY_TABLES = Object.freeze([
   ['weapon_daily_stats', 'weaponDailyStats'], ['weapon_splits', 'weaponSplits'],
   ['weapons', 'weapons'],
 ]);
+export const DETAIL_INDEX_FIELDS = Object.freeze({
+  matchPlayers: Object.freeze(['matchId']),
+  matchRounds: Object.freeze(['matchId']),
+  matchPlayerWeapons: Object.freeze(['matchId']),
+  playerClutches: Object.freeze(['steamid']),
+  playerMapStats: Object.freeze(['steamid', 'map']),
+  playerWeaponStats: Object.freeze(['steamid', 'weapon']),
+  trendMatches: Object.freeze(['steamid']),
+});
 
 export function assertShardGzipSize(gzipBytes, label) {
   if (gzipBytes >= 512000) throw new Error(`${label} gzip size ${gzipBytes} must be < 512000`);
@@ -125,7 +134,7 @@ function dedupe(rows, key, prefer = (candidate, current) => (
   return [...selected.values()].sort((left, right) => key(left).localeCompare(key(right)));
 }
 
-async function writeDataset(versionDir, dataset, rows) {
+async function writeDataset(versionDir, dataset, rows, indexFields = []) {
   const pending = [];
   for (let index = 0; index < rows.length; index += 2000) {
     pending.push(rows.slice(index, index + 2000));
@@ -151,20 +160,32 @@ async function writeDataset(versionDir, dataset, rows) {
   await mkdir(dataDir, { recursive: true });
   const width = Math.max(3, String(chunks.length - 1).length);
   const assets = [];
+  const indexes = Object.fromEntries(indexFields.map((field) => [field, {}]));
   for (let index = 0; index < chunks.length; index += 1) {
     const chunk = chunks[index];
     const filename = `${dataset}-${String(index).padStart(width, '0')}.json`;
     await writeFile(join(dataDir, filename), chunk.bytes);
+    const assetPath = `data/${filename}`;
     assets.push({
       dataset,
-      path: `data/${filename}`,
+      path: assetPath,
       count: chunk.rows.length,
       bytes: chunk.bytes.length,
       gzipBytes: chunk.gzipBytes,
       sha256: createHash('sha256').update(chunk.bytes).digest('hex'),
     });
+    for (const field of indexFields) {
+      const keys = new Set(chunk.rows.map((row) => row[field]));
+      if (keys.has(null) || keys.has(undefined) || [...keys].some((key) => typeof key !== 'string')) {
+        throw new Error(`${dataset}.${field} detail index requires string keys`);
+      }
+      for (const key of [...keys].sort()) {
+        if (!indexes[field][key]) indexes[field][key] = [];
+        indexes[field][key].push(assetPath);
+      }
+    }
   }
-  return assets;
+  return { assets, indexes };
 }
 
 function stripMatch(row) {
@@ -196,7 +217,7 @@ function exportDefinitions(db) {
     ['matchPlayers', () => sourceRows(db, `select match_id matchId, steamid, name, source_json, metrics_json from match_players order by match_id, steamid`, stripMatchPlayer)],
     ['playerRounds', () => sourceRows(db, `select match_id matchId, steamid, source_json, metrics_json from player_rounds order by match_id, steamid, round`)],
     ['playerSideStats', () => sourceRows(db, `select match_id matchId, steamid, side, source_json, metrics_json from player_side_stats order by match_id, steamid, side`)],
-    ['playerClutches', () => sourceRows(db, `select match_id matchId, steamid, clutch_index clutchIndex, source_json, metrics_json from player_clutches order by match_id, steamid, clutch_index`)],
+    ['playerClutches', () => sourceRows(db, `select match_id matchId, steamid, clutch_index clutchIndex, source_json, metrics_json from player_clutches order by steamid, match_id, clutch_index`)],
     ['weapons', () => sourceRows(db, `select weapon, source_json, metrics_json from weapons order by weapon`)],
     ['matchPlayerWeapons', () => sourceRows(db, `select match_id matchId, steamid, weapon, source_json, metrics_json from match_player_weapons order by match_id, steamid, weapon`)],
     ['playerMatchStats', () => sourceRows(db, `select steamid, match_id matchId, source_json, metrics_json from player_match_stats order by steamid, match_id`)],
@@ -258,11 +279,20 @@ export async function generateWebData({ sourceGzip, outputDir, recommendationPat
       const versionDir = join(stagingDir, VERSION);
       await mkdir(versionDir, { recursive: true });
       const assets = [];
+      const detailIndexes = {};
       for (const [dataset, loadRows] of exportDefinitions(db)) {
-        assets.push(...await writeDataset(versionDir, dataset, loadRows()));
+        const written = await writeDataset(
+          versionDir,
+          dataset,
+          loadRows(),
+          DETAIL_INDEX_FIELDS[dataset] ?? [],
+        );
+        assets.push(...written.assets);
+        if (DETAIL_INDEX_FIELDS[dataset]) detailIndexes[dataset] = written.indexes;
       }
       for (const [dataset, rows] of Object.entries(calculated)) {
-        assets.push(...await writeDataset(versionDir, dataset, rows));
+        const written = await writeDataset(versionDir, dataset, rows);
+        assets.push(...written.assets);
       }
       const manifest = {
         schemaVersion: 1,
@@ -286,6 +316,7 @@ export async function generateWebData({ sourceGzip, outputDir, recommendationPat
           dataset,
           sourceRows: scalar(db, `select count(*) value from ${table}`),
         })),
+        detailIndexes,
         assets,
       };
       const manifestPath = join(versionDir, 'manifest.json');

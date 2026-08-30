@@ -9,7 +9,7 @@ import {
 } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import {
-  assertShardGzipSize, CANONICAL_ROOT, GAMEPLAY_TABLES, generateWebData,
+  assertShardGzipSize, CANONICAL_ROOT, DETAIL_INDEX_FIELDS, GAMEPLAY_TABLES, generateWebData,
   RECENT_WINDOW, VERSION,
 } from './web-data.mjs';
 
@@ -157,6 +157,44 @@ function assertGameplayCompleteness(manifest, rowsByDataset) {
   }
 }
 
+function assertDetailIndexes(manifest, rowsByPath) {
+  const expectedDatasets = Object.keys(DETAIL_INDEX_FIELDS).sort();
+  const actual = manifest.detailIndexes;
+  if (!actual || Array.isArray(actual)
+    || JSON.stringify(Object.keys(actual).sort()) !== JSON.stringify(expectedDatasets)) {
+    throw new Error('detail index dataset allowlist mismatch');
+  }
+  for (const dataset of expectedDatasets) {
+    const expectedFields = DETAIL_INDEX_FIELDS[dataset];
+    const fields = actual[dataset];
+    if (!fields || Array.isArray(fields)
+      || JSON.stringify(Object.keys(fields).sort()) !== JSON.stringify([...expectedFields].sort())) {
+      throw new Error(`detail index field allowlist mismatch: ${dataset}`);
+    }
+    for (const field of expectedFields) {
+      const expected = {};
+      for (const asset of manifest.assets.filter((entry) => entry.dataset === dataset)) {
+        for (const row of rowsByPath.get(asset.path) ?? []) {
+          const key = row[field];
+          if (typeof key !== 'string' || !key) {
+            throw new Error(`detail index key is not a string: ${dataset}.${field}`);
+          }
+          if (!expected[key]) expected[key] = [];
+          if (expected[key].at(-1) !== asset.path) expected[key].push(asset.path);
+        }
+      }
+      const indexed = fields[field];
+      const normalizeKeys = (value) => Object.fromEntries(
+        Object.keys(value).sort().map((key) => [key, value[key]]),
+      );
+      if (!indexed || Array.isArray(indexed)
+        || JSON.stringify(normalizeKeys(indexed)) !== JSON.stringify(normalizeKeys(expected))) {
+        throw new Error(`detail index mapping mismatch: ${dataset}.${field}`);
+      }
+    }
+  }
+}
+
 export async function verifyPublishedTree({ outputDir, sourceGzip }) {
   const files = await listFilesRejectSymlinks(outputDir);
   const rootReal = await realpath(outputDir);
@@ -220,6 +258,7 @@ export async function verifyPublishedTree({ outputDir, sourceGzip }) {
   if (stale.length) throw new Error(`unlisted file: ${stale[0]}`);
 
   const rowsByDataset = new Map();
+  const rowsByPath = new Map();
   let maxGzipBytes = 0;
   const versionDir = join(outputDir, current.version);
   for (const asset of manifest.assets) {
@@ -241,9 +280,11 @@ export async function verifyPublishedTree({ outputDir, sourceGzip }) {
     }
     assertFiniteNumbers(payload);
     assertSafeValues(payload);
+    rowsByPath.set(asset.path, payload.rows);
     if (!rowsByDataset.has(asset.dataset)) rowsByDataset.set(asset.dataset, []);
     rowsByDataset.get(asset.dataset).push(...payload.rows);
   }
+  assertDetailIndexes(manifest, rowsByPath);
   assertGameplayCompleteness(manifest, rowsByDataset);
   const requiredCounts = {
     players: manifest.counts.players,

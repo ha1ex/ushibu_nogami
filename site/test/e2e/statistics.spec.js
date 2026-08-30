@@ -169,14 +169,26 @@ test('all controlled checklist IDs persist as team state and survive reload', as
 
 test('charts and wide tables expose labels and equivalent data', async ({ page }) => {
   await page.goto('/#/statistika');
-  const chart = page.locator('#statistics figure[role=img]').first();
-  await expect(chart).toHaveAttribute('aria-label', /Rating/);
+  const chart = page.locator('#statistics figure.stats-chart').first();
+  await expect(chart.locator(':scope > [role=img]')).toHaveAttribute('aria-label', /Rating/);
   await expect(chart.locator('figcaption')).toContainText(/выборка/);
   await chart.locator('summary').click();
   await expect(chart.getByRole('table')).toBeVisible();
   await page.setViewportSize({ width: 1440, height: 900 });
   const layout = await page.evaluate(() => ({ client: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }));
   expect(layout.scroll).toBeLessThanOrEqual(layout.client);
+});
+
+test('chart image is noninteractive and its labelled table disclosure is a semantic sibling', async ({ page }) => {
+  await page.goto('/#/statistika');
+  const figure = page.locator('#statistics figure.stats-chart').first();
+  const graphic = figure.locator(':scope > [role=img]');
+  await expect(graphic).toHaveCount(1);
+  await expect(graphic).toHaveAttribute('aria-label', /Rating/);
+  await expect(graphic.locator('a, button, details, input, table')).toHaveCount(0);
+  await expect(figure.locator(':scope > details')).toHaveCount(1);
+  await figure.locator(':scope > details summary').click();
+  await expect(figure.getByRole('table', { name: /Map edge/ })).toBeVisible();
 });
 
 test('pointer and versioned assets expose opposite cache policies in the test deployment', async ({ request }) => {
@@ -202,11 +214,38 @@ test('all catalog populations become reachable only through their drill-down', a
   await page.locator('#stats-match-directory a').first().click();
   await expect(page.getByRole('heading', { name: /Исходный матч/ })).toBeVisible();
   expect(paths.some((path) => path.includes('/data/matchPlayers-'))).toBeFalsy();
-  await page.getByRole('button', { name: /Загрузить состав матча/ }).click();
+  await page.getByRole('button', { name: /Загрузить детали матча/ }).click();
   await expect.poll(() => paths.some((path) => path.includes('/data/matchPlayers-'))).toBeTruthy();
   await expect(page.getByRole('heading', { name: 'Игроки матча' })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'Rating' })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'Результат' })).toBeVisible();
+});
+
+test('one source match loads one indexed shard per labelled read-only detail table', async ({ page }) => {
+  const matchId = 'auto-20231116-1908-de_anubis-Whoajor';
+  const paths = [];
+  page.on('request', (request) => paths.push(new URL(request.url()).pathname));
+  await page.goto(`/#/statistika/match/${matchId}`);
+  expect(paths.some((path) => /data\/(matchPlayers|matchRounds|matchPlayerWeapons)-/.test(path))).toBeFalsy();
+  await page.getByRole('button', { name: 'Загрузить детали матча' }).click();
+  for (const name of ['Игроки матча', 'Раунды матча', 'Оружие матча']) {
+    await expect(page.getByRole('table', { name })).toBeVisible();
+  }
+  for (const dataset of ['matchPlayers', 'matchRounds', 'matchPlayerWeapons']) {
+    expect(paths.filter((path) => path.includes(`/data/${dataset}-`)), dataset).toHaveLength(1);
+  }
+  await expect(page.locator('#stats-source-match-detail input, #stats-source-match-detail textarea')).toHaveCount(0);
+});
+
+test('player drill-down loads an indexed clutch shard and exposes a labelled read-only table', async ({ page }) => {
+  const paths = [];
+  page.on('request', (request) => paths.push(new URL(request.url()).pathname));
+  await page.goto('/#/statistika/igrok/76561198003507847');
+  const table = page.getByRole('table', { name: 'Клатчи игрока' });
+  await expect(table).toBeVisible();
+  await expect(table.locator('tbody tr').first()).toContainText(/Anubis|auto-/i);
+  expect(paths.filter((path) => path.includes('/data/playerClutches-'))).toHaveLength(1);
+  await expect(table.locator('input, textarea, button')).toHaveCount(0);
 });
 
 for (const [route, count, detailDataset] of [

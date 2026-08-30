@@ -170,6 +170,30 @@ test('generator publishes canonical pointer and exact source counts', async (t) 
     manifest.gameplayTables.map(({ table, dataset }) => [table, dataset]),
     EXPECTED_GAMEPLAY_TABLES,
   );
+
+  const probeMatch = 'auto-20231116-1908-de_anubis-Whoajor';
+  const probePlayer = '76561198003507847';
+  assert.deepEqual(Object.fromEntries(Object.entries(manifest.detailIndexes).map(
+    ([dataset, fields]) => [dataset, Object.keys(fields)],
+  )), {
+    matchPlayers: ['matchId'],
+    matchRounds: ['matchId'],
+    matchPlayerWeapons: ['matchId'],
+    playerClutches: ['steamid'],
+    playerMapStats: ['steamid', 'map'],
+    playerWeaponStats: ['steamid', 'weapon'],
+    trendMatches: ['steamid'],
+  });
+  assert.deepEqual(manifest.detailIndexes.matchPlayers.matchId[probeMatch], [
+    'data/matchPlayers-000.json',
+  ]);
+  assert.deepEqual(manifest.detailIndexes.matchRounds.matchId[probeMatch], [
+    'data/matchRounds-000.json',
+  ]);
+  assert.deepEqual(manifest.detailIndexes.matchPlayerWeapons.matchId[probeMatch], [
+    'data/matchPlayerWeapons-000.json',
+  ]);
+  assert.equal(manifest.detailIndexes.playerClutches.steamid[probePlayer].length, 1);
 });
 
 test('generator exports complete safe shards with canonical hashes', async (t) => {
@@ -500,6 +524,15 @@ test('verifier rejects path escapes, symlinks, stale files, duplicates, and self
       manifest.assets.push(structuredClone(manifest.assets[0]));
     });
     await expectVerifierFailure(outputDir, /duplicate asset path/);
+  }
+  {
+    const { outputDir } = await copyCase('detail-index');
+    await rewriteManifest(outputDir, async ({ manifest }) => {
+      manifest.detailIndexes.matchPlayers.matchId[
+        'auto-20231116-1908-de_anubis-Whoajor'
+      ] = ['data/matchRounds-000.json'];
+    });
+    await expectVerifierFailure(outputDir, /detail index/i);
   }
   {
     const { outputDir } = await copyCase('evidence-duplicate');
