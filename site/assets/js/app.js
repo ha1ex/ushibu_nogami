@@ -246,51 +246,20 @@
     ]);
   }
 
-  /* Сводка по всем игрокам — данные тянем отдельным запросом,
-     чтобы не задерживать отрисовку остальной страницы. */
+  /* Сводка по всем игрокам. Рисует общий модуль — он же стоит
+     на странице кодекса, поэтому счёт везде считается одинаково. */
   function teamProgressCard() {
-    var body = el('div', {}, el('p', { class: 'label', text: 'Загружаем сводку…' }));
-    var card = el('article', { class: 'module col-12' }, [
-      el('div', { class: 'card__head' }, [
-        el('span', { text: 'Готовность состава' }),
-        el('span', { text: 'гранаты · правила · лестница' })
-      ]),
-      body
-    ]);
-
     var totals = personalTotals();
-    var me = window.Store.me();
 
-    fetch('/api/team', { credentials: 'same-origin' })
-      .then(function (res) { if (!res.ok) throw new Error(res.status); return res.json(); })
-      .then(function (data) {
-        var rows = (data.roster || []).map(function (p) {
-          var done = p.nades + p.rules + p.ladder;
-          var pct = totals.all ? Math.round((done / totals.all) * 100) : 0;
-          return { p: p, done: done, pct: pct };
-        }).sort(function (a, b) { return b.pct - a.pct; });
-
-        U.mount(body, el('div', { class: 'meter-list' }, rows.map(function (r) {
-          var mine = me && me.id === r.p.id;
-          return el('div', { class: 'meter' + (mine ? ' meter--accent' : '') }, [
-            el('div', { class: 'meter__name' }, [
-              el('span', {}, [
-                el('strong', { class: 'meter__title', text: r.p.nick }),
-                mine ? el('span', { class: 'chip chip--accent', style: 'margin-left:var(--s2)', text: 'вы' }) : null,
-                el('br'),
-                el('small', { class: 'label', text: 'гранаты ' + r.p.nades + '/' + totals.nades + ' · правила ' + r.p.rules + '/' + totals.rules })
-              ])
-            ]),
-            el('div', { class: 'meter__track' }, el('i', { class: 'meter__fill' + (mine ? '' : ' meter__fill--dim'), style: '--value:' + r.pct + '%' })),
-            el('span', { class: 'meter__value', text: r.pct + '%' })
-          ]);
-        })));
-      })
-      .catch(function () {
-        U.mount(body, el('p', { class: 'label', style: 'color:var(--signal)', text: 'Сводку загрузить не удалось' }));
-      });
-
-    return card;
+    return window.TeamProgress.card({
+      className: 'col-12',
+      title: 'Готовность состава',
+      hint: 'гранаты · правила · лестница',
+      main: function (p) { return { done: p.nades + p.rules + p.ladder, total: totals.all }; },
+      sub: function (p) {
+        return 'гранаты ' + p.nades + '/' + totals.nades + ' · правила ' + p.rules + '/' + totals.rules;
+      }
+    });
   }
 
   function progressRing(title, p, hint, onclick) {

@@ -186,6 +186,17 @@ window.Store = (function () {
       return n;
     },
 
+    /* Сколько отмечено в группе ключей: 'nade-', 'rule-', 'lad-'.
+       Тем же способом считает и сервер в /api/team, поэтому свою строку
+       в командной сводке можно пересчитать локально. */
+    countByPrefix: function (prefix) {
+      var n = 0;
+      Object.keys(state.checks).forEach(function (k) {
+        if (state.checks[k] === true && k.indexOf(prefix) === 0) n++;
+      });
+      return n;
+    },
+
     /* Сбрасываем только своё: командные заметки чужой кнопкой не трогаем. */
     resetPersonal: function () {
       var removed = 0;

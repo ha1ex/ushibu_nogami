@@ -11,6 +11,7 @@
   var R = window.RULES;
 
   var ruleIds = R.rules.map(function (r) { return 'rule-' + r.n; });
+  var ladderIds = R.ladder.map(function (s) { return s.id; });
   var themeName = {};
   R.themes.forEach(function (t) { themeName[t.id] = t.name; });
 
@@ -45,6 +46,26 @@
     ring.querySelector('.ring__dial').style.setProperty('--value', p.pct);
     ring.querySelector('.ring__num').textContent = p.pct + '%';
     ring.querySelector('.label').textContent = p.done + ' из ' + p.total + ' правил';
+  }
+
+  /* ---------------- Кто сколько освоил ---------------- */
+
+  function renderTeam() {
+    return el('section', { class: 'section', id: 'progress' }, [
+      sectionHead('Видно всем', 'Кто сколько освоил',
+        el('span', { class: 'section__count', text: 'обновляется само' })),
+      el('p', {
+        class: 'section__lead',
+        text: 'Полоска — освоенные правила, под ником — этапы лестницы. '
+          + 'Видно только количество: какие именно галочки поставил другой, не показывается.'
+      }),
+      window.TeamProgress.card({
+        title: 'Готовность по кодексу',
+        hint: 'правила · лестница',
+        main: function (p) { return { done: p.rules, total: ruleIds.length }; },
+        sub: function (p) { return 'лестница ' + p.ladder + ' / ' + ladderIds.length; }
+      })
+    ]);
   }
 
   /* ---------------- Вступление ---------------- */
@@ -309,6 +330,7 @@
       U.mount('#rules-page', [
         renderHero(),
         renderIntro(),
+        renderTeam(),
         renderCommandments(),
         renderRules(),
         renderLadder(),
