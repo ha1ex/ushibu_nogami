@@ -100,10 +100,16 @@
     if (!manifest.detailIndexes || Array.isArray(manifest.detailIndexes) || typeof manifest.detailIndexes !== 'object') {
       throw new Error('Manifest не содержит detail indexes');
     }
+    var expectedDatasets = Object.keys(DETAIL_INDEX_FIELDS).sort();
+    var actualDatasets = Object.keys(manifest.detailIndexes).sort();
+    if (JSON.stringify(actualDatasets) !== JSON.stringify(expectedDatasets)) throw new Error('Detail index dataset allowlist не совпадает');
     Object.keys(manifest.detailIndexes).forEach(function (dataset) {
       if (!DETAIL_INDEX_FIELDS[dataset]) throw new Error('Неизвестный detail index dataset');
       var fields = manifest.detailIndexes[dataset];
       if (!fields || Array.isArray(fields) || typeof fields !== 'object') throw new Error('Неверный detail index');
+      var expectedFields = DETAIL_INDEX_FIELDS[dataset].slice().sort();
+      var actualFields = Object.keys(fields).sort();
+      if (JSON.stringify(actualFields) !== JSON.stringify(expectedFields)) throw new Error('Detail index field allowlist не совпадает');
       Object.keys(fields).forEach(function (field) {
         if (DETAIL_INDEX_FIELDS[dataset].indexOf(field) === -1) throw new Error('Неизвестное поле detail index');
         var keys = fields[field];

@@ -29,10 +29,27 @@ function fixture() {
     root: pointer.root,
     window: { recentStart: '2026-05-29', recentEnd: '2026-08-27' },
     counts: { players: 81, matches: 368 },
-    detailIndexes: {},
+    detailIndexes: {
+      matchPlayers: { matchId: { 'auto-probe': ['data/matchPlayers-000.json'] } },
+      matchRounds: { matchId: { 'auto-probe': ['data/matchRounds-000.json'] } },
+      matchPlayerWeapons: { matchId: { 'auto-probe': ['data/matchPlayerWeapons-000.json'] } },
+      playerClutches: { steamid: { '76561198050158798': ['data/playerClutches-000.json'] } },
+      playerMapStats: {
+        steamid: { '76561198050158798': ['data/playerMapStats-000.json'] },
+        map: { de_anubis: ['data/playerMapStats-000.json'] }
+      },
+      playerWeaponStats: {
+        steamid: { '76561198050158798': ['data/playerWeaponStats-000.json'] },
+        weapon: { ak47: ['data/playerWeaponStats-000.json'] }
+      },
+      trendMatches: { steamid: { '76561198050158798': ['data/trendMatches-000.json'] } }
+    },
     assets: [
       { dataset: 'players', path: 'data/players-000.json', count: 81, bytes: 10, gzipBytes: 8, sha256: 'c'.repeat(64) },
-      { dataset: 'recommendations', path: 'data/recommendations-000.json', count: 4, bytes: 10, gzipBytes: 8, sha256: 'd'.repeat(64) }
+      { dataset: 'recommendations', path: 'data/recommendations-000.json', count: 4, bytes: 10, gzipBytes: 8, sha256: 'd'.repeat(64) },
+      ...['matchPlayers', 'matchRounds', 'matchPlayerWeapons', 'playerClutches', 'playerMapStats', 'playerWeaponStats', 'trendMatches'].map((dataset) => ({
+        dataset, path: `data/${dataset}-000.json`, count: 1, bytes: 10, gzipBytes: 8, sha256: 'e'.repeat(64)
+      }))
     ]
   };
   return { pointer, manifest };
@@ -96,6 +113,20 @@ test('validateManifest accepts only pointer-pinned roots and allowlisted relativ
   }), /повтор/i);
 });
 
+for (const [name, mutate] of [
+  ['empty detailIndexes', (manifest) => { manifest.detailIndexes = {}; }],
+  ['absent required detail dataset', (manifest) => { delete manifest.detailIndexes.matchRounds; }],
+  ['absent required detail field', (manifest) => { delete manifest.detailIndexes.playerMapStats.map; }],
+  ['extra detail dataset', (manifest) => { manifest.detailIndexes.rogue = {}; }],
+  ['extra detail field', (manifest) => { manifest.detailIndexes.matchPlayers.round = {}; }]
+]) {
+  test(`validateManifest rejects ${name}`, () => {
+    const { pointer, manifest } = fixture();
+    mutate(manifest);
+    assert.throws(() => Core.validateManifest(pointer, manifest), /detail index/i);
+  });
+}
+
 test('verifyBytes fails closed on an exact response SHA mismatch', async () => {
   const bytes = new TextEncoder().encode('{"ok":true}');
   assert.equal(await Core.verifyBytes(bytes, sha('{"ok":true}')), true);
@@ -146,6 +177,7 @@ test('data client performs no request until explicitly opened', async () => {
 });
 
 test('data client revalidates only the mutable pointer and lets immutable assets use browser cache', async () => {
+  const completeContract = fixture().manifest;
   const dataset = JSON.stringify({ schemaVersion: 1, root: 'a'.repeat(64), dataset: 'players', rows: [{ steamid: '76561198050158798' }] });
   const manifest = JSON.stringify({
     schemaVersion: 1,
@@ -154,8 +186,11 @@ test('data client revalidates only the mutable pointer and lets immutable assets
     root: 'a'.repeat(64),
     window: { recentStart: '2026-05-29', recentEnd: '2026-08-27' },
     counts: { players: 1 },
-    detailIndexes: {},
-    assets: [{ dataset: 'players', path: 'data/players-000.json', count: 1, sha256: sha(dataset) }]
+    detailIndexes: completeContract.detailIndexes,
+    assets: [
+      { dataset: 'players', path: 'data/players-000.json', count: 1, sha256: sha(dataset) },
+      ...completeContract.assets.slice(2)
+    ]
   });
   const pointer = JSON.stringify({
     schemaVersion: 1,
