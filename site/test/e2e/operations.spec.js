@@ -5,7 +5,8 @@ import { validateOperations } from '../../scripts/validate-content.mjs';
 const operationsFixture = JSON.parse(await readFile(new URL('../../assets/data/operations.json', import.meta.url), 'utf8'));
 
 let pageErrors;
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page, request }) => {
+  await request.post('/__test/reset');
   pageErrors = [];
   page.on('pageerror', (error) => pageErrors.push(error.message));
 });
@@ -84,6 +85,7 @@ test('match detail exposes actions, notes, checklists and score using stable sha
   });
   await page.goto('/#/match/m01');
   await expect(page.getByRole('heading', { level: 1, name: /Поцелуй всадницу/ })).toBeVisible();
+  await expect(page.locator('fieldset.ops-score > legend')).toContainText('Фактический счёт');
   await expect(page.locator('.ops-status-strip')).toHaveText(/Вето не утверждено/);
   const action = page.locator('[data-check="action-m01-confirm-time"]');
   await expect(action.locator('xpath=..')).toContainText(/выполнение действия/i);
@@ -91,12 +93,23 @@ test('match detail exposes actions, notes, checklists and score using stable sha
   await action.check();
   const note = page.locator('[data-note="match-m01-note"]');
   await note.fill('Подтверждение ждём в чате лиги');
-  await page.locator('[data-note="match-m01-score"]').fill('13:9');
-  await expect.poll(() => posts.some((body) => body.checks?.['action-m01-confirm-time'] === true)).toBeTruthy();
-  await expect.poll(() => posts.some((body) => body.notes?.['match-m01-note'] === 'Подтверждение ждём в чате лиги')).toBeTruthy();
+  await page.locator('[data-score="ours"]').fill('13');
+  await page.locator('[data-score="theirs"]').fill('9');
+  await page.locator('[data-score="played"]').check();
+  await expect.poll(() => posts.some((body) => body.operations?.some((operation) =>
+    operation.type === 'check.set' && operation.key === 'action-m01-confirm-time' && operation.value === true
+  ))).toBeTruthy();
+  await expect.poll(() => posts.some((body) => body.operations?.some((operation) =>
+    operation.type === 'note.set' && operation.key === 'match-m01-note' && operation.value === 'Подтверждение ждём в чате лиги'
+  ))).toBeTruthy();
+  await expect.poll(() => posts.some((body) => body.operations?.some((operation) =>
+    operation.type === 'score.set' && operation.key === 'match-m01-score' && operation.value.ours === 13 && operation.value.theirs === 9
+  ))).toBeTruthy();
   await page.reload();
   await expect(action).toBeChecked();
   await expect(note).toHaveValue('Подтверждение ждём в чате лиги');
+  await expect(page.locator('[data-score="ours"]')).toHaveValue('13');
+  await expect(page.locator('[data-score="theirs"]')).toHaveValue('9');
 });
 
 test('training keeps Inferno outcome unknown and provides an editable factual report', async ({ page }) => {

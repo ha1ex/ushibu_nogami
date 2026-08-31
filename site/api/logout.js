@@ -1,12 +1,19 @@
-/* Выход: гасим куку сессии. */
-import { clearCookie } from '../lib/auth.js';
+import { clearCookie, json } from '../lib/auth.js';
+import { hasSameOrigin } from '../lib/http.js';
 
-export default {
-  async fetch(request) {
-    const headers = { 'set-cookie': clearCookie(), 'cache-control': 'no-store' };
-    if (request.method === 'POST') {
-      return new Response(null, { status: 303, headers: { ...headers, location: '/' } });
+export function createLogoutHandler() {
+  return {
+    async fetch(request) {
+      if (request.method !== 'POST') {
+        return json({ error: 'method_not_allowed' }, { status: 405, headers: { allow: 'POST' } });
+      }
+      if (!hasSameOrigin(request)) return json({ error: 'forbidden_origin' }, { status: 403 });
+      return new Response(null, {
+        status: 303,
+        headers: { location: '/', 'set-cookie': clearCookie(), 'cache-control': 'no-store' }
+      });
     }
-    return new Response(null, { status: 303, headers: { ...headers, location: '/' } });
-  },
-};
+  };
+}
+
+export default createLogoutHandler();

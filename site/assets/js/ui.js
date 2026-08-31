@@ -145,7 +145,7 @@ window.UI = (function () {
 
     window.Store.onStatus(function (status) {
       if (!dirty) return;
-      if (status === 'saved') {
+      if (!window.Store.pendingFor('note.set', id) && status !== 'saving' && status !== 'error') {
         dirty = false;
         saved.textContent = 'сохранено';
         saved.classList.remove('is-pending', 'is-failed');
@@ -238,16 +238,8 @@ window.UI = (function () {
       });
     });
 
-    // Сбрасываем только личное. Командные заметки и вето общие —
-    // стирать их кнопкой одного игрока нельзя.
-    document.querySelectorAll('[data-action="reset"]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        if (!window.confirm('Сбросить ТОЛЬКО свои отметки — гранаты, правила, лестницу?\n\nКомандные заметки, вето и счёт не тронутся.')) return;
-        window.Store.resetPersonal().then(function (n) {
-          toast('Сброшено отметок: ' + n);
-          setTimeout(function () { window.location.reload(); }, 600);
-        });
-      });
+    document.querySelectorAll('[data-action="retry"]').forEach(function (btn) {
+      btn.addEventListener('click', function () { window.Store.retry(); });
     });
 
     document.querySelectorAll('[data-action="logout"]').forEach(function (btn) {
@@ -283,20 +275,25 @@ window.UI = (function () {
 
     var bar = document.getElementById('syncbar');
     var text = document.getElementById('sync-text');
-    if (!bar || !text) return;
+    var retry = document.getElementById('sync-retry');
+    if (!bar || !text || !retry) return;
 
     function render(status) {
       var pending = window.Store.pendingCount();
-      bar.classList.remove('is-saving', 'is-error', 'is-ok');
+      bar.classList.remove('is-saving', 'is-error', 'is-ok', 'is-pending');
+      retry.hidden = status !== 'error' && status !== 'pending';
       if (status === 'error') {
         bar.classList.add('is-error');
         text.textContent = 'нет связи · ' + pending + ' в очереди';
       } else if (status === 'saving') {
         bar.classList.add('is-saving');
         text.textContent = 'сохраняем…';
+      } else if (status === 'pending') {
+        bar.classList.add('is-pending');
+        text.textContent = pending + ' в очереди';
       } else {
         bar.classList.add('is-ok');
-        text.textContent = pending ? pending + ' в очереди' : 'всё сохранено';
+        text.textContent = 'всё сохранено';
       }
     }
 

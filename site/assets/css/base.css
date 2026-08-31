@@ -130,6 +130,7 @@ summary { cursor: pointer; }
 
 input[type='text'],
 input[type='search'],
+input[type='number'],
 textarea {
   width: 100%;
   padding: var(--s3);
@@ -143,9 +144,11 @@ textarea {
 }
 input[type='text']:hover,
 input[type='search']:hover,
+input[type='number']:hover,
 textarea:hover { border-color: var(--line-strong); }
 input[type='text']:focus,
 input[type='search']:focus,
+input[type='number']:focus,
 textarea:focus { border-color: var(--accent-line); background: var(--surface-1); }
 ::placeholder { color: var(--idle); opacity: 1; }
 

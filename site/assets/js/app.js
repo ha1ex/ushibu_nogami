@@ -127,17 +127,19 @@
     input.value = window.Store.getNote(id);
     var timer = null;
     var dirty = false;
+    var enqueued = false;
     input.addEventListener('input', function () {
       clearTimeout(timer);
       dirty = true;
+      enqueued = false;
       saved.textContent = 'Сохраняем…';
       saved.classList.add('is-on', 'is-pending');
       saved.classList.remove('is-failed');
-      timer = setTimeout(function () { window.Store.setNote(id, input.value); }, 400);
+      timer = setTimeout(function () { enqueued = true; window.Store.setNote(id, input.value); }, 400);
     });
     window.Store.onStatus(function (status) {
       if (!dirty) return;
-      if (status === 'saved') {
+      if (enqueued && !window.Store.pendingFor('note.set', id) && status !== 'saving' && status !== 'error') {
         dirty = false; saved.textContent = 'Сохранено';
         saved.classList.remove('is-pending', 'is-failed'); saved.classList.add('is-on');
       } else if (status === 'error') {
@@ -146,6 +148,73 @@
     });
     return create('div', { class: 'field ops-field' }, [
       create('div', { class: 'field__label' }, [create('label', { for: fieldId, text: labelText }), saved]), input
+    ]);
+  }
+
+  function scoreField(id) {
+    var fieldId = 'ops-score-' + (++noteSerial);
+    var current = window.Store.getScore(id);
+    var saved = create('span', { id: fieldId + '-status', class: 'field__saved ops-save-status', role: 'status', 'aria-live': 'polite' });
+    var ours = create('input', {
+      id: fieldId + '-ours', type: 'number', min: '0', max: '99', step: '1', inputmode: 'numeric',
+      'data-score': 'ours', 'aria-label': 'Наш счёт', 'aria-describedby': fieldId + '-status'
+    });
+    var theirs = create('input', {
+      id: fieldId + '-theirs', type: 'number', min: '0', max: '99', step: '1', inputmode: 'numeric',
+      'data-score': 'theirs', 'aria-label': 'Счёт соперника', 'aria-describedby': fieldId + '-status'
+    });
+    var played = create('input', { type: 'checkbox', 'data-score': 'played', 'aria-describedby': fieldId + '-status' });
+    ours.value = current.ours === null ? '' : String(current.ours);
+    theirs.value = current.theirs === null ? '' : String(current.theirs);
+    played.checked = current.played;
+    var timer = null;
+    var dirty = false;
+
+    function numberValue(input) {
+      if (input.value === '') return null;
+      var value = Number(input.value);
+      return Number.isInteger(value) && value >= 0 && value <= 99 ? value : NaN;
+    }
+
+    function commit() {
+      var ourValue = numberValue(ours);
+      var theirValue = numberValue(theirs);
+      if (Number.isNaN(ourValue) || Number.isNaN(theirValue)) {
+        saved.textContent = 'Введите целое число от 0 до 99';
+        saved.classList.add('is-on', 'is-failed');
+        return;
+      }
+      dirty = true;
+      saved.textContent = 'Сохраняем…';
+      saved.classList.add('is-on', 'is-pending');
+      saved.classList.remove('is-failed');
+      window.Store.setScore(id, { ours: ourValue, theirs: theirValue, played: played.checked });
+    }
+
+    [ours, theirs].forEach(function (input) {
+      input.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(commit, 250); });
+    });
+    played.addEventListener('change', function () { clearTimeout(timer); commit(); });
+    window.Store.onStatus(function (status) {
+      if (!dirty) return;
+      if (!window.Store.pendingFor('score.set', id) && status !== 'saving' && status !== 'error') {
+        dirty = false;
+        saved.textContent = 'Сохранено';
+        saved.classList.remove('is-pending', 'is-failed');
+        saved.classList.add('is-on');
+      } else if (status === 'error') {
+        saved.textContent = 'Ошибка сохранения';
+        saved.classList.add('is-on', 'is-failed');
+      }
+    });
+    return create('fieldset', { class: 'field ops-field ops-score' }, [
+      create('legend', { class: 'field__label' }, [create('span', { text: 'Фактический счёт' }), saved]),
+      create('div', { class: 'ops-score__numbers' }, [
+        create('label', { for: fieldId + '-ours', text: 'Мы' }), ours,
+        create('span', { 'aria-hidden': 'true', text: ':' }),
+        create('label', { for: fieldId + '-theirs', text: 'Соперник' }), theirs
+      ]),
+      create('label', { class: 'check ops-score__played' }, [played, create('span', { class: 'check__text', text: 'Матч сыгран' })])
     ]);
   }
 
@@ -202,7 +271,7 @@
       section('Факты и неизвестные', cardsGrid(match.cards.filter(function (card) { return card.type !== 'action'; })), 'Состояние матча'),
       section('Действия', cardsGrid(match.cards.filter(function (card) { return card.type === 'action'; }), { checkable: true }), 'Выполнение, не освоение'),
       section('Матчевый журнал', create('div', { class: 'ops-form-grid' }, [
-        noteField('match-' + match.id + '-score', 'Фактический счёт', '—:—', 'input'),
+        scoreField('match-' + match.id + '-score'),
         noteField('match-' + match.id + '-note', 'Фактическая заметка', 'Что подтверждено после матча…')
       ]), 'Сохраняется для команды')
     ];
@@ -366,8 +435,10 @@
       if (!response.ok) throw new Error('HTTP ' + response.status);
       return response.json();
     });
-    Promise.all([contentRequest, window.Store.init()]).then(function (result) {
-      operations = result[0];
+    contentRequest.then(function (content) {
+      return window.Store.init(content).then(function () { return content; });
+    }).then(function (content) {
+      operations = content;
       window.UI.initPrint(); window.UI.initActions(); window.UI.initTools(); window.UI.initIdentity();
       window.addEventListener('hashchange', function () { openRoute(routeCurrent()); });
       openRoute(routeCurrent());
