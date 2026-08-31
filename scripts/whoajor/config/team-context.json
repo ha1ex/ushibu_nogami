@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "source": "site/assets/js/data.season.js polls.maps + sessions; /03_wiki/metric-estimated-strength.md; скопировано 2026-08-31",
+  "format": "BO1",
+  "assumedVetoOrder": ["ban-us", "ban-opp", "ban-us", "ban-opp", "ban-us", "ban-opp", "decider"],
+  "vetoOrderConfirmed": false,
+  "mapVotes": {
+    "de_dust2": { "votes": 5, "pct": 83 },
+    "de_inferno": { "votes": 4, "pct": 66 },
+    "de_mirage": { "votes": 3, "pct": 50 },
+    "de_nuke": { "votes": 3, "pct": 50 },
+    "de_anubis": { "votes": 2, "pct": 33 },
+    "de_ancient": { "votes": 1, "pct": 16 },
+    "de_cache": { "votes": 1, "pct": 16 }
+  },
+  "practiced": ["de_dust2", "de_inferno"],
+  "kbEstimatedStrength": {
+    "source": "/03_wiki/metric-estimated-strength.md (снимок 2026-08-29, другая модель shrinkage)",
+    "us": { "de_ancient": 1.030, "de_anubis": 1.137, "de_cache": 1.130, "de_dust2": 0.999, "de_inferno": 1.080, "de_mirage": 1.088, "de_nuke": 1.038 },
+    "pocelui": { "de_ancient": 0.978, "de_anubis": 1.017, "de_cache": 0.944, "de_dust2": 1.063, "de_inferno": 1.038, "de_mirage": 1.055, "de_nuke": 0.880 },
+    "rassadnik": { "de_ancient": 0.969, "de_anubis": 0.985, "de_cache": 0.895, "de_dust2": 0.990, "de_inferno": 1.094, "de_mirage": 0.993, "de_nuke": 1.133 },
+    "smoke": { "de_ancient": 1.085, "de_anubis": 1.059, "de_cache": 1.070, "de_dust2": 1.054, "de_inferno": 0.981, "de_mirage": 0.959, "de_nuke": 1.065 },
+    "takahuli": { "de_ancient": 1.067, "de_anubis": 0.970, "de_cache": 1.098, "de_dust2": 1.043, "de_inferno": 0.987, "de_mirage": 1.005, "de_nuke": 0.936 }
+  }
+}

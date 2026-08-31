@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": "v1-84a051d7989725f2",
+  "version": "v1-c8d0b33951947389",
   "contractVersion": "1.1.0",
   "root": "84a051d7989725f22fd8bc37969f9308b2282edcdc61bf6b3477a021d8c71ee2",
   "source": {
@@ -5761,41 +5761,65 @@
       "dataset": "playerMetrics",
       "path": "data/playerMetrics-000.json",
       "count": 30,
-      "bytes": 2038135,
-      "gzipBytes": 307802,
-      "sha256": "34d5519e1dfd1ff0f25ca954ca658c0b8e71d978de13962bc467753a112d11d1"
+      "bytes": 2043873,
+      "gzipBytes": 311743,
+      "sha256": "22a148be0b677ea69ce5742c148d49cc2ee7fec22248842d2967d9d4bd062df3"
     },
     {
       "dataset": "teamMetrics",
       "path": "data/teamMetrics-000.json",
       "count": 5,
-      "bytes": 30984,
-      "gzipBytes": 7865,
-      "sha256": "acdcc89344ec4cf3833f6867d93a3d835cfa417e894c7309ebb21e1fef3237fd"
+      "bytes": 33109,
+      "gzipBytes": 8131,
+      "sha256": "096a4be4ce836b54861823a248f0fab841c89adfb59cde88adf8f81c516e36a2"
+    },
+    {
+      "dataset": "teamMapStats",
+      "path": "data/teamMapStats-000.json",
+      "count": 171,
+      "bytes": 292268,
+      "gzipBytes": 49519,
+      "sha256": "097fce3fe95bfa18256de62266bd4af3d76ec6ca2cdc30db07249ee23ee45098"
     },
     {
       "dataset": "mapEdges",
       "path": "data/mapEdges-000.json",
       "count": 4,
-      "bytes": 51675,
-      "gzipBytes": 6845,
-      "sha256": "c7b7653f5c4b405284a03d0d356485d2b3bf00a1a7637cc77bf5cc6f1b78708d"
+      "bytes": 24149,
+      "gzipBytes": 4847,
+      "sha256": "6cd5d222aad4603ce39a7152d34ddc6049667d5dc03b3375993da3d28876194c"
+    },
+    {
+      "dataset": "vetoAdvice",
+      "path": "data/vetoAdvice-000.json",
+      "count": 4,
+      "bytes": 26862,
+      "gzipBytes": 5160,
+      "sha256": "a7b1a6164a8a25e05ce9d4b61927225d4c9307b8d8dc6aab3d8d96e2dcd90657"
     },
     {
       "dataset": "evidence",
       "path": "data/evidence-000.json",
-      "count": 306,
-      "bytes": 92447,
-      "gzipBytes": 11932,
-      "sha256": "5ced40be9c1e49aa814fd0fa6731d259c6c839c102920ce6e5ffe6f013e3f5fa"
+      "count": 185,
+      "bytes": 55170,
+      "gzipBytes": 9147,
+      "sha256": "e2ef3b4e50616e50f94b4247d508d6004ba9b5356e2f4d2ce726861e070637c7"
     },
     {
       "dataset": "recommendations",
       "path": "data/recommendations-000.json",
       "count": 4,
-      "bytes": 20522,
-      "gzipBytes": 5309,
-      "sha256": "abc591ff2d5fdb6131d67b96a4b3be0ac86a5f3435d350b0d100967daab135ce"
+      "bytes": 44175,
+      "gzipBytes": 9967,
+      "sha256": "e1064131fabb6896edb10dcf2366c37ea23dc4d8603d9017c17189776e056b81"
+    },
+    {
+      "dataset": "mirrorScouting",
+      "path": "data/mirrorScouting-000.json",
+      "count": 4,
+      "bytes": 24761,
+      "gzipBytes": 3736,
+      "sha256": "9ca1a7b74b72dd12ed47476d4de47815635311a03baaec4984a335df87f08813"
     }
   ]
 }
