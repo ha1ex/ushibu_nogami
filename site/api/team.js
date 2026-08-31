@@ -1,26 +1,27 @@
-import { json, loadUsers, readCookie, SESSION_COOKIE, verifySession } from '../lib/auth.js';
+/* Сводка по составу: сколько личных отметок у каждого.
+   Проценты считает клиент — он знает, сколько всего гранат и правил. */
+import { verifySession, readCookie, loadUsers, SESSION_COOKIE, json } from '../lib/auth.js';
+import { readDoc } from './_store.js';
 
-async function authenticateRequest(request) {
-  return verifySession(readCookie(request, SESSION_COOKIE), loadUsers());
-}
+export default {
+  async fetch(request) {
+    const userId = await verifySession(readCookie(request, SESSION_COOKIE));
+    if (!userId) return json({ error: 'unauthorized' }, { status: 401 });
 
-export function createTeamHandler(dependencies = {}) {
-  const authenticate = dependencies.authenticate || authenticateRequest;
-  return {
-    async fetch(request) {
-      if (request.method !== 'GET') {
-        return json({ error: 'method_not_allowed' }, { status: 405, headers: { allow: 'GET' } });
-      }
-      let user;
-      try {
-        user = await authenticate(request);
-      } catch {
-        return json({ error: 'unauthorized' }, { status: 401 });
-      }
-      if (!user) return json({ error: 'unauthorized' }, { status: 401 });
-      return json({ error: 'gone' }, { status: 410 });
-    }
-  };
-}
+    const users = loadUsers();
+    const docs = await Promise.all(users.map((u) => readDoc('personal', u.id)));
 
-export default createTeamHandler();
+    const roster = users.map((u, i) => {
+      const keys = Object.keys(docs[i].checks || {});
+      return {
+        id: u.id,
+        nick: u.nick,
+        nades: keys.filter((k) => k.startsWith('nade-')).length,
+        rules: keys.filter((k) => k.startsWith('rule-')).length,
+        ladder: keys.filter((k) => k.startsWith('lad-')).length,
+    };
+    });
+
+    return json({ roster });
+  },
+};

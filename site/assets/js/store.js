@@ -1,293 +1,232 @@
-window.Store = (function (Core) {
+/* ============================================================
+   Состояние с синхронизацией на сервер.
+
+   Читается один раз при загрузке (/api/state), дальше все изменения
+   применяются локально сразу, а на сервер уходят пачкой с задержкой.
+   Неотправленное переживает перезагрузку в localStorage, так что
+   отметки не теряются, даже если связь отвалилась.
+
+   Личное (гранаты, правила, лестница) и командное (заметки, вето,
+   роли, счёт, цели тренировок) разделяет сервер — здесь всё лежит
+   одной плоской картой, пространства ключей не пересекаются.
+   ============================================================ */
+
+window.Store = (function () {
   'use strict';
 
-  var OUTBOX_KEY = 'ushibu.cs2.outbox.v4';
-  var OUTBOX_OWNER_KEY = 'ushibu.cs2.outbox.v4.owner';
-  var QUARANTINE_KEY = 'ushibu.cs2.outbox.v4.quarantine';
-  var MAX_OUTBOX_COUNT = 512;
-  var MAX_OUTBOX_BYTES = 256 * 1024;
+  var QUEUE_KEY = 'ushibu.cs2.queue.v3';
   var FLUSH_DELAY = 700;
-  var RETRY_DELAY = 5000;
 
-  var allowed = null;
+  var state = { checks: {}, notes: {} };
   var me = null;
-  var base = { checks: {}, notes: {}, scores: {} };
-  var visible = { checks: {}, notes: {}, scores: {} };
-  var revision = 0;
-  var outbox = [];
-  var quarantine = [];
-  var status = 'pending';
+  var queue = { checks: {}, notes: {} };
   var flushTimer = null;
   var retryTimer = null;
-  var inFlight = null;
-  var listenersAttached = false;
+  var status = 'idle';           // idle | saving | saved | error
   var changeListeners = [];
   var statusListeners = [];
 
-  function emitChange() {
-    changeListeners.forEach(function (listener) { try { listener(); } catch (error) {} });
+  /* ---------------- Очередь неотправленного ---------------- */
+
+  function loadQueue() {
+    try {
+      var raw = JSON.parse(localStorage.getItem(QUEUE_KEY) || 'null');
+      if (raw && typeof raw === 'object') {
+        queue.checks = raw.checks && typeof raw.checks === 'object' ? raw.checks : {};
+        queue.notes = raw.notes && typeof raw.notes === 'object' ? raw.notes : {};
+      }
+    } catch (e) { /* localStorage может быть запрещён — работаем без него */ }
   }
+
+  function saveQueue() {
+    try {
+      if (!Object.keys(queue.checks).length && !Object.keys(queue.notes).length) {
+        localStorage.removeItem(QUEUE_KEY);
+      } else {
+        localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+      }
+    } catch (e) { /* не критично */ }
+  }
+
+  function queueSize() {
+    return Object.keys(queue.checks).length + Object.keys(queue.notes).length;
+  }
+
+  /* ---------------- Статус сохранения ---------------- */
 
   function setStatus(next) {
     status = next;
-    statusListeners.forEach(function (listener) { try { listener(status); } catch (error) {} });
+    statusListeners.forEach(function (fn) { try { fn(status); } catch (e) {} });
   }
 
-  function persist() {
-    if (!me) return;
-    try {
-      if (outbox.length) {
-        localStorage.setItem(OUTBOX_KEY, JSON.stringify(outbox));
-        localStorage.setItem(OUTBOX_OWNER_KEY, me.id);
-      } else {
-        localStorage.removeItem(OUTBOX_KEY);
-        localStorage.removeItem(OUTBOX_OWNER_KEY);
-      }
-      if (quarantine.length) localStorage.setItem(QUARANTINE_KEY, JSON.stringify(quarantine));
-      else localStorage.removeItem(QUARANTINE_KEY);
-    } catch (error) {
-      setStatus('error');
-    }
+  function emitChange() {
+    changeListeners.forEach(function (fn) { try { fn(); } catch (e) {} });
   }
 
-  function archiveKey(userId) {
-    return OUTBOX_KEY + '.user.' + encodeURIComponent(userId);
-  }
-
-  function parseStoredOutbox(serialized) {
-    var parsedOutbox = [];
-    var invalid = [];
-    if (!serialized) return { outbox: parsedOutbox, quarantine: invalid };
-    if (serialized.length > MAX_OUTBOX_BYTES) {
-      invalid.push({ reason: 'outbox_too_large', serialized: serialized.slice(0, MAX_OUTBOX_BYTES) });
-      return { outbox: parsedOutbox, quarantine: invalid };
-    }
-    try {
-      var parsed = JSON.parse(serialized);
-      if (!Array.isArray(parsed)) throw new Error('outbox is not an array');
-      parsed.forEach(function (entry, index) {
-        if (index >= MAX_OUTBOX_COUNT) {
-          invalid.push({ reason: 'outbox_count_limit', value: entry });
-          return;
-        }
-        try { parsedOutbox.push(Core.validateMutation(entry, allowed)); }
-        catch (error) { invalid.push({ reason: 'invalid_mutation', value: entry }); }
-      });
-    } catch (error) {
-      invalid.push({ reason: 'invalid_outbox_json', serialized: serialized });
-    }
-    return { outbox: parsedOutbox, quarantine: invalid };
-  }
-
-  function loadOutbox(userId) {
-    outbox = [];
-    quarantine = [];
-    try {
-      var current = parseStoredOutbox(localStorage.getItem(OUTBOX_KEY));
-      var restored = parseStoredOutbox(localStorage.getItem(archiveKey(userId)));
-      var ownerId = localStorage.getItem(OUTBOX_OWNER_KEY);
-      var selected = Core.selectUserOutbox({
-        current: current.outbox, ownerId: ownerId, userId: userId, restored: restored.outbox
-      });
-      if (selected.archive) {
-        localStorage.setItem(archiveKey(selected.archive.userId), JSON.stringify(selected.archive.outbox));
-      }
-      if (restored.outbox.length) localStorage.removeItem(archiveKey(userId));
-      outbox = selected.active;
-      quarantine = current.quarantine.concat(restored.quarantine).concat(
-        selected.quarantine.map(function (entry) { return { reason: 'unowned_mutation', value: entry }; })
-      );
-      try {
-        var priorQuarantine = JSON.parse(localStorage.getItem(QUARANTINE_KEY) || '[]');
-        if (Array.isArray(priorQuarantine)) quarantine = priorQuarantine.concat(quarantine);
-      } catch (error) {}
-      persist();
-    } catch (error) {
-      quarantine.push({ reason: 'local_storage_unavailable' });
-    }
-  }
-
-  function recompute() {
-    visible = Core.replay(base, outbox);
-  }
-
-  function mutationId() {
-    if (crypto.randomUUID) return crypto.randomUUID();
-    var bytes = crypto.getRandomValues(new Uint8Array(18));
-    return 'mutation_' + Array.from(bytes, function (byte) { return byte.toString(16).padStart(2, '0'); }).join('');
-  }
-
-  function appendOperation(operation) {
-    var mutation = Core.validateMutation({ mutationId: mutationId(), operations: [operation] }, allowed);
-    outbox = Core.appendMutation(outbox, mutation);
-    persist();
-    recompute();
-    setStatus('pending');
-    emitChange();
-    schedule();
-    return mutation.mutationId;
-  }
+  /* ---------------- Отправка ---------------- */
 
   function schedule() {
     clearTimeout(flushTimer);
     flushTimer = setTimeout(flush, FLUSH_DELAY);
   }
 
-  function scheduleRetry() {
-    clearTimeout(retryTimer);
-    retryTimer = setTimeout(flush, RETRY_DELAY);
-  }
-
-  function failure(autoRetry) {
-    persist();
-    setStatus('error');
-    if (autoRetry) scheduleRetry();
-  }
-
-  function validAck(value) {
-    return value && typeof value === 'object' && !Array.isArray(value) && value.ok === true &&
-      Number.isSafeInteger(value.revision) && value.revision >= 0;
-  }
-
   function flush() {
     clearTimeout(flushTimer);
-    if (inFlight) return inFlight;
-    if (!outbox.length) {
-      setStatus(quarantine.length ? 'error' : 'saved');
-      return Promise.resolve();
-    }
-    var sent = outbox[0];
+    if (!queueSize()) return Promise.resolve();
+
+    var payload = { checks: queue.checks, notes: queue.notes };
+    queue = { checks: {}, notes: {} };
+    saveQueue();
     setStatus('saving');
-    inFlight = fetch('/api/state', {
+
+    return fetch('/api/state', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify(sent)
-    }).then(function (response) {
-      if (response.status === 401) {
-        persist();
-        window.location.reload();
-        return null;
-      }
-      if (!response.ok) {
-        failure(response.status === 409 || response.status >= 500);
-        return null;
-      }
-      return response.json().then(function (ack) {
-        if (!validAck(ack)) {
-          failure(false);
-          return;
-        }
-        var model = Core.acknowledge({ base: base, outbox: outbox, revision: revision }, sent.mutationId, ack.revision);
-        base = model.base;
-        outbox = model.outbox;
-        revision = model.revision;
-        persist();
-        recompute();
-        emitChange();
-        if (outbox.length) {
-          setStatus('pending');
-          schedule();
-        } else setStatus(quarantine.length ? 'error' : 'saved');
-      }, function () { failure(false); });
-    }).catch(function () { failure(true); }).finally(function () { inFlight = null; });
-    return inFlight;
-  }
-
-  function retry() {
-    clearTimeout(retryTimer);
-    clearTimeout(flushTimer);
-    return flush();
-  }
-
-  function flushBeacon() {
-    if (!outbox.length || !navigator.sendBeacon) return false;
-    try {
-      var copy = JSON.stringify(outbox[0]);
-      return navigator.sendBeacon('/api/state', new Blob([copy], { type: 'application/json' }));
-    } catch (error) {
-      return false;
-    }
-  }
-
-  function attachListeners() {
-    if (listenersAttached) return;
-    listenersAttached = true;
-    window.addEventListener('visibilitychange', function () {
-      if (document.visibilityState === 'hidden') flushBeacon();
-    });
-    window.addEventListener('pagehide', flushBeacon);
-    window.addEventListener('online', retry);
-  }
-
-  function init(operations) {
-    allowed = Core.deriveAllowedKeys(operations);
-    return fetch('/api/state', { credentials: 'same-origin', cache: 'no-store' })
-      .then(function (response) {
-        if (response.status === 401) {
+      body: JSON.stringify(payload)
+    })
+      .then(function (res) {
+        if (res.status === 401) {
+          // Сессия истекла — перезагрузка выкинет на форму входа.
           window.location.reload();
           throw new Error('unauthorized');
         }
-        if (!response.ok) throw new Error('HTTP ' + response.status);
-        return response.json();
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        setStatus('saved');
       })
-      .then(function (payload) {
-        var snapshot = Core.validateServerSnapshot(payload, allowed);
-        me = snapshot.me;
-        base = snapshot.state;
-        revision = snapshot.revision;
-        loadOutbox(me.id);
-        recompute();
-        attachListeners();
-        emitChange();
-        if (quarantine.length) setStatus('error');
-        else if (outbox.length) {
-          setStatus('pending');
-          schedule();
-        } else setStatus('saved');
+      .catch(function () {
+        // Возвращаем в очередь: то, что успело накопиться позже, важнее.
+        queue.checks = Object.assign({}, payload.checks, queue.checks);
+        queue.notes = Object.assign({}, payload.notes, queue.notes);
+        saveQueue();
+        setStatus('error');
+        clearTimeout(retryTimer);
+        retryTimer = setTimeout(flush, 5000);
+      });
+  }
+
+  /* Последняя попытка при уходе со страницы — beacon переживает выгрузку. */
+  function flushBeacon() {
+    if (!queueSize() || !navigator.sendBeacon) return;
+    try {
+      var blob = new Blob([JSON.stringify({ checks: queue.checks, notes: queue.notes })],
+        { type: 'application/json' });
+      if (navigator.sendBeacon('/api/state', blob)) {
+        queue = { checks: {}, notes: {} };
+        saveQueue();
+      }
+    } catch (e) { /* не вышло — останется в очереди до следующего захода */ }
+  }
+
+  /* ---------------- Загрузка ---------------- */
+
+  function init() {
+    loadQueue();
+
+    return fetch('/api/state', { credentials: 'same-origin' })
+      .then(function (res) {
+        if (res.status === 401) { window.location.reload(); throw new Error('unauthorized'); }
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        me = data.me || null;
+        var team = data.team || {};
+        var personal = data.personal || {};
+        // Пространства ключей не пересекаются, поэтому можно объединить.
+        state.checks = Object.assign({}, team.checks || {}, personal.checks || {});
+        state.notes = Object.assign({}, team.notes || {});
+
+        // Накатываем то, что не успело уйти в прошлый раз
+        Object.keys(queue.checks).forEach(function (k) {
+          if (queue.checks[k]) state.checks[k] = true; else delete state.checks[k];
+        });
+        Object.keys(queue.notes).forEach(function (k) {
+          if (queue.notes[k]) state.notes[k] = queue.notes[k]; else delete state.notes[k];
+        });
+        if (queueSize()) schedule();
+
+        window.addEventListener('visibilitychange', function () {
+          if (document.visibilityState === 'hidden') flushBeacon();
+        });
+        window.addEventListener('pagehide', flushBeacon);
+        window.addEventListener('online', flush);
+
         return me;
       });
   }
 
-  function pendingFor(type, key) {
-    return outbox.some(function (mutation) {
-      return mutation.operations.some(function (operation) { return operation.type === type && operation.key === key; });
-    });
-  }
+  /* ---------------- Публичный API ---------------- */
 
   return {
     init: init,
     me: function () { return me; },
-    getCheck: function (key) { return visible.checks[key] === true; },
-    setCheck: function (key, value) {
-      if (typeof value !== 'boolean') throw new Error('check value must be boolean');
-      return appendOperation({ type: 'check.set', key: key, value: value });
+
+    getCheck: function (id) { return state.checks[id] === true; },
+    setCheck: function (id, value) {
+      if (value) state.checks[id] = true; else delete state.checks[id];
+      queue.checks[id] = !!value;
+      saveQueue();
+      schedule();
+      emitChange();
     },
-    getNote: function (key) { return typeof visible.notes[key] === 'string' ? visible.notes[key] : ''; },
-    setNote: function (key, value) {
-      if (typeof value !== 'string') throw new Error('note value must be string');
-      return appendOperation({ type: 'note.set', key: key, value: value });
+
+    getNote: function (id) { return typeof state.notes[id] === 'string' ? state.notes[id] : ''; },
+    setNote: function (id, value) {
+      if (value) state.notes[id] = value; else delete state.notes[id];
+      queue.notes[id] = value || '';
+      saveQueue();
+      schedule();
+      emitChange();
     },
-    getScore: function (key) {
-      var current = visible.scores[key];
-      return current ? { ours: current.ours, theirs: current.theirs, played: current.played }
-        : { ours: null, theirs: null, played: false };
+
+    countChecked: function (ids) {
+      var n = 0;
+      ids.forEach(function (id) { if (state.checks[id] === true) n++; });
+      return n;
     },
-    setScore: function (key, value) { return appendOperation({ type: 'score.set', key: key, value: value }); },
-    countChecked: function (ids) { return ids.filter(function (id) { return visible.checks[id] === true; }).length; },
+
+    /* Сколько отмечено в группе ключей: 'nade-', 'rule-', 'lad-'.
+       Тем же способом считает и сервер в /api/team, поэтому свою строку
+       в командной сводке можно пересчитать локально. */
+    countByPrefix: function (prefix) {
+      var n = 0;
+      Object.keys(state.checks).forEach(function (k) {
+        if (state.checks[k] === true && k.indexOf(prefix) === 0) n++;
+      });
+      return n;
+    },
+
+    /* Сбрасываем только своё: командные заметки чужой кнопкой не трогаем. */
+    resetPersonal: function () {
+      var removed = 0;
+      Object.keys(state.checks).forEach(function (k) {
+        if (/^(nade-|rule-|lad-)/.test(k)) {
+          delete state.checks[k];
+          queue.checks[k] = false;
+          removed++;
+        }
+      });
+      saveQueue();
+      emitChange();
+      return flush().then(function () { return removed; });
+    },
+
     exportJSON: function () {
       return JSON.stringify({
-        app: 'ushibu-cs2-hq', version: 4, user: me ? me.nick : null,
-        exportedAt: new Date().toISOString(), revision: revision,
-        state: Core.copyState(visible), pendingMutations: outbox, quarantinedMutations: quarantine
+        app: 'ushibu-cs2-hq',
+        version: 3,
+        user: me ? me.nick : null,
+        exportedAt: new Date().toISOString(),
+        checks: state.checks,
+        notes: state.notes
       }, null, 2);
     },
+
     status: function () { return status; },
-    pendingCount: function () { return outbox.length; },
-    pendingFor: pendingFor,
+    pendingCount: queueSize,
     flush: flush,
-    retry: retry,
-    onChange: function (listener) { changeListeners.push(listener); },
-    onStatus: function (listener) { statusListeners.push(listener); }
+    onChange: function (fn) { changeListeners.push(fn); },
+    onStatus: function (fn) { statusListeners.push(fn); }
   };
-})(window.StoreCore);
+})();

@@ -64,18 +64,6 @@ function resultFor(report, id) {
   return report.queries.find((query) => query.id === id)?.result;
 }
 
-function setSnapshotId(db, snapshotId) {
-  db.pragma('foreign_keys = OFF');
-  for (const { name: table } of db.pragma('table_list').filter(({ schema }) => schema === 'main')) {
-    if (db.pragma(`table_info("${table.replaceAll('"', '""')}")`)
-      .some(({ name }) => name === 'snapshot_id')) {
-      db.prepare(`UPDATE "${table.replaceAll('"', '""')}" SET snapshot_id = ?`)
-        .run(snapshotId);
-    }
-  }
-  db.pragma('foreign_keys = ON');
-}
-
 test('profile фиксирует структуру, grain, SQL-сверки и стабильный complete output', async () => {
   const { dbPath, snapshotDir } = await buildValidatedFixture();
   const first = profileDatabase(snapshotDir, dbPath);
@@ -266,44 +254,33 @@ test('profile принимает проверенные live date, local time, S
   assert.equal(report.status, 'complete');
 });
 
-test('dated snapshot игнорирует транспортный fetchedAt и HTTP Date при проверке будущих дат', async () => {
+test('dated snapshot не принимает обычные строки и HTTP Date за будущие/битые даты', async () => {
   const { dbPath, snapshotDir } = await buildValidatedFixture();
   const db = new Database(dbPath);
+  db.pragma('foreign_keys = OFF');
   const datedSnapshotId = '2026-08-30-full';
-  setSnapshotId(db, datedSnapshotId);
+  for (const { name: table } of db.pragma('table_list').filter(({ schema }) => schema === 'main')) {
+    if (db.pragma(`table_info("${table.replaceAll('"', '""')}")`)
+      .some(({ name }) => name === 'snapshot_id')) {
+      db.prepare(`UPDATE "${table.replaceAll('"', '""')}" SET snapshot_id = ?`)
+        .run(datedSnapshotId);
+    }
+  }
   const request = db.prepare('SELECT rowid, source_json FROM requests LIMIT 1').get();
   const requestSource = JSON.parse(request.source_json);
-  requestSource.fetchedAt = '2026-09-01T00:00:00.000Z';
   requestSource.observedHeaders = {
     ...requestSource.observedHeaders,
     date: 'Sun, 30 Aug 2026 07:00:00 GMT',
   };
   db.prepare('UPDATE requests SET source_json = ? WHERE rowid = ?')
     .run(JSON.stringify(requestSource), request.rowid);
+  db.pragma('foreign_keys = ON');
   db.close();
 
   const report = profileDatabase(snapshotDir, dbPath);
   assert.equal(report.anomalies.futureDates, 0);
   assert.equal(report.anomalies.invalidDates, 0);
   assert.equal(report.status, 'complete');
-});
-
-test('domain metrics_json.fetchedAt остаётся проверяемой датой', async () => {
-  const { dbPath, snapshotDir } = await buildValidatedFixture();
-  const datedSnapshotId = '2026-08-30-full';
-
-  const invalidDb = new Database(dbPath);
-  setSnapshotId(invalidDb, datedSnapshotId);
-  invalidDb.prepare('UPDATE tags SET metrics_json = ?')
-    .run(JSON.stringify({ fetchedAt: 'not-a-timestamp' }));
-  invalidDb.close();
-  assert.equal(profileDatabase(snapshotDir, dbPath).anomalies.invalidDates, 1);
-
-  const futureDb = new Database(dbPath);
-  futureDb.prepare('UPDATE tags SET metrics_json = ?')
-    .run(JSON.stringify({ fetchedAt: '2026-09-01T00:00:00.000Z' }));
-  futureDb.close();
-  assert.equal(profileDatabase(snapshotDir, dbPath).anomalies.futureDates, 1);
 });
 
 test('match date min/max вычисляются хронологически с учётом RFC3339 offset', async () => {

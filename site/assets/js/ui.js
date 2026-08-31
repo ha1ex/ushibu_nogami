@@ -15,7 +15,9 @@ window.UI = (function () {
         var v = props[k];
         if (v === null || v === undefined || v === false) return;
         if (k === 'class') node.className = v;
+        else if (k === 'html') node.innerHTML = v;          // только доверенные строки из data.*
         else if (k === 'text') node.textContent = v;
+        else if (k === 'style') node.setAttribute('style', v);
         else if (k.slice(0, 2) === 'on' && typeof v === 'function') node.addEventListener(k.slice(2), v);
         else if (v === true) node.setAttribute(k, '');
         else node.setAttribute(k, v);
@@ -113,19 +115,18 @@ window.UI = (function () {
     });
     return el('label', { class: 'check' + (className ? ' ' + className : '') }, [
       input,
-      el('span', { class: 'check__text', text: text })
+      el('span', { class: 'check__text', html: text })
     ]);
   }
 
   // Текстовое поле с автосохранением. Индикатор показывает не «мы записали
   // в localStorage», а что реально произошло с отправкой на сервер.
   function noteField(id, labelText, placeholder, tag) {
-    var saved = el('span', { class: 'field__saved', role: 'status', 'aria-live': 'polite' });
+    var saved = el('span', { class: 'field__saved' });
     var input = el(tag === 'input' ? 'input' : 'textarea', {
       'data-note': id,
       placeholder: placeholder || '',
-      type: tag === 'input' ? 'text' : null,
-      'aria-label': labelText || placeholder || 'Заметка'
+      type: tag === 'input' ? 'text' : null
     });
     input.value = window.Store.getNote(id);
 
@@ -145,7 +146,7 @@ window.UI = (function () {
 
     window.Store.onStatus(function (status) {
       if (!dirty) return;
-      if (!window.Store.pendingFor('note.set', id) && status !== 'saving' && status !== 'error') {
+      if (status === 'saved') {
         dirty = false;
         saved.textContent = 'сохранено';
         saved.classList.remove('is-pending', 'is-failed');
@@ -238,8 +239,16 @@ window.UI = (function () {
       });
     });
 
-    document.querySelectorAll('[data-action="retry"]').forEach(function (btn) {
-      btn.addEventListener('click', function () { window.Store.retry(); });
+    // Сбрасываем только личное. Командные заметки и вето общие —
+    // стирать их кнопкой одного игрока нельзя.
+    document.querySelectorAll('[data-action="reset"]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (!window.confirm('Сбросить ТОЛЬКО свои отметки — гранаты, правила, лестницу?\n\nКомандные заметки, вето и счёт не тронутся.')) return;
+        window.Store.resetPersonal().then(function (n) {
+          toast('Сброшено отметок: ' + n);
+          setTimeout(function () { window.location.reload(); }, 600);
+        });
+      });
     });
 
     document.querySelectorAll('[data-action="logout"]').forEach(function (btn) {
@@ -275,25 +284,20 @@ window.UI = (function () {
 
     var bar = document.getElementById('syncbar');
     var text = document.getElementById('sync-text');
-    var retry = document.getElementById('sync-retry');
-    if (!bar || !text || !retry) return;
+    if (!bar || !text) return;
 
     function render(status) {
       var pending = window.Store.pendingCount();
-      bar.classList.remove('is-saving', 'is-error', 'is-ok', 'is-pending');
-      retry.hidden = status !== 'error' && status !== 'pending';
+      bar.classList.remove('is-saving', 'is-error', 'is-ok');
       if (status === 'error') {
         bar.classList.add('is-error');
         text.textContent = 'нет связи · ' + pending + ' в очереди';
       } else if (status === 'saving') {
         bar.classList.add('is-saving');
         text.textContent = 'сохраняем…';
-      } else if (status === 'pending') {
-        bar.classList.add('is-pending');
-        text.textContent = pending + ' в очереди';
       } else {
         bar.classList.add('is-ok');
-        text.textContent = 'всё сохранено';
+        text.textContent = pending ? pending + ' в очереди' : 'всё сохранено';
       }
     }
 

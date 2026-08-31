@@ -219,38 +219,22 @@ function invalidMetricTypeOrValue(key, type, value) {
   return impossibleMetric(normalized, value);
 }
 
-function transportFetchedAt(scope, path) {
-  if (semanticPathKey(path) !== 'fetched_at') return false;
-  const tokens = pathTokens(path);
-  if (scope?.table === 'requests' && scope.column === 'source_json') {
-    return tokens.length === 1;
-  }
-  return scope?.table === 'snapshots'
-    && scope.column === 'source_json'
-    && tokens.length === 3
-    && tokens[0] === 'requests'
-    && /^\d+$/.test(tokens[1]);
-}
-
-function invalidJsonDate(scope, path, type, value) {
+function invalidJsonDate(path, type, value) {
   const tokens = pathTokens(path);
   if (tokens.at(-2) === 'observed_headers' && tokens.at(-1) === 'date') return false;
   const key = semanticPathKey(path);
-  if (transportFetchedAt(scope, path)) return false;
   if (!dateKind(key) || type === 'null') return false;
   return type !== 'text' || invalidDateValue(key, value);
 }
 
-function futureJsonDate(scope, path, type, value, asOf) {
+function futureJsonDate(path, type, value, asOf) {
   const tokens = pathTokens(path);
   if (tokens.at(-2) === 'observed_headers' && tokens.at(-1) === 'date') return false;
-  if (transportFetchedAt(scope, path)) return false;
   return type === 'text' && futureDateValue(semanticPathKey(path), value, asOf);
 }
 
 function registerAuditFunctions(db, asOf) {
   const deterministic = { deterministic: true };
-  let jsonDateScope = null;
   db.function('whoajor_invalid_typed_id', deterministic, (key, value) => (
     invalidIdentifier(key, value) ? 1 : 0
   ));
@@ -275,16 +259,11 @@ function registerAuditFunctions(db, asOf) {
     invalidJsonIdentifier(path, type, value) ? 1 : 0
   ));
   db.function('whoajor_invalid_json_date', deterministic, (path, type, value) => (
-    invalidJsonDate(jsonDateScope, path, type, value) ? 1 : 0
+    invalidJsonDate(path, type, value) ? 1 : 0
   ));
   db.function('whoajor_future_json_date', deterministic, (path, type, value) => (
-    futureJsonDate(jsonDateScope, path, type, value, asOf) ? 1 : 0
+    futureJsonDate(path, type, value, asOf) ? 1 : 0
   ));
-  return {
-    setJsonDateScope(scope) {
-      jsonDateScope = scope;
-    },
-  };
 }
 
 function normalizeRows(rows, { sort = false } = {}) {
@@ -450,8 +429,7 @@ function profileTypedColumn(recorder, table, column) {
   return result;
 }
 
-function profileJsonColumn(recorder, table, column, setJsonDateScope) {
-  setJsonDateScope({ column: column.name, table });
+function profileJsonColumn(recorder, table, column) {
   const identifier = quoteIdentifier(column.name);
   return recorder.one(tableQueryId(table, `json.${column.name}`), `
     WITH documents AS MATERIALIZED (
@@ -682,7 +660,7 @@ function buildProfile(db, snapshotDir) {
     rootHash: null,
     status: null,
   };
-  const { setJsonDateScope } = registerAuditFunctions(db, snapshotDate(snapshot.id));
+  registerAuditFunctions(db, snapshotDate(snapshot.id));
 
   const anomalies = {
     fractionalCountMetrics: 0,
@@ -699,9 +677,7 @@ function buildProfile(db, snapshotDir) {
         addAnomalies(anomalies, profileTypedColumn(recorder, table.name, column));
       }
       if (normalizedKey(column.name).endsWith('_json')) {
-        addAnomalies(anomalies, profileJsonColumn(
-          recorder, table.name, column, setJsonDateScope,
-        ));
+        addAnomalies(anomalies, profileJsonColumn(recorder, table.name, column));
       }
     }
   }

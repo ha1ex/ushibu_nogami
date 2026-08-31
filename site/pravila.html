@@ -3,15 +3,77 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Переход в маршрутный штаб</title>
-  <meta http-equiv="refresh" content="0; url=index.html#/seichas">
-  <link rel="canonical" href="index.html#/seichas">
+  <meta name="color-scheme" content="dark">
+  <title>Кодекс командной игры — Ушибу ногами</title>
+  <meta name="description" content="30 правил командной игры в CS2, десять заповедей, лестница внедрения и разборы: что каждый игрок команды «Ушибу ногами» обязан развивать.">
+
+  <link rel="icon" href="assets/img/logo.jpg">
+
+  <link rel="stylesheet" href="assets/css/fonts.css">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/theme.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/print.css">
+
 </head>
-<body>
-  <main>
-    <h1>Раздел перенесён</h1>
-    <p role="status">Переходим на экран «Сейчас».</p>
-    <p><a href="index.html#/seichas">Открыть маршрутный штаб</a></p>
-  </main>
+<body class="is-booting">
+  <a href="#content" class="skip-link">Перейти к содержимому</a>
+
+  <div class="shell">
+    <aside class="sidebar">
+      <a class="brand" href="index.html" aria-label="Штаб команды Ушибу ногами">
+        <img class="brand__mark" src="assets/img/logo.jpg" alt="" width="46" height="46">
+        <span class="brand__text">
+          <b class="brand__name">Ушибу ногами</b>
+          <small class="brand__sub">Кодекс командной игры</small>
+        </span>
+      </a>
+
+        <button type="button" class="tools-toggle" id="tools-toggle" aria-expanded="false" aria-controls="sidebar-tools" aria-label="Настройки и действия">⋯</button>
+
+      <div class="season"><span>Правил</span><b>30 / уровень A—B</b></div>
+
+      <nav class="nav" aria-label="Разделы кодекса">
+        <a class="nav__item" href="#progress"><span class="nav__num">01</span> Кто сколько</a>
+        <a class="nav__item" href="#zapovedi"><span class="nav__num">02</span> Заповеди</a>
+        <a class="nav__item" href="#pravila"><span class="nav__num">03</span> 30 правил</a>
+        <a class="nav__item" href="#lestnica"><span class="nav__num">04</span> Внедрение</a>
+        <a class="nav__item" href="#razbory"><span class="nav__num">05</span> Разборы</a>
+        <a class="nav__item" href="#istochniki"><span class="nav__num">06</span> Источники</a>
+      </nav>
+
+      <nav class="nav nav--sub" aria-label="Другие страницы">
+        <a class="nav__item" href="index.html"><span class="nav__num">←</span> Штаб</a>
+      </nav>
+
+      <div class="sidebar__foot" id="sidebar-tools">
+        <div class="whoami">
+          <span class="label">Вы вошли как</span>
+          <b data-whoami>…</b>
+        </div>
+        <div class="syncbar" id="syncbar"><i></i><span id="sync-text">загрузка…</span></div>
+        <div class="btn-row">
+          <button type="button" class="btn-text" data-action="print">Печать / PDF</button>
+          <button type="button" class="btn-text" data-action="export">Бэкап</button>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn-text btn-text--danger" data-action="reset">Сбросить моё</button>
+          <button type="button" class="btn-text" data-action="logout">Выйти</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main" id="content">
+      <div class="panel" id="rules-page"></div>
+    </main>
+  </div>
+
+  <script src="assets/js/data.rules.js"></script>
+  <script src="assets/js/store.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/team-progress.js"></script>
+  <script src="assets/js/rules.js"></script>
 </body>
 </html>
