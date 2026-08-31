@@ -56,7 +56,7 @@ test('nearest-match card and match plan show the opponent roster nicknames', asy
   const nearest = page.getByRole('article').filter({ hasText: 'Ближайший матч' });
   await expect(nearest.getByRole('link', { name: 'professorkill', exact: true })).toBeVisible();
   await expect(nearest.getByRole('link', { name: 'Сквиртолог Анзол', exact: true })).toBeVisible();
-  await expect(nearest.getByText(/Ростер 6 · пятёрка на матч не подтверждена/)).toBeVisible();
+  await expect(nearest.getByText(/Ростер 6 · пятёрка не подтверждена/)).toBeVisible();
 
   await page.goto('/#/statistika/match/m01');
   const roster = page.locator('.stats-roster--full');

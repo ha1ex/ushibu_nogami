@@ -474,8 +474,7 @@ table.data tr.is-ours td.when { color: var(--accent); font-weight: 700; }
 .team__rating span { margin-top: 5px; color: var(--text-mute); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; }
 .versus-roster { display: grid; gap: var(--s2); margin-top: var(--s4); }
 .versus-roster__list { display: flex; flex-wrap: wrap; gap: var(--s2); margin: 0; padding: 0; list-style: none; }
-.versus-roster__list li { font-family: var(--font-display); font-size: 16px; font-weight: 500; text-transform: uppercase; overflow-wrap: anywhere; }
-.versus-roster__list li:not(:last-child)::after { content: ' ·'; color: var(--idle); }
+.versus-roster__list li { padding: 4px var(--s3); border: 1px solid var(--line); background: var(--surface-1); font-family: var(--font-display); font-size: 15px; font-weight: 500; text-transform: uppercase; overflow-wrap: break-word; }
 
 .team__roster { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .team__roster li { display: flex; align-items: baseline; gap: var(--s3); padding: var(--s3) var(--s4); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); font-family: var(--font-display); font-size: 17px; font-weight: 500; overflow-wrap: anywhere; }

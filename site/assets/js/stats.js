@@ -144,7 +144,7 @@
   }
 
   function rosterNote(count) {
-    return el('p', { class: 'stats-roster-note', text: 'Ростер ' + count + ' · пятёрка на матч не подтверждена' });
+    return el('p', { class: 'stats-roster-note', text: 'Ростер ' + count + ' · пятёрка не подтверждена' });
   }
 
   function rosterStrip(rosters, teamId) {
@@ -155,6 +155,20 @@
         return el('li', {}, routeLink(Core.href('player', player.steamid), player.displayName, 'stats-roster-name'));
       })),
       rosterNote(players.length)
+    ]);
+  }
+
+  /* Шапка ближайшего матча: сначала метки и дата, затем имя, ники и переход в план. */
+  function nextMatchCard(rosters, plan) {
+    var opponent = rosterName(rosters, plan.opponentTeamId);
+    return el('div', { class: 'stats-next' }, [
+      el('div', { class: 'stats-next-meta' }, [
+        chip('reviewed', 'ok'),
+        el('time', { datetime: plan.date, text: U.fmtFull(plan.date) })
+      ]),
+      el('p', { class: 'stats-big stats-big--name', text: opponent }),
+      rosterStrip(rosters, plan.opponentTeamId),
+      el('a', { href: Core.href('match', plan.matchId), class: 'stats-link stats-next-cta', 'aria-label': 'Открыть полный план матча: ' + opponent, text: 'Открыть полный план →' })
     ]);
   }
 
@@ -227,12 +241,8 @@
     var main = el('div', { class: 'stats-stack' }, [
       el('p', { class: 'lead stats-caveat', text: 'Проекция из индивидуальной статистики. Сыгранность пятёрок не измерена.' }),
       el('div', { class: 'stats-hero-grid' }, [
-        card(scheduleSelection.completedFallback ? 'Последний матч · расписание завершено' : 'Ближайший матч', nearest ? el('div', {}, [
-          chip('reviewed', 'ok'), el('p', { class: 'stats-big', text: rosterName(rosters, nearest.opponentTeamId) }),
-          rosterStrip(rosters, nearest.opponentTeamId),
-          el('time', { datetime: nearest.date, text: U.fmtFull(nearest.date) }),
-          routeLink(Core.href('match', nearest.matchId), 'Открыть полный план ' + rosterName(rosters, nearest.opponentTeamId))
-        ]) : el('p', { text: 'Нет данных · низкая уверенность' })),
+        card(scheduleSelection.completedFallback ? 'Последний матч · расписание завершено' : 'Ближайший матч',
+          nearest ? nextMatchCard(rosters, nearest) : el('p', { text: 'Нет данных · низкая уверенность' })),
         card('Готовность плана', el('div', {}, [el('p', { class: 'stats-big', text: ready.done + ' / ' + ready.total }), el('p', { text: 'общих задач закрыто' }), el('small', { text: 'Снимок по ' + manifest.window.recentEnd })])),
         card('Главный edge', nearest ? mapFigure(nearest) : el('p', { text: 'Нет данных' })),
         card('Угрозы', nearest ? evidenceList(nearest.threats, rosters) : el('p', { text: 'Нет данных' })),
