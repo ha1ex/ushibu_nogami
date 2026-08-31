@@ -91,7 +91,11 @@
   font-weight: 700;
   line-height: 1;
   text-transform: uppercase;
+  overflow-wrap: break-word;
+  hyphens: none;
 }
+/* Названия команд длиннее чисел: свой масштаб, чтобы слово не рвалось. */
+.stats-big--name { font-size: clamp(21px, 2.6vw, 34px); line-height: 1.05; }
 .stats-mono { font-family: var(--font-mono); font-size: var(--fs-sm); overflow-wrap: anywhere; }
 
 .stats-route-card {
@@ -159,12 +163,22 @@
 
 .stats-roster-strip { display: grid; gap: var(--s2); }
 .stats-roster { display: flex; flex-wrap: wrap; gap: var(--s2); margin: 0; padding: 0; list-style: none; }
-.stats-roster-name { font-family: var(--font-display); font-size: 17px; text-transform: uppercase; overflow-wrap: anywhere; }
+.stats-roster-name { font-family: var(--font-display); font-size: 17px; text-transform: uppercase; overflow-wrap: break-word; }
 .stats-roster-note { color: var(--text-mute); font: var(--fs-micro) var(--font-mono); letter-spacing: var(--tr-label); text-transform: uppercase; }
 
-.stats-roster--compact { gap: var(--s1) var(--s2); }
-.stats-roster--compact .stats-roster-name { font-size: 15px; }
-.stats-roster--compact li:not(:last-child)::after { content: ' ·'; color: var(--idle); }
+.stats-roster--compact .stats-roster-name {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.stats-roster--compact .stats-roster-name:hover,
+.stats-roster--compact .stats-roster-name:focus-visible { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 
 .stats-roster-section { display: grid; gap: var(--s3); }
 .stats-roster--full { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 2px; }

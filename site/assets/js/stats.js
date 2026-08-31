@@ -223,7 +223,7 @@
   }
 
   function rosterNote(count) {
-    return el('p', { class: 'stats-roster-note', text: 'Ростер ' + count + ' · пятёрка на матч не подтверждена' });
+    return el('p', { class: 'stats-roster-note', text: 'Ростер ' + count + ' · пятёрка не подтверждена' });
   }
 
   function rosterStrip(rosters, teamId) {
@@ -237,6 +237,7 @@
     ]);
   }
 
+  /* Шапка ближайшего матча: сначала метки и дата, затем имя, ники и переход в план. */
   function rosterBlock(rosters, teamId, threats) {
     var players = rosterPlayers(rosters, teamId);
     var flagged = new Set((threats || []).map(function (row) { return String(row.steamid); }));

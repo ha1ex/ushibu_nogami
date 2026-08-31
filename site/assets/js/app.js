@@ -246,7 +246,7 @@
     var team = S.teams.filter(function (t) { return t.name === teamName; })[0];
     if (!team || !team.roster || !team.roster.length) return null;
     return el('div', { class: 'versus-roster' }, [
-      el('span', { class: 'label', text: 'Их состав · ' + team.roster.length + ' игроков, пятёрка не подтверждена' }),
+      el('span', { class: 'label', text: 'Их состав · пятёрка не подтверждена' }),
       el('ol', { class: 'versus-roster__list' }, team.roster.map(function (nick) {
         return el('li', { text: nick });
       }))
