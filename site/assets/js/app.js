@@ -497,7 +497,12 @@
       el('p', { class: 'lead', style: 'margin-bottom:var(--s5)', text: PB.vetoNote }),
       el('div', { class: 'note', style: 'margin-bottom:var(--s5)' }, [
         el('span', { class: 'note__title', text: 'Вето' }),
-        el('p', { class: 'note__body', text: S.vetoDraft })
+        el('p', { class: 'note__body', text: S.vetoDraft }),
+        el('p', { class: 'note__body' }, [el('span', { text: 'Планы на матчи: ' })].concat(
+          S.matches.filter(function (m) { return m.ours; }).map(function (m) {
+            return el('a', { class: 'stats-brief-link', href: '#/statistika/match/' + m.id, text: m.date.slice(5).split('-').reverse().join('.') + ' ' + m.away });
+          })
+        ))
       ]),
       el('div', { class: 'grid', style: 'gap:var(--s2)' }, PB.maps.map(playbookCard))
     ];
@@ -519,7 +524,8 @@
       ]),
       el('ol', { class: 'team__roster' }, t.roster.map(function (p, i) {
         return el('li', {}, [el('span', { class: 'team__roster-n', text: U.pad(i + 1) }), el('b', { text: p })]);
-      }))
+      })),
+      el('div', { class: 'team__statsbox', 'data-team-stats': t.id })
     ];
 
     var notes = [el('p', { class: 'card__body', style: 'font-size:var(--fs-sm)', text: t.rating })];
@@ -529,7 +535,7 @@
         t.danger ? el('div', { class: 'intel' }, [el('span', { class: 'intel__k', text: 'Чем опасны' }), el('span', { class: 'intel__v', text: t.danger })]) : null,
         t.watch ? el('div', { class: 'intel intel--watch' }, [el('span', { class: 'intel__k', text: 'Что смотреть' }), el('span', { class: 'intel__v', text: t.watch })]) : null
       ]));
-      notes.push(U.noteField('veto-' + t.id, 'Вето-план', 'Что баним, что пикаем, чего ждём от них…'));
+      notes.push(U.noteField('veto-' + t.id, 'Вето-план', 'Личные мысли к вето. Официальный план — по ссылке ниже…'));
       notes.push(U.noteField('scout-' + t.id, 'Заметки по скаутингу', 'Кто играл, какие карты пикали, привычки…'));
     }
 
@@ -541,8 +547,8 @@
         text: 'Статистика / как нас видят соперники'
       }));
     }
-    if (!t.us && /^(pocelui|takahuli|rassadnik|smoke)$/.test(t.id)) {
-      var planIds = { pocelui: 'm01', takahuli: 'm02', rassadnik: 'm09', smoke: 'm10' };
+    var ourMatch = !t.us && t.matchDate ? S.matches.filter(function (m) { return m.ours && m.date === t.matchDate; })[0] : null;
+    if (ourMatch) {
       kids.push(el('a', {
         class: 'stats-brief-link',
         href: '#/statistika/sopernik/' + t.id,
@@ -550,7 +556,7 @@
       }));
       kids.push(el('a', {
         class: 'stats-brief-link',
-        href: '#/statistika/match/' + planIds[t.id],
+        href: '#/statistika/match/' + ourMatch.id,
         text: 'Полный план против ' + t.name
       }));
     }
@@ -565,6 +571,7 @@
           el('span', { class: 'stat__label', text: 'команд × игроков' })
         ])),
       el('p', { class: 'lead', style: 'margin-bottom:var(--s5)', text: 'По порядку наших матчей. Рейтинги — avg и top-5 из таблицы лиги. До 30.09 чужих игр нет, поэтому по первым двум соперникам скаутинг — только профили; по двум последним успеем посмотреть их живые матчи.' }),
+      el('div', { id: 'opponents-compare', class: 'opponents-compare', text: 'Загружаем проверенную статистику…' }),
       el('div', { class: 'grid', style: 'gap:var(--s3)' }, S.teams.map(teamCard))
     ];
   }
@@ -857,6 +864,13 @@
         var normalized = window.StatsCore.parseHash(route.rawHash || route.path);
         window.Stats.open(normalized, { moveFocus: false });
       }).catch(renderStatsScriptError);
+    }
+
+    if (tab.id === 'opponents') {
+      ensureStats().then(function () { return window.Stats.enrichOpponents(); }).catch(function (error) {
+        var host = document.getElementById('opponents-compare');
+        if (host) host.textContent = 'Статистика недоступна: ' + String(error && error.message || 'ошибка загрузки');
+      });
     }
   }
 

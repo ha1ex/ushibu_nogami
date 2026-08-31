@@ -19,7 +19,12 @@
 .stats-directory,
 .stats-row-detail { min-width: 0; }
 
-.stats-view { overflow-wrap: anywhere; }
+/* Переносы: слова не рвём; перенос «где угодно» — только для кодов, моно-строк и длинных ID. */
+.stats-mono,
+.stats-proof code,
+.stats-fact__meta,
+.stats-evidence small,
+.stats-directory-grid a { overflow-wrap: anywhere; }
 .stats-stack {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -28,7 +33,7 @@
 .stats-view .section,
 .stats-view .table-wrap { min-width: 0; max-width: 100%; }
 .stats-header { align-items: flex-end; }
-.stats-header h1 { max-width: 12ch; }
+.stats-header h1 { max-width: 22ch; text-wrap: balance; overflow-wrap: normal; hyphens: none; }
 
 .stats-nav {
   display: flex;
@@ -156,10 +161,6 @@
 .stats-dl dt { color: var(--text-mute); }
 .stats-dl dd { margin: 0; font-family: var(--font-mono); text-align: right; }
 
-.stats-next { display: grid; gap: var(--s3); }
-.stats-next-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); color: var(--text-dim); font: var(--fs-sm) var(--font-mono); }
-.stats-next-cta { justify-self: start; }
-
 .stats-roster-strip { display: grid; gap: var(--s2); }
 .stats-roster { display: flex; flex-wrap: wrap; gap: var(--s2); margin: 0; padding: 0; list-style: none; }
 .stats-roster-name { font-family: var(--font-display); font-size: 17px; text-transform: uppercase; overflow-wrap: break-word; }
@@ -218,6 +219,153 @@
 
 .stats-brief-link { font-family: var(--font-mono); font-size: var(--fs-micro); }
 .stats-match-brief { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); grid-column: 1 / -1; }
+
+/* Вердикт-панель плана матча */
+.stats-verdict { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: var(--s2); }
+.stats-verdict__card { display: grid; align-content: start; gap: var(--s2); min-width: 0; padding: var(--s4); border: 1px solid var(--line); background: var(--surface-1); }
+.stats-verdict__card--pick { border-top: 3px solid var(--ct-side); }
+.stats-verdict__card--ban { border-top: 3px solid var(--accent); }
+.stats-verdict__card--branch { border-top: 3px solid var(--idle); }
+.stats-verdict__kicker { color: var(--text-mute); font: var(--fs-micro) var(--font-mono); letter-spacing: var(--tr-label); text-transform: uppercase; }
+.stats-verdict__map { font: 700 clamp(24px, 3.4vw, 34px)/1 var(--font-display); text-transform: uppercase; overflow-wrap: anywhere; }
+.stats-verdict__why { margin: 0; color: var(--text-dim); font-size: var(--fs-sm); }
+.stats-verdict-line { margin: 0; }
+
+/* Баннер «комфорт против цифр» */
+.stats-conflict { display: grid; gap: var(--s3); padding: var(--s4); border: 1px solid var(--line); border-left: 3px solid var(--warn); background: color-mix(in srgb, var(--warn) 8%, transparent); }
+.stats-conflict__kicker { margin: 0; color: var(--warn); font: var(--fs-micro) var(--font-mono); letter-spacing: var(--tr-label); text-transform: uppercase; }
+
+/* Вето-матрица */
+.stats-matrix { min-width: 720px; }
+.stats-matrix td, .stats-matrix th { vertical-align: middle; }
+.stats-matrix td:first-child { white-space: nowrap; }
+.stats-matrix tr.is-pick td:first-child { border-left: 3px solid var(--ct-side); }
+.stats-matrix tr.is-ban td:first-child { border-left: 3px solid var(--accent); }
+.stats-matrix tr.is-null { color: var(--text-mute); }
+.stats-decision { padding: 2px var(--s2); border: 1px solid var(--line-strong); font: 600 var(--fs-micro) var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
+.stats-decision--pick { color: var(--ct-side); border-color: var(--ct-side); }
+.stats-decision--ban { color: var(--accent); border-color: var(--accent); }
+.stats-decision--backup { color: var(--text-mute); }
+.stats-legend { color: var(--text-mute); font-size: var(--fs-sm); max-width: none; }
+
+/* Диверджент edge-бара: центр — ноль, серым — зона шума */
+.stats-edgebar-wrap { display: inline-flex; align-items: center; gap: var(--s2); min-width: 130px; }
+.stats-edgebar-wrap--nodata { color: var(--text-mute); font-size: var(--fs-sm); }
+.stats-edgebar { position: relative; display: inline-block; width: 84px; height: 12px; background: var(--surface-2); }
+.stats-edgebar::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--line-strong); }
+.stats-edgebar::after { content: ''; position: absolute; left: 44%; right: 44%; top: 0; bottom: 0; background: var(--surface-3, rgba(255,255,255,.05)); }
+.stats-edgebar i { position: absolute; top: 2px; bottom: 2px; width: calc(var(--mag) * .5); min-width: 2px; }
+.stats-edgebar--us i { left: 50%; background: var(--ok); }
+.stats-edgebar--them i { right: 50%; background: var(--accent); }
+.stats-edgebar--noise i { left: 50%; background: var(--idle); opacity: .6; }
+.stats-edgebar-num { font-family: var(--font-mono); font-size: var(--fs-sm); }
+.stats-edgebar-noise-note { color: var(--text-mute); font-family: var(--font-mono); font-size: var(--fs-micro); }
+
+/* Бейдж уверенности */
+.stats-conf { display: inline-flex; align-items: center; gap: 6px; font: var(--fs-micro) var(--font-mono); letter-spacing: .04em; text-transform: uppercase; }
+.stats-conf::before { content: '●'; font-size: 9px; }
+.stats-conf--high { color: var(--ok); }
+.stats-conf--medium { color: var(--warn); }
+.stats-conf--low { color: var(--text-mute); }
+.stats-conf--none { color: var(--text-mute); opacity: .7; }
+
+/* Доказательства: человеческая фраза + свёрнутый raw ID */
+.stats-fact { display: grid; gap: 2px; }
+.stats-fact__meta { color: var(--text-mute); font-family: var(--font-mono); font-size: var(--fs-micro); }
+.stats-proof summary { color: var(--text-mute); font: var(--fs-micro) var(--font-mono); text-decoration: underline dotted; }
+.stats-proof code { color: var(--text-mute); font-size: var(--fs-micro); overflow-wrap: anywhere; }
+.stats-proof--block { padding: var(--s3) var(--s4); border: 1px solid var(--line); background: var(--surface-1); }
+.stats-proof--block summary { min-height: 44px; }
+
+/* Дерево вето */
+.stats-tree { display: grid; gap: var(--s2); margin: 0; padding: 0; list-style: none; counter-reset: veto-step; }
+.stats-tree li { padding: var(--s2) 0 var(--s2) var(--s3); border-left: 2px solid var(--line-strong); counter-increment: veto-step; }
+.stats-tree li::before { content: counter(veto-step, decimal-leading-zero) ' '; color: var(--accent); font: var(--fs-micro) var(--font-mono); }
+.stats-tree strong { font-family: var(--font-display); text-transform: uppercase; }
+.stats-tree span { color: var(--text-dim); font-size: var(--fs-sm); }
+
+/* Карточки игроков и угроз */
+.stats-threat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--s3); }
+.stats-threat { display: grid; align-content: start; gap: var(--s2); padding: var(--s4); }
+.stats-threat__role { display: flex; align-items: center; gap: var(--s2); margin: 0; color: var(--text-mute); font: var(--fs-micro) var(--font-mono); letter-spacing: var(--tr-label); text-transform: uppercase; }
+.stats-threat__name { display: inline-flex; align-items: center; min-height: 44px; font: 600 20px var(--font-display); text-transform: uppercase; text-decoration: none; }
+.stats-threat__name:hover { color: var(--accent); }
+.stats-threat__stat { margin: 0; font-family: var(--font-mono); font-size: var(--fs-sm); }
+.stats-threat__answer { margin: 0; color: var(--text-dim); font-size: var(--fs-sm); }
+
+@media (max-width: 760px) {
+  .stats-col-opt { display: none; }
+  .stats-matrix { min-width: 560px; }
+}
+
+/* Лента ближайшего матча */
+.stats-next { display: grid; gap: var(--s3); padding: var(--s4) var(--s5); border: 1px solid var(--line); border-top: 3px solid var(--accent); background: var(--surface-1); }
+.stats-next__row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s4) var(--s6); }
+.stats-next__who { min-width: 0; flex: 1 1 240px; }
+.stats-next__kicker { margin: 0 0 var(--s1); color: var(--text-mute); font: var(--fs-micro) var(--font-mono); letter-spacing: var(--tr-label); text-transform: uppercase; }
+.stats-next__opp { margin: 0; font: 700 clamp(22px, 3vw, 30px)/1.15 var(--font-display); text-transform: uppercase; text-wrap: balance; overflow-wrap: normal; }
+.stats-next__verdict { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.stats-next__verdict .stats-decision { padding: var(--s2) var(--s3); font-size: var(--fs-sm); }
+.stats-next__cta { display: grid; gap: var(--s2); justify-items: start; }
+.stats-next__ready { margin: 0; color: var(--text-dim); font-size: var(--fs-sm); }
+.stats-next__link { border: 1px solid var(--accent-line); background: var(--accent-soft); }
+.stats-next__why { margin: 0; color: var(--text-dim); max-width: 72ch; }
+
+/* Тепловая карта */
+.stats-heat { min-width: 640px; }
+.stats-heat th small { display: block; color: var(--text-mute); font-weight: 400; }
+.stats-heat__opp { display: block; overflow-wrap: normal; }
+.stats-heat td:first-child { white-space: nowrap; }
+.stats-heat__cell { position: relative; min-width: 92px; font-family: var(--font-mono); font-size: var(--fs-sm); text-align: center; }
+.stats-heat__mark { display: block; font: 700 var(--fs-micro) var(--font-mono); letter-spacing: .08em; }
+.stats-heat--us2 { background: color-mix(in srgb, var(--ok) 30%, transparent); }
+.stats-heat--us1 { background: color-mix(in srgb, var(--ok) 14%, transparent); }
+.stats-heat--even { background: color-mix(in srgb, var(--idle) 14%, transparent); }
+.stats-heat--them1 { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.stats-heat--them2 { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+.stats-heat--none { color: var(--text-mute); }
+.stats-heat__key { display: inline-block; margin-right: var(--s2); padding: 1px var(--s2); border: 1px solid var(--line); }
+
+/* Карточки планов и составов — обычный текст вместо гигантского капса */
+.stats-plan-card { display: block; min-height: 44px; padding: var(--s3) var(--s4); color: var(--text); font-size: var(--fs-sm); line-height: 1.5; text-decoration: none; }
+.stats-plan-card:hover { border-color: var(--accent-line); background-color: var(--accent-soft); }
+.stats-plan-card__opp { font-family: var(--font-display); font-size: 17px; text-transform: uppercase; }
+.stats-plan-card__date, .stats-plan-card__ready { color: var(--text-mute); font-family: var(--font-mono); font-size: var(--fs-micro); }
+.stats-plan-card__verdict { color: var(--text-dim); }
+.stats-plan-card__chunk { white-space: nowrap; }
+
+.stats-verdict__tech { margin: 0; color: var(--text-mute); font-family: var(--font-mono); font-size: var(--fs-micro); }
+
+/* Лиговая таблица игроков */
+.stats-league { min-width: 980px; }
+.stats-league th { padding: 0; white-space: nowrap; }
+.stats-league th button { width: 100%; min-height: 44px; padding: var(--s2); border: 0; background: transparent; color: var(--text); font: 500 var(--fs-micro) var(--font-mono); letter-spacing: .05em; text-transform: uppercase; text-align: right; cursor: pointer; }
+.stats-league th:first-child, .stats-league td:first-child { text-align: left; }
+.stats-league th button:hover { color: var(--accent); }
+.stats-league td { font-family: var(--font-mono); font-size: var(--fs-sm); text-align: right; white-space: nowrap; }
+.stats-league td:first-child, .stats-league td:nth-child(2) { text-align: left; }
+.stats-league__team { color: var(--text-mute); font-size: var(--fs-micro); text-transform: uppercase; }
+.stats-league__filters { display: flex; flex-wrap: wrap; gap: var(--s2); margin-bottom: var(--s3); }
+.stats-league__filters button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+.stats-threat--us { border-top: 3px solid var(--ok); }
+
+/* Подсказки метрик: пунктир под заголовком, курсор-вопрос, текст — в title */
+th.stats-help,
+.stats-league th button[title] { cursor: help; text-decoration: underline dotted; text-underline-offset: 3px; }
+
+/* Статистика на вкладке «Соперники» */
+.opponents-compare { margin-bottom: var(--s5); color: var(--text-dim); }
+.opponents-compare .stats-compare { display: grid; gap: var(--s3); }
+.opponents-compare h2 { margin: 0; color: var(--text); font-size: var(--fs-h4); }
+.stats-league tr.is-us td:first-child { border-left: 3px solid var(--ok); }
+.stats-teambox { display: grid; gap: var(--s2); margin-top: var(--s3); padding: var(--s3); border: 1px solid var(--line); background: var(--surface-1); font-family: var(--font-mono); font-size: var(--fs-sm); }
+.stats-teambox p { margin: 0; }
+.stats-teambox .stats-decision { margin-right: var(--s2); }
+
+@media (max-width: 760px) {
+  .stats-next__row { flex-direction: column; align-items: flex-start; }
+  .stats-heat { min-width: 560px; }
+}
 
 @media (max-width: 760px) {
   .stats-header { gap: var(--s3); }

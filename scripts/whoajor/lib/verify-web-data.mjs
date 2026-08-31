@@ -10,8 +10,9 @@ import {
 import { gzipSync } from 'node:zlib';
 import {
   assertShardGzipSize, CANONICAL_ROOT, DETAIL_INDEX_FIELDS, GAMEPLAY_TABLES, generateWebData,
-  RECENT_WINDOW, VERSION,
+  RECENT_WINDOW, VERSION_RE,
 } from './web-data.mjs';
+import { MAP_POOL_2026 } from './veto-model.mjs';
 
 async function sha256File(path) {
   const hash = createHash('sha256');
@@ -137,6 +138,57 @@ function assertCalculatedNumericSemantics(rowsByDataset) {
       assertWindow(row.allTime, `${dataset}[${index}].allTime`);
     }
   }
+  for (const [index, row] of (rowsByDataset.get('teamMapStats') ?? []).entries()) {
+    assertWindow(row.recent, `teamMapStats[${index}].recent`);
+  }
+}
+
+function assertVetoDatasets(rowsByDataset) {
+  const pool = JSON.stringify([...MAP_POOL_2026]);
+  const mapEdges = rowsByDataset.get('mapEdges') ?? [];
+  if (mapEdges.length !== 4) throw new Error('mapEdges must cover four opponents');
+  for (const opponent of mapEdges) {
+    if (JSON.stringify(opponent.maps.map(({ map }) => map)) !== pool) {
+      throw new Error(`mapEdges ${opponent.opponentTeamId} must cover the seven-map pool`);
+    }
+    for (const row of opponent.maps) {
+      const noData = row.us.playerRounds === 0 || row.opponent.playerRounds === 0;
+      if ((row.edge === null) !== noData || (row.signal === 'no-data') !== noData) {
+        throw new Error(`mapEdges no-data invariant failed: ${opponent.opponentTeamId}/${row.map}`);
+      }
+      if (noData && row.confidence !== 'none') {
+        throw new Error(`mapEdges confidence must be none without data: ${opponent.opponentTeamId}/${row.map}`);
+      }
+    }
+  }
+  const vetoAdvice = rowsByDataset.get('vetoAdvice') ?? [];
+  if (vetoAdvice.length !== 4) throw new Error('vetoAdvice must cover four opponents');
+  for (const advice of vetoAdvice) {
+    if (!Array.isArray(advice.ranking) || advice.ranking.length !== MAP_POOL_2026.length) {
+      throw new Error(`vetoAdvice ${advice.opponentTeamId} must rank the seven-map pool`);
+    }
+    for (const row of advice.ranking) {
+      if ((row.score === null) !== (row.band === 'no-data')) {
+        throw new Error(`vetoAdvice score/band mismatch: ${advice.opponentTeamId}/${row.map}`);
+      }
+      if (typeof row.rationale !== 'string' || !row.rationale.length) {
+        throw new Error(`vetoAdvice rationale missing: ${advice.opponentTeamId}/${row.map}`);
+      }
+    }
+    if (!advice.suggestedPick || !advice.suggestedBan || advice.suggestedPick === advice.suggestedBan) {
+      throw new Error(`vetoAdvice verdict invalid: ${advice.opponentTeamId}`);
+    }
+  }
+  const adviceByOpponent = new Map(vetoAdvice.map((advice) => [advice.opponentTeamId, advice]));
+  for (const plan of rowsByDataset.get('recommendations') ?? []) {
+    const advice = adviceByOpponent.get(plan.opponentTeamId);
+    if (!advice || !plan.verdict
+      || plan.verdict.pick !== advice.suggestedPick
+      || plan.verdict.ban !== advice.suggestedBan
+      || JSON.stringify(plan.verdict.backup) !== JSON.stringify(advice.suggestedBackup)) {
+      throw new Error(`recommendation verdict diverges from veto advice: ${plan.opponentTeamId}`);
+    }
+  }
 }
 
 function assertGameplayCompleteness(manifest, rowsByDataset) {
@@ -202,13 +254,13 @@ export async function verifyPublishedTree({ outputDir, sourceGzip }) {
   await assertRealpathContained(rootReal, currentPath, 'current pointer');
   const currentBytes = await readFile(currentPath);
   const current = JSON.parse(currentBytes.toString('utf8'));
-  if (current.root !== CANONICAL_ROOT || current.version !== VERSION) {
+  if (current.root !== CANONICAL_ROOT || !VERSION_RE.test(current.version ?? '')) {
     throw new Error('current pointer root/version mismatch');
   }
-  if (current.manifest !== `${VERSION}/manifest.json`) {
+  if (current.manifest !== `${current.version}/manifest.json`) {
     throw new Error(`unsafe manifest path: ${current.manifest}`);
   }
-  const manifestRelative = safeRelativePath(current.manifest, 'manifest', VERSION);
+  const manifestRelative = safeRelativePath(current.manifest, 'manifest', current.version);
   const manifestPath = join(outputDir, manifestRelative);
   await assertRealpathContained(rootReal, manifestPath, 'manifest');
   const manifestBytes = await readFile(manifestPath);
@@ -241,7 +293,7 @@ export async function verifyPublishedTree({ outputDir, sourceGzip }) {
     if (assetPaths.has(safe)) throw new Error(`duplicate asset path: ${safe}`);
     assetPaths.add(safe);
   }
-  const versionPrefix = `${VERSION}${sep}`;
+  const versionPrefix = `${current.version}${sep}`;
   const actualVersionFiles = files.filter((path) => path.startsWith(versionPrefix))
     .map((path) => path.slice(versionPrefix.length));
   const listedVersionFiles = new Set(['manifest.json', ...assetPaths]);
@@ -252,7 +304,7 @@ export async function verifyPublishedTree({ outputDir, sourceGzip }) {
   }
   const listedFiles = new Set([
     'current.json',
-    ...[...listedVersionFiles].map((path) => join(VERSION, path)),
+    ...[...listedVersionFiles].map((path) => join(current.version, path)),
   ]);
   const stale = files.filter((path) => !listedFiles.has(path));
   if (stale.length) throw new Error(`unlisted file: ${stale[0]}`);
@@ -340,14 +392,16 @@ export async function verifyPublishedTree({ outputDir, sourceGzip }) {
     const references = [
       ...plan.threatEvidence, ...plan.weaknessEvidence, ...plan.mapEvidence,
       ...plan.caveats.map(({ evidenceId }) => evidenceId),
-      ...(plan.mapOverrides ?? []).flatMap(({ evidenceIds = [] }) => evidenceIds),
     ];
     const missing = references.filter((id) => !evidenceIds.has(id));
     if (missing.length) throw new Error(`recommendations missing evidence: ${missing.join(', ')}`);
   }
+  assertVetoDatasets(rowsByDataset);
+  const vetoAdvice = rowsByDataset.get('vetoAdvice') ?? [];
+  const adviceByOpponent = new Map(vetoAdvice.map((row) => [row.opponentTeamId, row]));
   const mirrorScouting = rowsByDataset.get('mirrorScouting') ?? [];
   const mirrorTeamIds = mirrorScouting.map(({ opponentTeamId }) => opponentTeamId);
-  if (mirrorScouting.length !== 4 || mirrorTeamIds.includes('us')) {
+  if (mirrorScouting.length !== vetoAdvice.length || mirrorTeamIds.includes('us')) {
     throw new Error('mirror scouting must cover exactly the four opponents');
   }
   const rosterTeamIds = new Set(rosters.map(({ teamId }) => teamId));
@@ -355,9 +409,19 @@ export async function verifyPublishedTree({ outputDir, sourceGzip }) {
     if (!rosterTeamIds.has(mirror.opponentTeamId)) {
       throw new Error(`mirror scouting unknown opponent: ${mirror.opponentTeamId}`);
     }
-    if (mirror.maps.length !== 7) throw new Error('mirror scouting must cover the seven-map pool');
+    const advice = adviceByOpponent.get(mirror.opponentTeamId);
+    if (!advice) throw new Error(`mirror scouting without veto advice: ${mirror.opponentTeamId}`);
+    if (mirror.maps.length !== advice.ranking.length) {
+      throw new Error('mirror scouting must cover the same pool as veto advice');
+    }
+    // Зеркало обязано остаться тем же движком с обратным знаком, а не второй моделью вето.
+    const scoreByMap = new Map(advice.ranking.map((row) => [row.map, row.score]));
     for (const map of mirror.maps) {
-      if (map.mirrorEdge !== -map.edge) throw new Error('mirror edge must invert the map edge');
+      const ours = scoreByMap.get(map.map);
+      if (ours === undefined) throw new Error(`mirror scouting map outside veto advice: ${map.map}`);
+      if (ours === null ? map.theirScore !== null : map.theirScore !== -ours) {
+        throw new Error('mirror score must invert the veto-1 score');
+      }
     }
     for (const key of ['likelyPick', 'likelyBan']) {
       const value = mirror[key];
@@ -377,6 +441,7 @@ export async function verifyPublishedTree({ outputDir, sourceGzip }) {
     const missing = references.filter((id) => !evidenceIds.has(id));
     if (missing.length) throw new Error(`mirror scouting missing evidence: ${missing.join(', ')}`);
   }
+
   return {
     status: 'ok', root: CANONICAL_ROOT, assets: manifest.assets.length,
     maxGzipBytes, rosterMapping: `${rosterPlayers.length}/30`,

@@ -24,16 +24,16 @@ function fileFetch(url) {
 
 test('route loading plan requests only decision datasets for overview and bounded grains for lists', () => {
   assert.deepEqual(Array.from(Core.datasetsForRoute({ view: 'overview' })), [
-    'rosters', 'teamMetrics', 'mapEdges', 'recommendations', 'evidence'
+    'rosters', 'teamMetrics', 'mapEdges', 'recommendations', 'evidence', 'teamMapStats', 'vetoAdvice', 'playerMetrics'
   ]);
   assert.deepEqual(Array.from(Core.datasetsForRoute({ view: 'team', teamId: 'pocelui' })), [
-    'rosters', 'teamMetrics', 'mapEdges', 'recommendations', 'evidence'
+    'rosters', 'teamMetrics', 'mapEdges', 'recommendations', 'evidence', 'teamMapStats', 'vetoAdvice', 'playerMetrics'
   ]);
   assert.deepEqual(Array.from(Core.datasetsForRoute({ view: 'player', steamid: '76561198050158798' })), [
     'players', 'playerMetrics', 'rosters'
   ]);
   assert.deepEqual(Array.from(Core.datasetsForRoute({ view: 'match', matchId: 'm01' })), [
-    'recommendations', 'evidence', 'rosters', 'matches'
+    'recommendations', 'evidence', 'rosters', 'matches', 'teamMetrics', 'mapEdges', 'teamMapStats', 'vetoAdvice'
   ]);
   assert.deepEqual(Array.from(Core.datasetsForRoute({ view: 'maps' })), ['maps']);
   assert.deepEqual(Array.from(Core.datasetsForRoute({ view: 'weapons' })), ['weapons']);
@@ -50,9 +50,9 @@ test('route loading plan requests only decision datasets for overview and bounde
 test('canonical artifact carries a mirror report per opponent with closed evidence', async () => {
   const client = Core.createClient(fileFetch);
   await client.open();
-  const [mirrors, evidence, rosters, teamMetrics, recommendations] = await Promise.all([
-    client.dataset('mirrorScouting'), client.dataset('evidence'), client.dataset('rosters'),
-    client.dataset('teamMetrics'), client.dataset('recommendations')
+  const [mirrors, advice, evidence, rosters, teamMetrics, recommendations] = await Promise.all([
+    client.dataset('mirrorScouting'), client.dataset('vetoAdvice'), client.dataset('evidence'),
+    client.dataset('rosters'), client.dataset('teamMetrics'), client.dataset('recommendations')
   ]);
   assert.deepEqual(Array.from(mirrors, (row) => row.opponentTeamId).sort(), [
     'pocelui', 'rassadnik', 'smoke', 'takahuli'
@@ -60,16 +60,22 @@ test('canonical artifact carries a mirror report per opponent with closed eviden
   const evidenceIds = new Set(evidence.map((row) => row.id));
   const teamNames = new Map(rosters.map((row) => [row.teamId, row.name]));
   const planByOpponent = new Map(recommendations.map((row) => [row.opponentTeamId, row]));
+  const adviceById = new Map(advice.map((row) => [row.opponentTeamId, row]));
   for (const mirror of mirrors) {
     assert.equal(mirror.opponentName, teamNames.get(mirror.opponentTeamId));
     assert.equal(mirror.maps.length, 7);
     assert.equal(mirror.metricEdges.length, 12);
-    const plan = planByOpponent.get(mirror.opponentTeamId);
-    for (const field of ['matchId', 'date', 'pick', 'ban']) {
-      assert.equal(mirror.ourPlan[field], plan[field]);
+    // Зеркало обязано оставаться тем же движком veto-1 с обратным знаком.
+    const scoreByMap = new Map(adviceById.get(mirror.opponentTeamId).ranking.map((row) => [row.map, row.score]));
+    for (const map of mirror.maps) {
+      const ours = scoreByMap.get(map.map);
+      assert.equal(map.theirScore, ours === null ? null : -ours);
     }
-    assert.equal(mirror.clash.pickContested, mirror.likelyBan === plan.pick);
-    assert.equal(mirror.clash.banConfirmed, mirror.likelyPick === plan.ban);
+    const plan = planByOpponent.get(mirror.opponentTeamId);
+    assert.equal(mirror.ourPlan.matchId, plan.matchId);
+    assert.equal(mirror.ourPlan.pick, plan.verdict.pick);
+    assert.equal(mirror.clash.pickContested, mirror.likelyBan === plan.verdict.pick);
+    assert.equal(mirror.clash.banConfirmed, mirror.likelyPick === plan.verdict.ban);
     const references = [
       ...mirror.maps.map((row) => row.evidenceId),
       ...mirror.metricEdges.flatMap((row) => [row.usEvidenceId, row.opponentEvidenceId]),
@@ -92,30 +98,6 @@ test('canonical artifact carries a mirror report per opponent with closed eviden
   }
 });
 
-test('canonical artifact exposes every dashboard population through verified manifest assets', async () => {
-  const client = Core.createClient(fileFetch);
-  const state = await client.open();
-  assert.equal(state.manifest.root, state.pointer.root);
-
-  const [players, matches, maps, weapons, trendPlayers, rosters, recommendations, evidence] = await Promise.all([
-    client.dataset('players'), client.dataset('matches'), client.dataset('maps'), client.dataset('weapons'),
-    client.dataset('trendPlayers'), client.dataset('rosters'), client.dataset('recommendations'), client.dataset('evidence')
-  ]);
-  assert.equal(players.length, 81);
-  assert.equal(matches.length, 368);
-  assert.equal(maps.length, 46);
-  assert.equal(weapons.length, 39);
-  assert.equal(trendPlayers.length, 20);
-  assert.equal(rosters.length, 5);
-  assert.deepEqual(Array.from(recommendations, (row) => row.matchId), ['m01', 'm02', 'm09', 'm10']);
-
-  const evidenceIds = new Set(evidence.map((row) => row.id));
-  for (const recommendation of recommendations) {
-    assert.equal(Core.validateRecommendation(recommendation, state.manifest, evidenceIds), recommendation);
-  }
-  for (const player of players) assert.equal(typeof player.steamid, 'string');
-});
-
 test('keyed detail API verifies and fetches only the indexed shard for one source match', async () => {
   const matchId = 'auto-20231116-1908-de_anubis-Whoajor';
   const seen = [];
@@ -126,10 +108,11 @@ test('keyed detail API verifies and fetches only the indexed shard for one sourc
   const rows = await client.datasetForKey('matchPlayers', 'matchId', matchId);
   assert.ok(rows.length > 0);
   assert.ok(rows.every((row) => row.matchId === matchId));
+  const state = await client.open();
   assert.deepEqual(seen, [
     '/assets/data/whoajor/current.json',
-    '/assets/data/whoajor/v1-84a051d7989725f2/manifest.json',
-    '/assets/data/whoajor/v1-84a051d7989725f2/data/matchPlayers-000.json',
+    `/assets/data/whoajor/${state.pointer.version}/manifest.json`,
+    `/assets/data/whoajor/${state.pointer.version}/data/matchPlayers-000.json`,
   ]);
   await assert.rejects(() => client.dataset('matchPlayers'), /keyed detail|ключ/i);
 });

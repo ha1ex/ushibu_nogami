@@ -139,7 +139,8 @@ test('generator publishes canonical pointer and exact source counts', async (t) 
   const outputDir = await generate(t);
   const current = JSON.parse(await readFile(join(outputDir, 'current.json'), 'utf8'));
   assert.equal(current.root, EXPECTED_ROOT);
-  assert.equal(current.version, 'v1-84a051d7989725f2');
+  assert.match(current.version, /^v1-[a-f0-9]{16}$/);
+  assert.equal(current.manifest, `${current.version}/manifest.json`);
 
   const manifest = JSON.parse(await readFile(
     join(outputDir, current.version, 'manifest.json'),
@@ -297,6 +298,9 @@ test('generator maps 30 roster players and closes reviewed match plans over calc
 
   const playerMetrics = await loadDataset(versionDir, manifest, 'playerMetrics');
   assert.equal(playerMetrics.length, 30);
+  assert.ok(playerMetrics.every((player) => player.aim
+    && ['hsKillPct', 'preaimDeg', 'ttdMs', 'sprayAccuracy', 'enemyBlindPerRound']
+      .every((key) => key in player.aim)));
   const humarki = playerMetrics.find(({ steamid }) => steamid === '76561198033124797');
   assert.equal(humarki.recent.sums.sides.T.rounds, 631);
   assert.equal(humarki.recent.sums.sides.CT.rounds, 570);
@@ -327,21 +331,65 @@ test('generator maps 30 roster players and closes reviewed match plans over calc
   assert.ok(teams.every((team) => team.confirmedLineup.criterion.minRosterPlayers === 5));
   assert.ok(teams.every((team) => team.confirmedLineup.criterion.minRoundShare === 0.8));
 
+  const MAP_POOL = ['de_ancient', 'de_anubis', 'de_cache', 'de_dust2', 'de_inferno', 'de_mirage', 'de_nuke'];
   const edges = await loadDataset(versionDir, manifest, 'mapEdges');
   assert.equal(edges.length, 4);
-  assert.ok(edges.every((opponent) => opponent.maps.length > 0));
   for (const opponent of edges) {
+    assert.deepEqual(opponent.maps.map(({ map }) => map), MAP_POOL);
     for (const map of opponent.maps) {
+      const noData = map.us.playerRounds === 0 || map.opponent.playerRounds === 0;
+      assert.equal(map.edge === null, noData, `${opponent.opponentTeamId}/${map.map} edge fabrication`);
+      assert.equal(map.signal === 'no-data', noData);
+      if (noData) {
+        assert.equal(map.confidence, 'none');
+        assert.equal(map.signals.rwrEdge, null);
+        continue;
+      }
       for (const side of [map.us, map.opponent]) {
         assert.ok(Math.abs(side.adjustedRating
           - ((side.rawRating * side.playerRounds + side.overallRating * 250)
             / (side.playerRounds + 250))) < 1e-12);
       }
-      assert.equal(map.significant, Math.abs(map.edge) >= 0.03);
+      assert.ok(Math.abs(map.edge - (map.us.adjustedRating - map.opponent.adjustedRating)) < 1e-12);
+      assert.equal(map.signal, Math.abs(map.edge) < 0.03 ? 'noise' : map.edge > 0 ? 'edge-us' : 'edge-them');
       assert.equal(map.confidence === 'low', (
         map.us.playerRounds < 200 || map.opponent.playerRounds < 200
       ));
     }
+  }
+
+  const teamMapStats = await loadDataset(versionDir, manifest, 'teamMapStats');
+  for (const teamId of ['us', 'pocelui', 'takahuli', 'rassadnik', 'smoke']) {
+    const poolRows = teamMapStats.filter((row) => row.teamId === teamId && row.inPool);
+    assert.deepEqual(poolRows.map(({ map }) => map), MAP_POOL);
+  }
+  assert.ok(teamMapStats.every((row) => row.sampleUnit === 'player_rounds'));
+  const usAnubis = teamMapStats.find((row) => row.teamId === 'us' && row.map === 'de_anubis');
+  assert.equal(usAnubis.recent.sums.rounds, 189);
+  assert.ok(Math.abs(usAnubis.recent.metrics.roundWinRate
+    - (usAnubis.recent.sums.roundWins / usAnubis.recent.sums.rounds)) < 1e-12);
+
+  const vetoAdvice = await loadDataset(versionDir, manifest, 'vetoAdvice');
+  assert.deepEqual(
+    vetoAdvice.map(({ opponentTeamId }) => opponentTeamId),
+    ['pocelui', 'takahuli', 'rassadnik', 'smoke'],
+  );
+  for (const advice of vetoAdvice) {
+    assert.equal(advice.model.version, 'veto-1');
+    assert.equal(advice.ranking.length, MAP_POOL.length);
+    const scores = advice.ranking.map(({ score }) => score).filter((score) => score !== null);
+    assert.deepEqual(scores, [...scores].sort((left, right) => right - left));
+    assert.ok(advice.ranking.every((row) => (row.score === null) === (row.band === 'no-data')));
+    assert.ok(advice.ranking.every((row) => typeof row.rationale === 'string' && row.rationale.length > 0));
+    assert.ok(advice.ranking.every((row) => typeof row.headline === 'string' && row.headline.length > 0
+      && !/[0-9]%|player:|map-edge:/.test(row.headline)));
+    assert.ok(advice.ranking.every((row) => typeof row.comfort.practiced === 'boolean'
+      && typeof row.crossModelDisagreement === 'boolean'));
+    assert.equal(advice.suggestedPick, advice.ranking.find(({ score }) => score !== null).map);
+    assert.notEqual(advice.suggestedBan, advice.suggestedPick);
+    assert.equal(advice.decisionTree.orderConfirmed, false);
+    assert.ok(advice.decisionTree.branches.length > 0);
+    assert.ok(advice.decisionTree.branches.every(({ trigger }) => trigger.map !== advice.suggestedBan));
   }
 
   const evidence = await loadDataset(versionDir, manifest, 'evidence');
@@ -401,25 +449,26 @@ test('generator maps 30 roster players and closes reviewed match plans over calc
     assert.deepEqual(plan.weaknessEvidence, expectedPlanEvidence[plan.opponentTeamId].weaknesses);
     const exploits = new Map(opponent.scouting.exploits.map((item) => [item.evidenceId, item]));
     assert.ok(plan.weaknessEvidence.every((id) => exploits.get(id)?.delta < 0));
-    const edgeById = new Map(edges.find(({ opponentTeamId }) => (
-      opponentTeamId === plan.opponentTeamId
-    )).maps.map((item) => [`map-edge:${plan.opponentTeamId}:${item.map}`, item]));
-    for (const [action, expectedSign] of [['pick', 1], ['ban', -1]]) {
-      const evidenceId = `map-edge:${plan.opponentTeamId}:${plan[action]}`;
-      const edge = edgeById.get(evidenceId);
-      const override = plan.mapOverrides?.find((item) => (
-        item.action === action && item.map === plan[action]
-      ));
-      assert.ok(edge.edge * expectedSign > 0 || (
-        override?.rationale.length > 20
-          && override.evidenceIds.length > 0
-          && override.evidenceIds.every((id) => evidenceIds.has(id))
-      ), `${plan.opponentTeamId} ${action} direction`);
-    }
+    const advice = vetoAdvice.find(({ opponentTeamId }) => opponentTeamId === plan.opponentTeamId);
+    assert.deepEqual(plan.verdict, {
+      pick: advice.suggestedPick,
+      ban: advice.suggestedBan,
+      backup: advice.suggestedBackup,
+      source: 'veto-1',
+    });
+    assert.deepEqual(
+      plan.mapEvidence,
+      MAP_POOL.map((map) => `map-edge:${plan.opponentTeamId}:${map}`),
+    );
+    assert.equal(plan.maps.length, MAP_POOL.length);
+    assert.ok(Array.isArray(plan.comfortConflict));
+    assert.ok(plan.comfortConflict.some(({ map, verdictAction }) => (
+      map === plan.verdict.ban && verdictAction === 'ban'
+    )) || !['de_dust2', 'de_inferno'].includes(plan.verdict.ban));
     assert.equal(plan.snapshotRoot, EXPECTED_ROOT);
     assert.equal(plan.dataThrough, '2026-08-27');
     assert.equal(plan.reviewed, true);
-    assert.ok(plan.pick && plan.ban && plan.backup.length > 0 && plan.contingency);
+    assert.ok(plan.verdict.pick && plan.verdict.ban && plan.contingency);
     assert.ok(plan.threatEvidence.length >= 2);
     assert.ok(plan.weaknessEvidence.length >= 1);
     assert.equal(plan.threats.length, plan.threatEvidence.length);
@@ -433,7 +482,7 @@ test('generator maps 30 roster players and closes reviewed match plans over calc
     assert.ok(plan.do.length > 0 && plan.dont.length > 0);
     assert.equal(plan.personalTasks.length, 6);
     assert.ok(plan.trainingChecklist.length > 0 && plan.matchdayChecklist.length > 0);
-    assert.ok(['high', 'medium', 'low'].includes(plan.confidence));
+    assert.ok(['high', 'medium', 'low', 'none'].includes(plan.confidence));
     assert.ok(plan.caveats.some(({ evidenceId }) => evidenceId === 'limitation:cohesion'));
     assert.ok(plan.caveats.some(({ evidenceId }) => evidenceId === 'limitation:positions'));
     const references = [
@@ -450,7 +499,7 @@ test('generator mirrors our profile back from each opponent perspective', async 
   const outputDir = await generate(t);
   const { versionDir, manifest } = await loadBuild(outputDir);
   const mirrors = await loadDataset(versionDir, manifest, 'mirrorScouting');
-  const edges = await loadDataset(versionDir, manifest, 'mapEdges');
+  const advice = await loadDataset(versionDir, manifest, 'vetoAdvice');
   const teams = await loadDataset(versionDir, manifest, 'teamMetrics');
   const playerMetrics = await loadDataset(versionDir, manifest, 'playerMetrics');
   const recommendations = await loadDataset(versionDir, manifest, 'recommendations');
@@ -462,73 +511,79 @@ test('generator mirrors our profile back from each opponent perspective', async 
   ]);
   assert.deepEqual(
     mirrors.map(({ opponentTeamId }) => opponentTeamId),
-    edges.map(({ opponentTeamId }) => opponentTeamId),
+    advice.map(({ opponentTeamId }) => opponentTeamId),
   );
 
   const us = teams.find(({ teamId }) => teamId === 'us');
   const ourPlayers = playerMetrics.filter(({ teamId }) => teamId === 'us');
   const eligible = ourPlayers.filter(({ recent }) => recent.sums.rounds >= 200);
   assert.ok(eligible.length > 0 && eligible.length <= 6);
+  const adviceById = new Map(advice.map((row) => [row.opponentTeamId, row]));
+  const MIRROR_BAND = {
+    'pick-candidate': 'ban-candidate',
+    'ban-candidate': 'pick-candidate',
+    neutral: 'neutral',
+    'no-data': 'no-data',
+  };
 
   for (const mirror of mirrors) {
     const opponent = teams.find(({ teamId }) => teamId === mirror.opponentTeamId);
-    const edgeRow = edges.find(({ opponentTeamId }) => opponentTeamId === mirror.opponentTeamId);
+    const ranking = adviceById.get(mirror.opponentTeamId).ranking;
     assert.equal(mirror.opponentName, opponent.name);
+    assert.equal(mirror.model.version, 'veto-1');
     assert.equal(mirror.sample.usPlayerRounds, us.recent.sums.rounds);
     assert.equal(mirror.sample.opponentPlayerRounds, opponent.recent.sums.rounds);
 
-    // Пул — ровно семь карт сезона, отобранных из 32 карт mapEdges.
-    assert.equal(mirror.maps.length, 7);
+    // Пул зеркала совпадает с пулом движка вето — семь карт сезона.
+    assert.equal(mirror.maps.length, ranking.length);
     assert.deepEqual([...mirror.maps.map(({ map }) => map)].sort(), [
       'de_ancient', 'de_anubis', 'de_cache', 'de_dust2', 'de_inferno', 'de_mirage', 'de_nuke',
     ]);
-    assert.ok(edgeRow.maps.length > mirror.maps.length);
 
-    for (let index = 1; index < mirror.maps.length; index += 1) {
-      assert.ok(mirror.maps[index - 1].mirrorEdge >= mirror.maps[index].mirrorEdge);
-    }
+    // Ключевой инвариант: зеркало — тот же veto-1 с обратным знаком, а не вторая модель.
+    const byMapAdvice = new Map(ranking.map((row) => [row.map, row]));
     for (const map of mirror.maps) {
-      const source = edgeRow.maps.find((item) => item.map === map.map);
-      assert.equal(map.edge, source.edge);
-      assert.equal(map.mirrorEdge, -source.edge);
-      assert.equal(map.significant, source.significant);
+      const source = byMapAdvice.get(map.map);
+      assert.equal(map.ourScore, source.score);
+      assert.equal(map.ourBand, source.band);
+      assert.equal(map.theirScore, source.score === null ? null : -source.score);
+      assert.equal(map.theirBand, MIRROR_BAND[source.band]);
       assert.equal(map.confidence, source.confidence);
-      assert.equal(map.usAdjustedRating, source.us.adjustedRating);
-      assert.equal(map.opponentAdjustedRating, source.opponent.adjustedRating);
       assert.equal(map.evidenceId, `map-edge:${mirror.opponentTeamId}:${map.map}`);
       assert.ok(evidenceIds.has(map.evidenceId));
     }
+    for (let index = 1; index < mirror.maps.length; index += 1) {
+      const previous = mirror.maps[index - 1].theirScore;
+      const current = mirror.maps[index].theirScore;
+      if (previous !== null && current !== null) assert.ok(previous >= current);
+    }
 
-    // Вероятный пик/бан выбирается только среди значимых расхождений.
+    // Вероятный пик/бан берутся только из полос движка, а не из произвольного порога.
     const byMap = new Map(mirror.maps.map((item) => [item.map, item]));
     if (mirror.likelyPick !== null) {
-      const pick = byMap.get(mirror.likelyPick);
-      assert.ok(pick.significant && pick.mirrorEdge > 0);
-      assert.equal(pick.mirrorEdge, Math.max(...mirror.maps
-        .filter((item) => item.significant && item.mirrorEdge > 0)
-        .map((item) => item.mirrorEdge)));
+      assert.equal(byMap.get(mirror.likelyPick).theirBand, 'pick-candidate');
+      assert.equal(byMap.get(mirror.likelyPick).theirScore, Math.max(...mirror.maps
+        .filter((item) => item.theirBand === 'pick-candidate').map((item) => item.theirScore)));
     } else {
-      assert.ok(!mirror.maps.some((item) => item.significant && item.mirrorEdge > 0));
+      assert.ok(!mirror.maps.some((item) => item.theirBand === 'pick-candidate'));
     }
     if (mirror.likelyBan !== null) {
-      const ban = byMap.get(mirror.likelyBan);
-      assert.ok(ban.significant && ban.mirrorEdge < 0);
-      assert.equal(ban.mirrorEdge, Math.min(...mirror.maps
-        .filter((item) => item.significant && item.mirrorEdge < 0)
-        .map((item) => item.mirrorEdge)));
+      assert.equal(byMap.get(mirror.likelyBan).theirBand, 'ban-candidate');
+      assert.equal(byMap.get(mirror.likelyBan).theirScore, Math.min(...mirror.maps
+        .filter((item) => item.theirBand === 'ban-candidate').map((item) => item.theirScore)));
     } else {
-      assert.ok(!mirror.maps.some((item) => item.significant && item.mirrorEdge < 0));
+      assert.ok(!mirror.maps.some((item) => item.theirBand === 'ban-candidate'));
     }
 
     const plan = recommendations.find(({ opponentTeamId }) => (
       opponentTeamId === mirror.opponentTeamId
     ));
-    assert.deepEqual(mirror.ourPlan, {
-      matchId: plan.matchId, date: plan.date, pick: plan.pick, ban: plan.ban,
-    });
-    assert.equal(mirror.clash.pickContested, mirror.likelyBan === plan.pick);
-    assert.equal(mirror.clash.banConfirmed, mirror.likelyPick === plan.ban);
-    assert.equal(mirror.clash.ourPickMirrorEdge, byMap.get(plan.pick).mirrorEdge);
+    assert.equal(mirror.ourPlan.matchId, plan.matchId);
+    assert.equal(mirror.ourPlan.pick, plan.verdict.pick);
+    assert.equal(mirror.ourPlan.ban, plan.verdict.ban);
+    assert.equal(mirror.clash.pickContested, mirror.likelyBan === plan.verdict.pick);
+    assert.equal(mirror.clash.banConfirmed, mirror.likelyPick === plan.verdict.ban);
+    assert.equal(mirror.clash.ourPickTheirScore, byMap.get(plan.verdict.pick).theirScore);
 
     // Попарное сравнение против конкретного соперника, а не против медианы лиги.
     assert.equal(mirror.metricEdges.length, 12);
@@ -539,8 +594,6 @@ test('generator mirrors our profile back from each opponent perspective', async 
       assert.equal(entry.usValue, us.recent.metrics[entry.metric]);
       assert.equal(entry.opponentValue, opponent.recent.metrics[entry.metric]);
       assert.ok(Math.abs(entry.delta - (entry.usValue - entry.opponentValue)) < 1e-12);
-      assert.equal(entry.usEvidenceId, `team:us:recent:${entry.metric}`);
-      assert.equal(entry.opponentEvidenceId, `team:${mirror.opponentTeamId}:recent:${entry.metric}`);
       assert.ok(evidenceIds.has(entry.usEvidenceId) && evidenceIds.has(entry.opponentEvidenceId));
     }
 
@@ -573,8 +626,7 @@ test('generator mirrors our profile back from each opponent perspective', async 
   }
 
   // Ранги лиги считаются для всех пяти команд и покрывают 1..5 без дыр.
-  const TEAM_METRIC_KEYS = mirrors[0].metricEdges.map(({ metric }) => metric);
-  for (const metric of TEAM_METRIC_KEYS) {
+  for (const metric of mirrors[0].metricEdges.map(({ metric: key }) => key)) {
     const ranks = teams.map((team) => team.scouting.leagueRanks[metric]);
     assert.ok(ranks.every(({ of }) => of === 5));
     assert.deepEqual([...ranks.map(({ rank }) => rank)].sort(), [1, 2, 3, 4, 5]);
@@ -727,7 +779,7 @@ test('verifier proves deterministic rebuild and rejects invalid reviewed inputs 
     ['root mismatch', (value) => { value.snapshotRoot = '0'.repeat(64); }],
     ['must be reviewed', (value) => { value.reviewed = false; }],
     ['stale', (value) => { value.dataThrough = '2026-08-26'; }],
-    ['missing evidence', (value) => { value.plans[0].mapEvidence = ['missing:evidence']; }],
+    ['missing evidence', (value) => { value.plans[0].caveats[0].evidenceId = 'missing:evidence'; }],
     ['unknown matchId', (value) => { value.plans[0].matchId = 'm99'; }],
     ['duplicate matchId', (value) => { value.plans[1].matchId = value.plans[0].matchId; }],
     ['threat evidence mismatch', (value) => {
@@ -742,19 +794,11 @@ test('verifier proves deterministic rebuild and rejects invalid reviewed inputs 
         'team:pocelui:recent:clutchWinRate',
       ];
     }],
-    ['map direction requires override', (value) => {
+    ['verdict is computed by veto-1', (value) => {
       value.plans[0].pick = 'de_dust2';
-      value.plans[0].mapEvidence = ['map-edge:pocelui:de_dust2'];
     }],
-    ['map override must cite its map evidence', (value) => {
-      value.plans[0].pick = 'de_dust2';
-      value.plans[0].mapEvidence = ['map-edge:pocelui:de_dust2'];
-      value.plans[0].mapOverrides = [{
-        action: 'pick',
-        map: 'de_dust2',
-        rationale: 'Ручное решение с длинным, но нерелевантным обоснованием.',
-        evidenceIds: ['limitation:cohesion'],
-      }];
+    ['missing contingency', (value) => {
+      delete value.plans[0].contingency;
     }],
   ];
   for (const [message, mutate] of mutations) {

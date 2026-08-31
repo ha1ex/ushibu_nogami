@@ -1,6 +1,10 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { CANONICAL_ROOT, RECENT_WINDOW } from './web-data.mjs';
+import {
+  MAP_POOL_2026, VETO_MODEL, buildDecisionTree, formatHeadline, formatRationale,
+  mapSignals, rankMaps, shrink, suggestVerdict,
+} from './veto-model.mjs';
 
 const SUM_FIELDS = [
   'rounds', 'ratingRoundSum', 'damage', 'kills', 'deaths', 'kastRounds', 'roundWins',
@@ -15,18 +19,8 @@ const TEAM_METRIC_KEYS = [
   'clutchWinRate', 'forceWinRate', 'fullWinRate', 'tRoundWinRate', 'ctRoundWinRate',
   'utilityDamagePerRound', 'tradeRate',
 ];
-// Активный пул сезона — /03_wiki/map-pool-2026.md. mapEdges покрывают 32 карты,
-// включая коммьюнити- и воркшоп-карты; зеркальное вето считаем только по пулу.
 const SUFFICIENT_SAMPLE_ROUNDS = 200;
-const ACTIVE_MAP_POOL = [
-  'de_ancient', 'de_anubis', 'de_cache', 'de_dust2', 'de_inferno', 'de_mirage', 'de_nuke',
-];
-const REVIEWED_SCHEDULE = [
-  { matchId: 'm01', date: '2026-09-30', opponentTeamId: 'pocelui' },
-  { matchId: 'm02', date: '2026-10-01', opponentTeamId: 'takahuli' },
-  { matchId: 'm09', date: '2026-10-21', opponentTeamId: 'rassadnik' },
-  { matchId: 'm10', date: '2026-10-22', opponentTeamId: 'smoke' },
-];
+const LEGACY_PLAN_FIELDS = ['pick', 'ban', 'backup', 'mapEvidence', 'mapOverrides', 'confidence'];
 
 function ratio(numerator, denominator) {
   return denominator ? numerator / denominator : null;
@@ -197,6 +191,24 @@ function loadRosterPlayers(db, config) {
   return teams;
 }
 
+/* Aim-профиль из лидерборда (агрегат за всё время): HS%, преаим, время до урона, спрей, флешки. */
+function loadAimProfiles(db, steamids) {
+  const placeholders = steamids.map(() => '?').join(',');
+  const rows = db.prepare(`select steamid, source_json from players where steamid in (${placeholders})`)
+    .all(...steamids);
+  return new Map(rows.map(({ steamid, source_json: sourceJson }) => {
+    const source = JSON.parse(sourceJson);
+    return [steamid, {
+      sampleRounds: source.rounds_played ?? 0,
+      hsKillPct: ratio(source.hs_kills, source.kills),
+      preaimDeg: ratio(source.preaim_sum, source.preaim_n),
+      ttdMs: ratio(source.ttd_sum, source.ttd_n),
+      sprayAccuracy: ratio(source.spray_hits, source.spray_shots),
+      enemyBlindPerRound: ratio(source.enemy_blind_time, source.rounds_played),
+    }];
+  }));
+}
+
 function playerMatches(db, steamid) {
   return db.prepare(`
     select m.map, m.started_at startedAt, mp.source_json sourceJson
@@ -309,11 +321,9 @@ function leagueRanks(teams) {
   return ranks;
 }
 
-function rankBy(players, metric, direction) {
-  return [...players].sort((left, right) => {
-    const delta = right.recent.metrics[metric] - left.recent.metrics[metric];
-    return (direction === 'asc' ? -delta : delta) || left.steamid.localeCompare(right.steamid);
-  });
+function rankBy(players, metric) {
+  return [...players].sort((left, right) => right.recent.metrics[metric] - left.recent.metrics[metric]
+    || left.steamid.localeCompare(right.steamid));
 }
 
 function target(player, kind, metric) {
@@ -327,19 +337,28 @@ function target(player, kind, metric) {
   };
 }
 
+// Все три сигнала veto-1 антисимметричны при перестановке сторон, поэтому взгляд соперника —
+// это тот же скоринг с обратным знаком, а не вторая модель вето. Инвариант закреплён тестом.
+const MIRROR_BAND = Object.freeze({
+  'pick-candidate': 'ban-candidate',
+  'ban-candidate': 'pick-candidate',
+  neutral: 'neutral',
+  'no-data': 'no-data',
+});
+
 // Зеркальный скаутинг: как наш профиль выглядит со стороны каждого соперника.
 // Переиспользует уже выпущенные evidence-ID, новых свидетельств не вводит.
-function buildMirrorScouting(teams, playersByTeam, mapEdges, recommendations) {
+function buildMirrorScouting(teams, playersByTeam, vetoAdvice, recommendations) {
   const teamById = new Map(teams.map((team) => [team.teamId, team]));
   const us = teamById.get('us');
   const eligible = playersByTeam.get('us')
     .filter((player) => player.recent.sums.rounds >= SUFFICIENT_SAMPLE_ROUNDS);
   if (eligible.length === 0) throw new Error('mirror scouting needs at least one eligible player');
-  const byRating = rankBy(eligible, 'rating', 'desc');
-  const byOpening = rankBy(eligible, 'openingDiffPer100', 'desc');
-  const byUtility = rankBy(eligible, 'utilityDamagePerRound', 'desc');
-  // Соперник видит те же публичные цифры, что и мы: топ-2 по рейтингу плюс лидеров
-  // по открытиям и утилите. Один игрок может попасть в несколько векторов угрозы.
+  const byRating = rankBy(eligible, 'rating');
+  const byOpening = rankBy(eligible, 'openingDiffPer100');
+  const byUtility = rankBy(eligible, 'utilityDamagePerRound');
+  // Соперник видит те же публичные цифры: топ-2 по рейтингу плюс лидеров по открытиям и утилите.
+  // Один игрок может закрывать несколько векторов — не схлопываем их в null, как team.scouting.
   const focusTargets = [
     ...byRating.slice(0, 2).map((player) => target(player, 'rating', 'rating')),
     target(byOpening[0], 'opening', 'openingDiffPer100'),
@@ -351,31 +370,32 @@ function buildMirrorScouting(teams, playersByTeam, mapEdges, recommendations) {
   ];
   const planByOpponent = new Map(recommendations.map((plan) => [plan.opponentTeamId, plan]));
 
-  return mapEdges.map(({ opponentTeamId, maps }) => {
+  return vetoAdvice.map((advice) => {
+    const opponentTeamId = advice.opponentTeamId;
     const opponent = teamById.get(opponentTeamId);
-    const pool = ACTIVE_MAP_POOL.map((map) => {
-      const edge = maps.find((item) => item.map === map);
-      if (!edge) throw new Error(`mirror scouting missing map edge: ${opponentTeamId}/${map}`);
-      return {
-        map,
-        edge: edge.edge,
-        mirrorEdge: -edge.edge,
-        significant: edge.significant,
-        confidence: edge.confidence,
-        usAdjustedRating: edge.us.adjustedRating,
-        opponentAdjustedRating: edge.opponent.adjustedRating,
-        usPlayerRounds: edge.us.playerRounds,
-        opponentPlayerRounds: edge.opponent.playerRounds,
-        evidenceId: `map-edge:${opponentTeamId}:${map}`,
-      };
-    }).sort((left, right) => right.mirrorEdge - left.mirrorEdge
-      || left.map.localeCompare(right.map));
-    // Вето соперников ни разу не наблюдалось (/04_synthesis/open-questions.md Q2):
-    // это проекция силы на карте, а не история пиков.
-    const decisive = pool.filter((item) => item.significant);
-    const likelyPick = decisive.find((item) => item.mirrorEdge > 0)?.map ?? null;
-    const likelyBan = [...decisive].reverse().find((item) => item.mirrorEdge < 0)?.map ?? null;
+    const maps = advice.ranking.map((row) => ({
+      map: row.map,
+      theirScore: row.score === null ? null : -row.score,
+      theirBand: MIRROR_BAND[row.band],
+      ourScore: row.score,
+      ourBand: row.band,
+      confidence: row.confidence,
+      crossModelDisagreement: row.crossModelDisagreement,
+      sample: row.sample,
+      evidenceId: `map-edge:${opponentTeamId}:${row.map}`,
+    })).sort((left, right) => {
+      if (left.theirScore === null && right.theirScore === null) return left.map.localeCompare(right.map);
+      if (left.theirScore === null) return 1;
+      if (right.theirScore === null) return -1;
+      return right.theirScore - left.theirScore || left.map.localeCompare(right.map);
+    });
+    // Вето соперников не наблюдалось ни разу — это проекция силы, а не история пиков.
+    const likelyPick = maps.find(({ theirBand }) => theirBand === 'pick-candidate')?.map ?? null;
+    const likelyBan = [...maps].reverse()
+      .find(({ theirBand }) => theirBand === 'ban-candidate')?.map ?? null;
     const plan = planByOpponent.get(opponentTeamId) ?? null;
+    const ourPick = plan?.verdict?.pick ?? null;
+    const ourBan = plan?.verdict?.ban ?? null;
     const metricEdges = TEAM_METRIC_KEYS.map((metric) => ({
       metric,
       usValue: us.recent.metrics[metric],
@@ -389,23 +409,24 @@ function buildMirrorScouting(teams, playersByTeam, mapEdges, recommendations) {
     return {
       opponentTeamId,
       opponentName: opponent.name,
+      model: { version: VETO_MODEL.version, basis: 'antisymmetric-swap' },
       sufficientSampleRounds: SUFFICIENT_SAMPLE_ROUNDS,
       sample: {
         usPlayerRounds: us.recent.sums.rounds,
         opponentPlayerRounds: opponent.recent.sums.rounds,
       },
-      maps: pool,
+      maps,
       metricEdges,
       likelyPick,
       likelyBan,
       ourPlan: plan ? {
-        matchId: plan.matchId, date: plan.date, pick: plan.pick, ban: plan.ban,
+        matchId: plan.matchId, date: plan.date, pick: ourPick, ban: ourBan,
       } : null,
       clash: {
-        pickContested: Boolean(plan) && likelyBan === plan.pick,
-        banConfirmed: Boolean(plan) && likelyPick === plan.ban,
-        ourPickMirrorEdge: plan
-          ? pool.find((item) => item.map === plan.pick)?.mirrorEdge ?? null
+        pickContested: Boolean(ourPick) && likelyBan === ourPick,
+        banConfirmed: Boolean(ourBan) && likelyPick === ourBan,
+        ourPickTheirScore: ourPick
+          ? maps.find(({ map }) => map === ourPick)?.theirScore ?? null
           : null,
       },
       focusTargets,
@@ -415,18 +436,21 @@ function buildMirrorScouting(teams, playersByTeam, mapEdges, recommendations) {
   });
 }
 
-export function validateReviewedRecommendations(config, evidenceIndex, rosters, teams) {
+export function validateReviewedRecommendations(config, evidenceIndex, rosters, teams, schedule, adviceByOpponent) {
   if (config.snapshotRoot !== CANONICAL_ROOT) throw new Error('recommendations root mismatch');
   if (config.reviewed !== true) throw new Error('recommendations must be reviewed');
   if (config.dataThrough !== RECENT_WINDOW.recentEnd) throw new Error('recommendations are stale');
-  if (!Array.isArray(config.plans) || config.plans.length !== 4) throw new Error('exactly four plans required');
+  if (!Array.isArray(schedule) || schedule.length === 0) throw new Error('season schedule is empty');
+  if (!Array.isArray(config.plans) || config.plans.length !== schedule.length) {
+    throw new Error(`exactly ${schedule.length} plans required`);
+  }
   const rosterById = new Map(rosters.map((roster) => [roster.teamId, roster]));
   const teamById = new Map(teams.map((team) => [team.teamId, team]));
   const ourPlayers = new Map(rosterById.get('us').players.map((player) => [player.draftName, player]));
   const matchIds = config.plans.map(({ matchId }) => matchId);
   if (new Set(matchIds).size !== matchIds.length) throw new Error('duplicate matchId');
   return config.plans.map((plan, index) => {
-    const expected = REVIEWED_SCHEDULE[index];
+    const expected = schedule[index];
     if (plan.matchId !== expected.matchId) throw new Error(`unknown matchId: ${plan.matchId}`);
     if (plan.date !== expected.date || plan.opponentTeamId !== expected.opponentTeamId) {
       throw new Error(`schedule mismatch for ${plan.matchId}`);
@@ -434,10 +458,12 @@ export function validateReviewedRecommendations(config, evidenceIndex, rosters, 
     if (!rosterById.has(plan.opponentTeamId) || plan.opponentTeamId === 'us') {
       throw new Error(`unknown opponent: ${plan.opponentTeamId}`);
     }
-    for (const field of ['pick', 'ban', 'contingency', 'confidence']) {
-      if (!plan[field]) throw new Error(`${plan.opponentTeamId} missing ${field}`);
+    const legacy = LEGACY_PLAN_FIELDS.filter((field) => field in plan);
+    if (legacy.length) {
+      throw new Error(`${plan.opponentTeamId} verdict is computed by veto-1; remove ${legacy.join(', ')} from config`);
     }
-    for (const field of ['backup', 'threatEvidence', 'weaknessEvidence', 'mapEvidence', 'do', 'dont', 'trainingChecklist', 'matchdayChecklist', 'caveats']) {
+    if (!plan.contingency) throw new Error(`${plan.opponentTeamId} missing contingency`);
+    for (const field of ['threatEvidence', 'weaknessEvidence', 'do', 'dont', 'trainingChecklist', 'matchdayChecklist', 'caveats']) {
       if (!Array.isArray(plan[field]) || plan[field].length === 0) throw new Error(`${plan.opponentTeamId} missing ${field}`);
     }
     const scouting = teamById.get(plan.opponentTeamId).scouting;
@@ -458,28 +484,29 @@ export function validateReviewedRecommendations(config, evidenceIndex, rosters, 
     if (plan.weaknessEvidence.some((id) => !(exploits.get(id)?.delta < 0))) {
       throw new Error(`${plan.opponentTeamId} weakness is not an exploit`);
     }
-    const overrides = plan.mapOverrides ?? [];
-    for (const [action, expectedSign] of [['pick', 1], ['ban', -1]]) {
-      const mapEvidenceId = `map-edge:${plan.opponentTeamId}:${plan[action]}`;
-      if (!plan.mapEvidence.includes(mapEvidenceId)) {
-        throw new Error(`${plan.opponentTeamId} missing evidence: ${mapEvidenceId}`);
-      }
-      const mapEvidence = evidenceIndex.get(mapEvidenceId);
-      const override = overrides.find((item) => item.action === action && item.map === plan[action]);
-      if (!(mapEvidence.edge * expectedSign > 0)) {
-        if (!override || typeof override.rationale !== 'string' || override.rationale.length < 20
-          || !Array.isArray(override.evidenceIds) || override.evidenceIds.length === 0) {
-          throw new Error(`${plan.opponentTeamId} map direction requires override`);
-        }
-        if (!override.evidenceIds.includes(mapEvidenceId)) {
-          throw new Error(`${plan.opponentTeamId} map override must cite its map evidence`);
-        }
-      }
-    }
+    const advice = adviceByOpponent.get(plan.opponentTeamId);
+    if (!advice) throw new Error(`${plan.opponentTeamId} has no veto advice`);
+    const verdict = {
+      pick: advice.suggestedPick,
+      ban: advice.suggestedBan,
+      backup: advice.suggestedBackup,
+      source: advice.model.version,
+    };
+    if (!verdict.pick || !verdict.ban) throw new Error(`${plan.opponentTeamId} veto advice is incomplete`);
+    const mapEvidence = MAP_POOL_2026.map((map) => `map-edge:${plan.opponentTeamId}:${map}`);
+    const comfortConflict = advice.ranking
+      .filter((row) => (row.comfort.practiced || row.comfort.pct >= 50)
+        && (row.map === verdict.ban || row.band === 'ban-candidate'))
+      .map((row) => ({
+        map: row.map,
+        votes: row.comfort.votes,
+        pct: row.comfort.pct,
+        practiced: row.comfort.practiced,
+        verdictAction: row.map === verdict.ban ? 'ban' : 'negative-signal',
+      }));
     const references = [
-      ...plan.threatEvidence, ...plan.weaknessEvidence, ...plan.mapEvidence,
+      ...plan.threatEvidence, ...plan.weaknessEvidence, ...mapEvidence,
       ...plan.caveats.map(({ evidenceId }) => evidenceId),
-      ...overrides.flatMap(({ evidenceIds = [] }) => evidenceIds),
     ];
     const missing = references.filter((id) => !evidenceIndex.has(id));
     if (missing.length) throw new Error(`${plan.opponentTeamId} missing evidence: ${missing.join(', ')}`);
@@ -495,10 +522,14 @@ export function validateReviewedRecommendations(config, evidenceIndex, rosters, 
       dataThrough: config.dataThrough,
       reviewed: config.reviewed,
       reviewedAt: config.reviewedAt,
+      verdict,
+      confidence: advice.ranking.find(({ map }) => map === verdict.pick)?.confidence ?? 'none',
+      comfortConflict,
+      mapEvidence,
       personalTasks,
       threats: plan.threatEvidence.map((id) => evidenceIndex.get(id)),
       weaknesses: plan.weaknessEvidence.map((id) => evidenceIndex.get(id)),
-      maps: plan.mapEvidence.map((id) => evidenceIndex.get(id)),
+      maps: mapEvidence.map((id) => evidenceIndex.get(id)),
     };
   });
 }
@@ -509,7 +540,13 @@ export async function buildCalculatedDatasets(db, configDir, recommendationPath)
     recommendationPath ?? join(configDir, 'match-recommendations.json'),
     'utf8',
   ));
+  const teamContext = JSON.parse(await readFile(join(configDir, 'team-context.json'), 'utf8'));
+  const seasonSchedule = JSON.parse(await readFile(join(configDir, 'season-schedule.json'), 'utf8'));
   const rosters = loadRosterPlayers(db, rosterConfig);
+  const aimProfiles = loadAimProfiles(
+    db,
+    rosters.flatMap(({ players }) => players.map(({ steamid }) => steamid)),
+  );
   const playerMetrics = [];
   for (const roster of rosters) {
     for (const player of roster.players) {
@@ -519,6 +556,7 @@ export async function buildCalculatedDatasets(db, configDir, recommendationPath)
       playerMetrics.push({
         teamId: roster.teamId,
         ...player,
+        aim: aimProfiles.get(player.steamid) ?? null,
         recent: windowResult(recentMatches),
         allTime: windowResult(matches),
         maps: {
@@ -551,7 +589,7 @@ export async function buildCalculatedDatasets(db, configDir, recommendationPath)
     };
   });
   const teamById = new Map(teamMetrics.map((team) => [team.teamId, team]));
-  const mapTeam = (teamId) => {
+  const teamMapSums = (teamId) => {
     const maps = new Map();
     for (const player of playersByTeam.get(teamId)) {
       for (const [map, result] of Object.entries(player.maps.recent)) {
@@ -561,27 +599,65 @@ export async function buildCalculatedDatasets(db, configDir, recommendationPath)
     }
     return maps;
   };
-  const usMaps = mapTeam('us');
+  const mapSumsByTeam = new Map(rosters.map(({ teamId }) => [teamId, teamMapSums(teamId)]));
+  const teamRates = (teamId) => {
+    const metrics = teamById.get(teamId).recent.metrics;
+    return {
+      rating: metrics.rating,
+      roundWinRate: metrics.roundWinRate,
+      tRoundWinRate: metrics.tRoundWinRate,
+      ctRoundWinRate: metrics.ctRoundWinRate,
+    };
+  };
+  const sampleConfidence = (usRounds, opponentRounds) => {
+    if (!usRounds || !opponentRounds) return 'none';
+    if (usRounds < 200 || opponentRounds < 200) return 'low';
+    return usRounds >= 500 && opponentRounds >= 500 ? 'high' : 'medium';
+  };
+  const teamMapStats = rosters.flatMap(({ teamId }) => {
+    const played = mapSumsByTeam.get(teamId);
+    return [...new Set([...MAP_POOL_2026, ...played.keys()])].sort().map((map) => {
+      const sums = played.get(map) ?? emptySums();
+      return {
+        teamId,
+        map,
+        inPool: MAP_POOL_2026.includes(map),
+        recent: { sums, metrics: derivedMetrics(sums) },
+        sampleUnit: 'player_rounds',
+      };
+    });
+  });
+  const usTeam = teamRates('us');
+  const usMaps = mapSumsByTeam.get('us');
   const mapEdges = rosters.filter(({ teamId }) => teamId !== 'us').map((roster) => {
-    const opponentMaps = mapTeam(roster.teamId);
-    const maps = [...new Set([...usMaps.keys(), ...opponentMaps.keys()])].sort().map((map) => {
+    const opponentMaps = mapSumsByTeam.get(roster.teamId);
+    const opponentTeam = teamRates(roster.teamId);
+    const mapSide = (sums, overall) => ({
+      playerRounds: sums.rounds,
+      rawRating: ratio(sums.ratingRoundSum, sums.rounds),
+      adjustedRating: sums.rounds
+        ? shrink(sums.ratingRoundSum / sums.rounds, sums.rounds, overall.rating)
+        : null,
+      overallRating: overall.rating,
+      roundWinRate: ratio(sums.roundWins, sums.rounds),
+      tRoundWinRate: ratio(sums.sides.T.roundWins, sums.sides.T.rounds),
+      ctRoundWinRate: ratio(sums.sides.CT.roundWins, sums.sides.CT.rounds),
+    });
+    const maps = MAP_POOL_2026.map((map) => {
       const usSums = usMaps.get(map) ?? emptySums();
       const opponentSums = opponentMaps.get(map) ?? emptySums();
-      const usOverall = teamById.get('us').recent.metrics.rating;
-      const opponentOverall = teamById.get(roster.teamId).recent.metrics.rating;
-      const usRaw = ratio(usSums.ratingRoundSum, usSums.rounds) ?? usOverall;
-      const opponentRaw = ratio(opponentSums.ratingRoundSum, opponentSums.rounds) ?? opponentOverall;
-      const usAdjusted = (usRaw * usSums.rounds + usOverall * 250) / (usSums.rounds + 250);
-      const opponentAdjusted = (opponentRaw * opponentSums.rounds + opponentOverall * 250) / (opponentSums.rounds + 250);
-      const edge = usAdjusted - opponentAdjusted;
-      const low = usSums.rounds < 200 || opponentSums.rounds < 200;
+      const signals = mapSignals(usSums, opponentSums, usTeam, opponentTeam);
       return {
         map,
-        us: { rawRating: usRaw, adjustedRating: usAdjusted, overallRating: usOverall, playerRounds: usSums.rounds },
-        opponent: { rawRating: opponentRaw, adjustedRating: opponentAdjusted, overallRating: opponentOverall, playerRounds: opponentSums.rounds },
-        edge,
-        significant: Math.abs(edge) >= 0.03,
-        confidence: low ? 'low' : (usSums.rounds >= 500 && opponentSums.rounds >= 500 ? 'high' : 'medium'),
+        inPool: true,
+        us: mapSide(usSums, usTeam),
+        opponent: mapSide(opponentSums, opponentTeam),
+        edge: signals.ratingEdge,
+        signals,
+        signal: signals.ratingEdge === null ? 'no-data'
+          : Math.abs(signals.ratingEdge) < VETO_MODEL.noiseFloor.rating ? 'noise'
+            : signals.ratingEdge > 0 ? 'edge-us' : 'edge-them',
+        confidence: sampleConfidence(usSums.rounds, opponentSums.rounds),
       };
     });
     return { opponentTeamId: roster.teamId, maps };
@@ -619,20 +695,69 @@ export async function buildCalculatedDatasets(db, configDir, recommendationPath)
       risks: [...deviations].sort((left, right) => right.delta - left.delta).slice(0, 3),
     };
   }
+  const comfortFor = (map) => ({
+    votes: teamContext.mapVotes[map]?.votes ?? 0,
+    pct: teamContext.mapVotes[map]?.pct ?? 0,
+    practiced: teamContext.practiced.includes(map),
+  });
+  const crossModelDisagreement = (opponentTeamId, map, ratingEdge) => {
+    const kbUs = teamContext.kbEstimatedStrength?.us?.[map];
+    const kbOpponent = teamContext.kbEstimatedStrength?.[opponentTeamId]?.[map];
+    if (typeof kbUs !== 'number' || typeof kbOpponent !== 'number' || ratingEdge === null) return false;
+    const kbEdge = kbUs - kbOpponent;
+    return Math.sign(kbEdge) !== Math.sign(ratingEdge)
+      && (Math.abs(kbEdge) >= VETO_MODEL.noiseFloor.rating
+        || Math.abs(ratingEdge) >= VETO_MODEL.noiseFloor.rating);
+  };
+  const vetoAdvice = mapEdges.map(({ opponentTeamId, maps }) => {
+    const ranking = rankMaps(maps.map((row) => ({
+      map: row.map,
+      signals: row.signals,
+      usRounds: row.us.playerRounds,
+      oppRounds: row.opponent.playerRounds,
+      confidence: row.confidence,
+      comfort: comfortFor(row.map),
+    }))).map((row) => ({
+      ...row,
+      crossModelDisagreement: crossModelDisagreement(opponentTeamId, row.map, row.components.ratingEdge),
+      headline: formatHeadline(row),
+      rationale: formatRationale(row),
+    }));
+    const verdict = suggestVerdict(ranking);
+    return {
+      opponentTeamId,
+      model: {
+        version: VETO_MODEL.version,
+        priorRounds: VETO_MODEL.priorRounds,
+        noiseFloor: VETO_MODEL.noiseFloor,
+        weights: VETO_MODEL.weights,
+        window: RECENT_WINDOW,
+        comfortSource: teamContext.source,
+      },
+      ranking,
+      suggestedPick: verdict.pick,
+      suggestedBan: verdict.ban,
+      suggestedBackup: verdict.backup,
+      decisionTree: buildDecisionTree(ranking, verdict, teamContext),
+    };
+  });
   const evidence = buildEvidence(playerMetrics, teamMetrics, mapEdges);
   const recommendations = validateReviewedRecommendations(
     recommendationConfig,
     new Map(evidence.map((item) => [item.id, item])),
     rosters,
     teamMetrics,
+    seasonSchedule.matches,
+    new Map(vetoAdvice.map((advice) => [advice.opponentTeamId, advice])),
   );
   const mirrorScouting = buildMirrorScouting(
     teamMetrics,
     playersByTeam,
-    mapEdges,
+    vetoAdvice,
     recommendations,
   );
   return {
-    rosters, playerMetrics, teamMetrics, mapEdges, evidence, recommendations, mirrorScouting,
+    rosters, playerMetrics, teamMetrics, teamMapStats, mapEdges, vetoAdvice, evidence,
+    recommendations, mirrorScouting,
   };
 }

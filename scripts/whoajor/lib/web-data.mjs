@@ -13,7 +13,16 @@ import Database from 'better-sqlite3';
 import { buildCalculatedDatasets } from './calculate-web-data.mjs';
 
 export const CANONICAL_ROOT = '84a051d7989725f22fd8bc37969f9308b2282edcdc61bf6b3477a021d8c71ee2';
-export const VERSION = 'v1-84a051d7989725f2';
+/* Имя версии — контент-адрес: хеш SHA-256 всех шардов. Любое изменение данных
+   меняет путь каталога, поэтому годовой immutable-кеш браузера/CDN никогда не
+   отдаст устаревший манифест или шард под прежним URL. */
+export const VERSION_RE = /^v1-[a-f0-9]{16}$/;
+
+export function versionFromAssets(assets) {
+  const fingerprint = createHash('sha256');
+  for (const asset of assets) fingerprint.update(asset.sha256);
+  return `v1-${fingerprint.digest('hex').slice(0, 16)}`;
+}
 export const RECENT_WINDOW = Object.freeze({
   recentStart: '2026-05-29',
   recentEnd: '2026-08-27',
@@ -276,13 +285,13 @@ export async function generateWebData({ sourceGzip, outputDir, recommendationPat
 
       await mkdir(dirname(outputDir), { recursive: true });
       stagingDir = await mkdtemp(join(dirname(outputDir), `.${basename(outputDir)}-staging-`));
-      const versionDir = join(stagingDir, VERSION);
-      await mkdir(versionDir, { recursive: true });
+      const pendingDir = join(stagingDir, '.pending-version');
+      await mkdir(pendingDir, { recursive: true });
       const assets = [];
       const detailIndexes = {};
       for (const [dataset, loadRows] of exportDefinitions(db)) {
         const written = await writeDataset(
-          versionDir,
+          pendingDir,
           dataset,
           loadRows(),
           DETAIL_INDEX_FIELDS[dataset] ?? [],
@@ -291,12 +300,15 @@ export async function generateWebData({ sourceGzip, outputDir, recommendationPat
         if (DETAIL_INDEX_FIELDS[dataset]) detailIndexes[dataset] = written.indexes;
       }
       for (const [dataset, rows] of Object.entries(calculated)) {
-        const written = await writeDataset(versionDir, dataset, rows);
+        const written = await writeDataset(pendingDir, dataset, rows);
         assets.push(...written.assets);
       }
+      const version = versionFromAssets(assets);
+      const versionDir = join(stagingDir, version);
+      await rename(pendingDir, versionDir);
       const manifest = {
         schemaVersion: 1,
-        version: VERSION,
+        version,
         contractVersion: snapshot.contractVersion,
         root: snapshot.root,
         source: {
@@ -323,9 +335,9 @@ export async function generateWebData({ sourceGzip, outputDir, recommendationPat
       await writeFile(manifestPath, stableJson(manifest));
       const current = {
         schemaVersion: 1,
-        version: VERSION,
+        version,
         root: CANONICAL_ROOT,
-        manifest: `${VERSION}/manifest.json`,
+        manifest: `${version}/manifest.json`,
         manifestSha256: await sha256File(manifestPath),
       };
       await writeFile(join(stagingDir, 'current.json'), stableJson(current));
