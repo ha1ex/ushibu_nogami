@@ -153,11 +153,20 @@
     ['maps', 'threats', 'weaknesses'].forEach(function (key) {
       (rec[key] || []).forEach(function (item) { if (item && item.id) ids.push(item.id); });
     });
-    (rec.mapOverrides || []).forEach(function (item) {
-      if (item && Array.isArray(item.evidenceIds)) ids = ids.concat(item.evidenceIds);
-    });
     (rec.caveats || []).forEach(function (item) { if (item && item.evidenceId) ids.push(item.evidenceId); });
     return ids;
+  }
+
+  var NOISE_FLOOR = 0.03;
+
+  function edgeBand(edge) {
+    if (edge === null || edge === undefined) return 'no-data';
+    if (Math.abs(edge) < NOISE_FLOOR) return 'noise';
+    return edge > 0 ? 'us' : 'them';
+  }
+
+  function mapKey(map) {
+    return String(map || '').replace(/^de_/, '').replace(/[^a-z0-9]/gi, '').toLowerCase();
   }
 
   function validateRecommendation(rec, manifest, evidenceIds) {
@@ -194,9 +203,10 @@
 
   function datasetsForRoute(route) {
     var view = route && route.view;
-    if (view === 'overview' || view === 'team') return ['rosters', 'teamMetrics', 'mapEdges', 'recommendations', 'evidence'];
+    if (view === 'overview') return ['rosters', 'teamMetrics', 'mapEdges', 'recommendations', 'evidence', 'teamMapStats', 'vetoAdvice'];
+    if (view === 'team') return ['rosters', 'teamMetrics', 'mapEdges', 'recommendations', 'evidence', 'teamMapStats', 'vetoAdvice', 'playerMetrics'];
     if (view === 'player') return ['players', 'playerMetrics', 'rosters'];
-    if (view === 'match') return ['recommendations', 'evidence', 'rosters', 'matches'];
+    if (view === 'match') return ['recommendations', 'evidence', 'rosters', 'matches', 'teamMetrics', 'mapEdges', 'teamMapStats', 'vetoAdvice'];
     if (view === 'maps') return ['maps'];
     if (view === 'weapons') return ['weapons'];
     if (view === 'trends') return ['trendPlayers'];
@@ -286,6 +296,9 @@
     selectSchedulePlan: selectSchedulePlan,
     datasetsForRoute: datasetsForRoute,
     createClient: createClient,
-    taskIds: TASK_IDS.slice()
+    taskIds: TASK_IDS.slice(),
+    NOISE_FLOOR: NOISE_FLOOR,
+    edgeBand: edgeBand,
+    mapKey: mapKey
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

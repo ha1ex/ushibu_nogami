@@ -151,8 +151,20 @@ test('validateRecommendation requires reviewed root freshness and complete evide
   assert.throws(() => Core.validateRecommendation({ ...rec, threats: [{ id: 'missing-embedded' }] }, manifest, evidence), /evidence/i);
   assert.throws(() => Core.validateRecommendation({
     ...rec,
-    mapOverrides: [{ action: 'ban', map: 'de_dust2', rationale: 'Manual override', evidenceIds: ['missing-override'] }]
+    caveats: [{ evidenceId: 'missing-caveat', text: 'Битая ссылка.' }]
   }, manifest, evidence), /evidence/i);
+});
+
+test('edge band helpers classify noise and no-data deterministically', () => {
+  assert.equal(Core.NOISE_FLOOR, 0.03);
+  assert.equal(Core.edgeBand(null), 'no-data');
+  assert.equal(Core.edgeBand(0.01), 'noise');
+  assert.equal(Core.edgeBand(-0.02), 'noise');
+  assert.equal(Core.edgeBand(0.05), 'us');
+  assert.equal(Core.edgeBand(-0.05), 'them');
+  assert.equal(Core.mapKey('de_dust2'), 'dust2');
+  assert.equal(Core.mapKey('Dust 2'), 'dust2');
+  assert.equal(Core.mapKey('Anubis'), 'anubis');
 });
 
 test('dataset selection uses manifest entries and readiness keys are controlled', () => {

@@ -94,7 +94,7 @@ test('tab keyboard keeps focus on the selected tab and in-panel drill-down focus
   await expect(statsTab).toBeFocused();
   await expect(statsTab).toHaveAttribute('aria-selected', 'true');
   await expect(page.getByRole('heading', { level: 1, name: 'Статистика' })).toBeVisible();
-  await page.getByRole('link', { name: /Поцелуй всадницу · pick/ }).click();
+  await page.getByRole('link', { name: /Поцелуй всадницу · Пик/ }).click();
   await expect(page.getByRole('heading', { level: 1, name: /План матча/ })).toBeFocused();
 });
 
@@ -118,7 +118,7 @@ test('opponent and match briefs stay payload-free until clicked', async ({ page 
 
 test('browser back and forward restore statistics drill-downs', async ({ page }) => {
   await page.goto('/#/statistika');
-  await page.getByRole('link', { name: /Поцелуй всадницу · pick/ }).click();
+  await page.getByRole('link', { name: /Поцелуй всадницу · Пик/ }).click();
   await expect(page.getByRole('heading', { level: 1, name: /План матча/ })).toBeVisible();
   await page.goBack();
   await expect(page.getByRole('heading', { level: 1, name: 'Статистика' })).toBeVisible();
@@ -167,28 +167,23 @@ test('all controlled checklist IDs persist as team state and survive reload', as
   await expect(page.locator('[data-note="scout-v1-m02-matchday"]')).toHaveValue('Проверено всей командой');
 });
 
-test('charts and wide tables expose labels and equivalent data', async ({ page }) => {
+test('overview verdict card exposes a labelled edge bar with a text equivalent', async ({ page }) => {
   await page.goto('/#/statistika');
-  const chart = page.locator('#statistics figure.stats-chart').first();
-  await expect(chart.locator(':scope > [role=img]')).toHaveAttribute('aria-label', /Rating/);
-  await expect(chart.locator('figcaption')).toContainText(/выборка/);
-  await chart.locator('summary').click();
-  await expect(chart.getByRole('table')).toBeVisible();
+  const bar = page.locator('#statistics .stats-edgebar').first();
+  await expect(bar).toHaveAttribute('aria-label', /Edge [+−]/);
+  await expect(page.locator('#statistics .stats-edgebar-num').first()).toHaveText(/[+−]\d/);
   await page.setViewportSize({ width: 1440, height: 900 });
   const layout = await page.evaluate(() => ({ client: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }));
   expect(layout.scroll).toBeLessThanOrEqual(layout.client);
 });
 
-test('chart image is noninteractive and its labelled table disclosure is a semantic sibling', async ({ page }) => {
-  await page.goto('/#/statistika');
+test('player side chart stays labelled and noninteractive', async ({ page }) => {
+  await page.goto('/#/statistika/igrok/76561198050158798');
   const figure = page.locator('#statistics figure.stats-chart').first();
-  const graphic = figure.locator(':scope > [role=img]');
+  const graphic = figure.locator(':scope[role=img]');
   await expect(graphic).toHaveCount(1);
   await expect(graphic).toHaveAttribute('aria-label', /Rating/);
-  await expect(graphic.locator('a, button, details, input, table')).toHaveCount(0);
-  await expect(figure.locator(':scope > details')).toHaveCount(1);
-  await figure.locator(':scope > details summary').click();
-  await expect(figure.getByRole('table', { name: /Map edge/ })).toBeVisible();
+  await expect(figure.locator('a, button, input, table')).toHaveCount(0);
 });
 
 test('pointer and versioned assets expose opposite cache policies in the test deployment', async ({ request }) => {
@@ -298,23 +293,50 @@ test('aborted shared dataset load is evicted and retried for the newest route', 
   expect(rosterRequests).toBeGreaterThanOrEqual(2);
 });
 
-test('match plans expose map figures, checklists and manual override evidence', async ({ page }) => {
+test('match plan is answer-first: verdict, full pool matrix and veto tree with checklists', async ({ page }) => {
   await page.goto('/#/statistika/match/m01');
-  await expect(page.getByRole('table', { name: 'Цифры по картам' })).toBeVisible();
+  await expect(page.locator('.stats-verdict__kicker').first()).toHaveText(/Пикаем/i);
+  await expect(page.locator('.stats-verdict__card--ban .stats-verdict__kicker')).toHaveText(/Баним/i);
+  const verdictBox = await page.locator('.stats-verdict').boundingBox();
+  const matrixBox = await page.getByRole('table', { name: 'Вето-матрица' }).boundingBox();
+  expect(verdictBox.y).toBeLessThan(matrixBox.y);
+  await expect(page.getByRole('table', { name: 'Вето-матрица' }).locator('tbody tr')).toHaveCount(7);
+  await expect(page.getByRole('heading', { name: 'Дерево вето' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Чеклист тренировки' })).toBeVisible();
-  await expect(page.getByText('Повторить два Anubis-выхода и один Ancient contingency.')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Чеклист матч-дня' })).toBeVisible();
   await expect(page.getByText('Подтвердить пятёрку до вето.')).toBeVisible();
+});
 
-  for (const [matchId, rationale, evidenceId] of [
-    ['m02', /нейтральный Dust2 убираем/i, 'map-edge:takahuli:de_cache'],
-    ['m09', /Cache имеет минимальный отрицательный разрыв/i, 'map-edge:rassadnik:de_anubis']
-  ]) {
-    await page.goto(`/#/statistika/match/${matchId}`);
-    await expect(page.getByRole('heading', { name: 'Ручные решения по картам' })).toBeVisible();
-    await expect(page.getByText(rationale)).toBeVisible();
-    await expect(page.getByText(evidenceId, { exact: true })).toBeVisible();
-  }
+test('comfort-vs-numbers conflict banner is visible and links to tactics', async ({ page }) => {
+  await page.goto('/#/statistika/match/m01');
+  const banner = page.locator('.stats-conflict');
+  await expect(banner).toBeVisible();
+  await expect(banner).toContainText(/Комфорт против цифр/i);
+  await expect(banner).toContainText(/Dust 2/);
+  await expect(banner.getByRole('link', { name: /Тактиках/ })).toHaveAttribute('href', '#/taktiki');
+});
+
+test('raw evidence ids never appear outside collapsed proof elements', async ({ page }) => {
+  await page.goto('/#/statistika/match/m01');
+  await expect(page.locator('#statistics')).toContainText(/Пикаем/i);
+  const leaked = await page.evaluate(() => {
+    const walker = document.createTreeWalker(document.getElementById('statistics'), NodeFilter.SHOW_TEXT);
+    const offenders = [];
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      if (!/player:7656|map-edge:|team:.+:recent:/.test(node.textContent)) continue;
+      if (!node.parentElement.closest('details')) offenders.push(node.textContent.slice(0, 80));
+    }
+    return offenders;
+  });
+  expect(leaked).toEqual([]);
+});
+
+test('our own team page renders a non-empty seven-map self-scouting table', async ({ page }) => {
+  await page.goto('/#/statistika/sopernik/us');
+  await expect(page.getByRole('heading', { level: 1, name: 'Ушибу ногами' })).toBeVisible();
+  await expect(page.getByRole('table', { name: 'Наши 7 карт' }).locator('tbody tr')).toHaveCount(7);
+  await expect(page.getByText('Сигнал на тренировку')).toBeVisible();
 });
 
 test('source match isolates a failed detail shard, announces it and retries without hiding successful tables', async ({ page }) => {
@@ -367,9 +389,12 @@ test('weapon detail transient failure is announced and retryable', async ({ page
   await expect(button.locator('xpath=following-sibling::*[1]')).not.toContainText(/нет данных|загрузка/i);
 });
 
-test('team map-edge table has its own accessible name', async ({ page }) => {
+test('team pool matrix has its own accessible name and community maps stay collapsed', async ({ page }) => {
   await page.goto('/#/statistika/sopernik/pocelui');
-  await expect(page.getByRole('table', { name: 'Map edges' })).toBeVisible();
+  await expect(page.getByRole('table', { name: 'Вето-матрица' })).toBeVisible();
+  const other = page.locator('details', { hasText: /Прочие карты вне пула/ }).first();
+  await expect(other).toBeVisible();
+  await expect(page.getByText('Fy Iceworld')).toBeHidden();
 });
 
 for (const [route, count, detailDataset] of [

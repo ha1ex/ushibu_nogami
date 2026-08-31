@@ -484,7 +484,12 @@
       el('p', { class: 'lead', style: 'margin-bottom:var(--s5)', text: PB.vetoNote }),
       el('div', { class: 'note', style: 'margin-bottom:var(--s5)' }, [
         el('span', { class: 'note__title', text: 'Вето' }),
-        el('p', { class: 'note__body', text: S.vetoDraft })
+        el('p', { class: 'note__body', text: S.vetoDraft }),
+        el('p', { class: 'note__body' }, [el('span', { text: 'Планы на матчи: ' })].concat(
+          S.matches.filter(function (m) { return m.ours; }).map(function (m) {
+            return el('a', { class: 'stats-brief-link', href: '#/statistika/match/' + m.id, text: m.date.slice(5).split('-').reverse().join('.') + ' ' + m.away });
+          })
+        ))
       ]),
       el('div', { class: 'grid', style: 'gap:var(--s2)' }, PB.maps.map(playbookCard))
     ];
@@ -516,13 +521,13 @@
         t.danger ? el('div', { class: 'intel' }, [el('span', { class: 'intel__k', text: 'Чем опасны' }), el('span', { class: 'intel__v', text: t.danger })]) : null,
         t.watch ? el('div', { class: 'intel intel--watch' }, [el('span', { class: 'intel__k', text: 'Что смотреть' }), el('span', { class: 'intel__v', text: t.watch })]) : null
       ]));
-      notes.push(U.noteField('veto-' + t.id, 'Вето-план', 'Что баним, что пикаем, чего ждём от них…'));
+      notes.push(U.noteField('veto-' + t.id, 'Вето-план', 'Личные мысли к вето. Официальный план — по ссылке ниже…'));
       notes.push(U.noteField('scout-' + t.id, 'Заметки по скаутингу', 'Кто играл, какие карты пикали, привычки…'));
     }
 
     kids.push(el('div', { class: 'team__notes' }, notes));
-    if (!t.us && /^(pocelui|takahuli|rassadnik|smoke)$/.test(t.id)) {
-      var planIds = { pocelui: 'm01', takahuli: 'm02', rassadnik: 'm09', smoke: 'm10' };
+    var ourMatch = !t.us && t.matchDate ? S.matches.filter(function (m) { return m.ours && m.date === t.matchDate; })[0] : null;
+    if (ourMatch) {
       kids.push(el('a', {
         class: 'stats-brief-link',
         href: '#/statistika/sopernik/' + t.id,
@@ -530,7 +535,7 @@
       }));
       kids.push(el('a', {
         class: 'stats-brief-link',
-        href: '#/statistika/match/' + planIds[t.id],
+        href: '#/statistika/match/' + ourMatch.id,
         text: 'Полный план против ' + t.name
       }));
     }
