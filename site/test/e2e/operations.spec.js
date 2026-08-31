@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { validateOperations } from '../../scripts/validate-content.mjs';
 
 const operationsFixture = JSON.parse(await readFile(new URL('../../assets/data/operations.json', import.meta.url), 'utf8'));
 
@@ -56,7 +57,7 @@ test('now shows the final match with an honest fallback after the season', async
 test('veto status on list and detail follows the explicitly linked typed card', async ({ page }) => {
   const operations = structuredClone(operationsFixture);
   const match = operations.matches.find((item) => item.id === 'm01');
-  match.cards = match.cards.filter((card) => card.id !== 'unknown-m01-veto');
+  match.cards = match.cards.filter((card) => !['unknown-m01-veto', 'action-m01-record-veto'].includes(card.id));
   match.cards.push({
     id: 'decision-m01-veto', type: 'decision', title: 'Вето утверждено',
     body: 'Капитан зафиксировал согласованную ветку вето.', owner: 'Капитан',
@@ -64,6 +65,8 @@ test('veto status on list and detail follows the explicitly linked typed card', 
     evidenceIds: ['fact-m01-schedule']
   });
   match.vetoCardId = 'decision-m01-veto';
+  const validation = validateOperations(operations);
+  expect(validation.valid, validation.errors.join('\n')).toBe(true);
   await page.route('**/assets/data/operations.json', (route) => route.fulfill({ json: operations }));
 
   await page.goto('/#/matchi');

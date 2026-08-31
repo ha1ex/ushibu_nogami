@@ -108,6 +108,14 @@ test('all primary map and weapon rows use exact human-readable labels', async ({
   for (const label of playerMapLabels) {
     expect(['Ancient', 'Anubis', 'Cache', 'Dust 2', 'Inferno', 'Mirage', 'Nuke']).toContain(label);
   }
+
+  const trendTable = page.getByRole('table', { name: 'Последние матчи тренда' });
+  await expect(trendTable).toBeVisible();
+  const trendMapLabels = await trendTable.locator('tbody tr td:nth-child(2)').allTextContents();
+  expect(trendMapLabels).toHaveLength(20);
+  for (const label of trendMapLabels) {
+    expect(['Ancient', 'Anubis', 'Cache', 'Dust 2', 'Inferno', 'Mirage', 'Nuke']).toContain(label);
+  }
 });
 
 test('Data failures stay local, announced and retryable', async ({ page }) => {

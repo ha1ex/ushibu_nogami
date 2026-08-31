@@ -122,6 +122,21 @@ test('match veto relation accepts an explicit unknown or decision card, not an a
 
   linked.matches[0].vetoCardId = 'action-m01-record-veto';
   assert.equal(validateOperations(linked).valid, false);
+
+  const decided = clone(operations);
+  const decidedMatch = decided.matches.find((match) => match.id === 'm01');
+  decidedMatch.cards = decidedMatch.cards.filter((card) => !['unknown-m01-veto', 'action-m01-record-veto'].includes(card.id));
+  decidedMatch.cards.push({
+    id: 'decision-m01-veto', type: 'decision', title: 'Вето утверждено',
+    body: 'Командное решение зафиксировано.', owner: 'Капитан', decidedAt: '2026-09-29',
+    rationale: 'Пятёрка подтвердила решение.', evidenceIds: ['fact-m01-schedule']
+  });
+  decidedMatch.vetoCardId = 'decision-m01-veto';
+  assert.equal(validateOperations(decided).valid, true, 'local decision must be accepted');
+
+  const crossMatch = clone(operations);
+  crossMatch.matches.find((match) => match.id === 'm01').vetoCardId = 'unknown-m02-veto';
+  assert.equal(validateOperations(crossMatch).valid, false, 'same-type card from another match must be rejected');
 });
 
 test('content keeps operational truth bounded and explicit', async () => {

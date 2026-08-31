@@ -268,7 +268,9 @@
     data.rosters.forEach(function (team) { if (findBy(team.players, 'steamid', route.steamid)) roster = team; });
     var maps = (data.playerMapStats || []).filter(function (row) { return row.steamid === route.steamid; }).map(function (row) { return { map: row.map, value: row }; });
     var weapons = data.playerWeaponStats.filter(function (row) { return row.steamid === route.steamid; }).slice(0, 20);
-    var trends = data.trendMatches.filter(function (row) { return row.steamid === route.steamid; }).slice(-20);
+    var trends = Core.canonicalMapRows(data.trendMatches.filter(function (row) {
+      return row.steamid === route.steamid;
+    }), canonicalMaps, false).slice(-20);
     var body = el('div', { class: 'stats-stack' }, [
       roster ? routeLink(Core.href('team', roster.teamId), 'Вернуться к составу ' + roster.name) : el('p', { text: 'Команда не сопоставлена' }),
       el('div', { class: 'stats-hero-grid' }, [
@@ -314,7 +316,7 @@
   }
 
   function trendTable(rows) {
-    return simpleTableSection('Последние матчи тренда', ['Дата', 'Карта', 'Rating'], rows.map(function (row) { return [U.fmtFull(row.startedAt), mapName(row.map), number(row.rating2)]; }));
+    return simpleTableSection('Последние матчи тренда', ['Дата', 'Карта', 'Rating'], rows.map(function (row) { return [U.fmtFull(row.startedAt), row.canonicalName, number(row.rating2)]; }));
   }
 
   function playerClutchTable(rows) {
