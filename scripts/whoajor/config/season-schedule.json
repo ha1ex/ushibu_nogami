@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "source": "site/assets/js/data.season.js SEASON.matches (наши игры); скопировано 2026-08-31",
+  "matches": [
+    { "matchId": "m01", "date": "2026-09-30", "opponentTeamId": "pocelui" },
+    { "matchId": "m02", "date": "2026-10-01", "opponentTeamId": "takahuli" },
+    { "matchId": "m09", "date": "2026-10-21", "opponentTeamId": "rassadnik" },
+    { "matchId": "m10", "date": "2026-10-22", "opponentTeamId": "smoke" }
+  ]
+}

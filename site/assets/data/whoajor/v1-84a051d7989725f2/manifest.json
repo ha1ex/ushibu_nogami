@@ -5774,28 +5774,44 @@
       "sha256": "acdcc89344ec4cf3833f6867d93a3d835cfa417e894c7309ebb21e1fef3237fd"
     },
     {
+      "dataset": "teamMapStats",
+      "path": "data/teamMapStats-000.json",
+      "count": 171,
+      "bytes": 292268,
+      "gzipBytes": 49519,
+      "sha256": "097fce3fe95bfa18256de62266bd4af3d76ec6ca2cdc30db07249ee23ee45098"
+    },
+    {
       "dataset": "mapEdges",
       "path": "data/mapEdges-000.json",
       "count": 4,
-      "bytes": 51675,
-      "gzipBytes": 6845,
-      "sha256": "c7b7653f5c4b405284a03d0d356485d2b3bf00a1a7637cc77bf5cc6f1b78708d"
+      "bytes": 24149,
+      "gzipBytes": 4847,
+      "sha256": "6cd5d222aad4603ce39a7152d34ddc6049667d5dc03b3375993da3d28876194c"
+    },
+    {
+      "dataset": "vetoAdvice",
+      "path": "data/vetoAdvice-000.json",
+      "count": 4,
+      "bytes": 24331,
+      "gzipBytes": 4819,
+      "sha256": "61950e4c211d30537e4f91334cf0dd3554eb0dbf2fe1166a65c3b6de92d2b790"
     },
     {
       "dataset": "evidence",
       "path": "data/evidence-000.json",
-      "count": 306,
-      "bytes": 92447,
-      "gzipBytes": 11932,
-      "sha256": "5ced40be9c1e49aa814fd0fa6731d259c6c839c102920ce6e5ffe6f013e3f5fa"
+      "count": 185,
+      "bytes": 55170,
+      "gzipBytes": 9147,
+      "sha256": "e2ef3b4e50616e50f94b4247d508d6004ba9b5356e2f4d2ce726861e070637c7"
     },
     {
       "dataset": "recommendations",
       "path": "data/recommendations-000.json",
       "count": 4,
-      "bytes": 20522,
-      "gzipBytes": 5309,
-      "sha256": "abc591ff2d5fdb6131d67b96a4b3be0ac86a5f3435d350b0d100967daab135ce"
+      "bytes": 44175,
+      "gzipBytes": 9967,
+      "sha256": "e1064131fabb6896edb10dcf2366c37ea23dc4d8603d9017c17189776e056b81"
     }
   ]
 }

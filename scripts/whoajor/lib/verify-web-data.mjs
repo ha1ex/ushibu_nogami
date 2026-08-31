@@ -12,6 +12,7 @@ import {
   assertShardGzipSize, CANONICAL_ROOT, DETAIL_INDEX_FIELDS, GAMEPLAY_TABLES, generateWebData,
   RECENT_WINDOW, VERSION,
 } from './web-data.mjs';
+import { MAP_POOL_2026 } from './veto-model.mjs';
 
 async function sha256File(path) {
   const hash = createHash('sha256');
@@ -135,6 +136,57 @@ function assertCalculatedNumericSemantics(rowsByDataset) {
     for (const [index, row] of (rowsByDataset.get(dataset) ?? []).entries()) {
       assertWindow(row.recent, `${dataset}[${index}].recent`);
       assertWindow(row.allTime, `${dataset}[${index}].allTime`);
+    }
+  }
+  for (const [index, row] of (rowsByDataset.get('teamMapStats') ?? []).entries()) {
+    assertWindow(row.recent, `teamMapStats[${index}].recent`);
+  }
+}
+
+function assertVetoDatasets(rowsByDataset) {
+  const pool = JSON.stringify([...MAP_POOL_2026]);
+  const mapEdges = rowsByDataset.get('mapEdges') ?? [];
+  if (mapEdges.length !== 4) throw new Error('mapEdges must cover four opponents');
+  for (const opponent of mapEdges) {
+    if (JSON.stringify(opponent.maps.map(({ map }) => map)) !== pool) {
+      throw new Error(`mapEdges ${opponent.opponentTeamId} must cover the seven-map pool`);
+    }
+    for (const row of opponent.maps) {
+      const noData = row.us.playerRounds === 0 || row.opponent.playerRounds === 0;
+      if ((row.edge === null) !== noData || (row.signal === 'no-data') !== noData) {
+        throw new Error(`mapEdges no-data invariant failed: ${opponent.opponentTeamId}/${row.map}`);
+      }
+      if (noData && row.confidence !== 'none') {
+        throw new Error(`mapEdges confidence must be none without data: ${opponent.opponentTeamId}/${row.map}`);
+      }
+    }
+  }
+  const vetoAdvice = rowsByDataset.get('vetoAdvice') ?? [];
+  if (vetoAdvice.length !== 4) throw new Error('vetoAdvice must cover four opponents');
+  for (const advice of vetoAdvice) {
+    if (!Array.isArray(advice.ranking) || advice.ranking.length !== MAP_POOL_2026.length) {
+      throw new Error(`vetoAdvice ${advice.opponentTeamId} must rank the seven-map pool`);
+    }
+    for (const row of advice.ranking) {
+      if ((row.score === null) !== (row.band === 'no-data')) {
+        throw new Error(`vetoAdvice score/band mismatch: ${advice.opponentTeamId}/${row.map}`);
+      }
+      if (typeof row.rationale !== 'string' || !row.rationale.length) {
+        throw new Error(`vetoAdvice rationale missing: ${advice.opponentTeamId}/${row.map}`);
+      }
+    }
+    if (!advice.suggestedPick || !advice.suggestedBan || advice.suggestedPick === advice.suggestedBan) {
+      throw new Error(`vetoAdvice verdict invalid: ${advice.opponentTeamId}`);
+    }
+  }
+  const adviceByOpponent = new Map(vetoAdvice.map((advice) => [advice.opponentTeamId, advice]));
+  for (const plan of rowsByDataset.get('recommendations') ?? []) {
+    const advice = adviceByOpponent.get(plan.opponentTeamId);
+    if (!advice || !plan.verdict
+      || plan.verdict.pick !== advice.suggestedPick
+      || plan.verdict.ban !== advice.suggestedBan
+      || JSON.stringify(plan.verdict.backup) !== JSON.stringify(advice.suggestedBackup)) {
+      throw new Error(`recommendation verdict diverges from veto advice: ${plan.opponentTeamId}`);
     }
   }
 }
@@ -339,11 +391,11 @@ export async function verifyPublishedTree({ outputDir, sourceGzip }) {
     const references = [
       ...plan.threatEvidence, ...plan.weaknessEvidence, ...plan.mapEvidence,
       ...plan.caveats.map(({ evidenceId }) => evidenceId),
-      ...(plan.mapOverrides ?? []).flatMap(({ evidenceIds = [] }) => evidenceIds),
     ];
     const missing = references.filter((id) => !evidenceIds.has(id));
     if (missing.length) throw new Error(`recommendations missing evidence: ${missing.join(', ')}`);
   }
+  assertVetoDatasets(rowsByDataset);
   return {
     status: 'ok', root: CANONICAL_ROOT, assets: manifest.assets.length,
     maxGzipBytes, rosterMapping: `${rosterPlayers.length}/30`,

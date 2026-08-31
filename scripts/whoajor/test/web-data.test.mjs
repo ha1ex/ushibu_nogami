@@ -327,21 +327,63 @@ test('generator maps 30 roster players and closes reviewed match plans over calc
   assert.ok(teams.every((team) => team.confirmedLineup.criterion.minRosterPlayers === 5));
   assert.ok(teams.every((team) => team.confirmedLineup.criterion.minRoundShare === 0.8));
 
+  const MAP_POOL = ['de_ancient', 'de_anubis', 'de_cache', 'de_dust2', 'de_inferno', 'de_mirage', 'de_nuke'];
   const edges = await loadDataset(versionDir, manifest, 'mapEdges');
   assert.equal(edges.length, 4);
-  assert.ok(edges.every((opponent) => opponent.maps.length > 0));
   for (const opponent of edges) {
+    assert.deepEqual(opponent.maps.map(({ map }) => map), MAP_POOL);
     for (const map of opponent.maps) {
+      const noData = map.us.playerRounds === 0 || map.opponent.playerRounds === 0;
+      assert.equal(map.edge === null, noData, `${opponent.opponentTeamId}/${map.map} edge fabrication`);
+      assert.equal(map.signal === 'no-data', noData);
+      if (noData) {
+        assert.equal(map.confidence, 'none');
+        assert.equal(map.signals.rwrEdge, null);
+        continue;
+      }
       for (const side of [map.us, map.opponent]) {
         assert.ok(Math.abs(side.adjustedRating
           - ((side.rawRating * side.playerRounds + side.overallRating * 250)
             / (side.playerRounds + 250))) < 1e-12);
       }
-      assert.equal(map.significant, Math.abs(map.edge) >= 0.03);
+      assert.ok(Math.abs(map.edge - (map.us.adjustedRating - map.opponent.adjustedRating)) < 1e-12);
+      assert.equal(map.signal, Math.abs(map.edge) < 0.03 ? 'noise' : map.edge > 0 ? 'edge-us' : 'edge-them');
       assert.equal(map.confidence === 'low', (
         map.us.playerRounds < 200 || map.opponent.playerRounds < 200
       ));
     }
+  }
+
+  const teamMapStats = await loadDataset(versionDir, manifest, 'teamMapStats');
+  for (const teamId of ['us', 'pocelui', 'takahuli', 'rassadnik', 'smoke']) {
+    const poolRows = teamMapStats.filter((row) => row.teamId === teamId && row.inPool);
+    assert.deepEqual(poolRows.map(({ map }) => map), MAP_POOL);
+  }
+  assert.ok(teamMapStats.every((row) => row.sampleUnit === 'player_rounds'));
+  const usAnubis = teamMapStats.find((row) => row.teamId === 'us' && row.map === 'de_anubis');
+  assert.equal(usAnubis.recent.sums.rounds, 189);
+  assert.ok(Math.abs(usAnubis.recent.metrics.roundWinRate
+    - (usAnubis.recent.sums.roundWins / usAnubis.recent.sums.rounds)) < 1e-12);
+
+  const vetoAdvice = await loadDataset(versionDir, manifest, 'vetoAdvice');
+  assert.deepEqual(
+    vetoAdvice.map(({ opponentTeamId }) => opponentTeamId),
+    ['pocelui', 'takahuli', 'rassadnik', 'smoke'],
+  );
+  for (const advice of vetoAdvice) {
+    assert.equal(advice.model.version, 'veto-1');
+    assert.equal(advice.ranking.length, MAP_POOL.length);
+    const scores = advice.ranking.map(({ score }) => score).filter((score) => score !== null);
+    assert.deepEqual(scores, [...scores].sort((left, right) => right - left));
+    assert.ok(advice.ranking.every((row) => (row.score === null) === (row.band === 'no-data')));
+    assert.ok(advice.ranking.every((row) => typeof row.rationale === 'string' && row.rationale.length > 0));
+    assert.ok(advice.ranking.every((row) => typeof row.comfort.practiced === 'boolean'
+      && typeof row.crossModelDisagreement === 'boolean'));
+    assert.equal(advice.suggestedPick, advice.ranking.find(({ score }) => score !== null).map);
+    assert.notEqual(advice.suggestedBan, advice.suggestedPick);
+    assert.equal(advice.decisionTree.orderConfirmed, false);
+    assert.ok(advice.decisionTree.branches.length > 0);
+    assert.ok(advice.decisionTree.branches.every(({ trigger }) => trigger.map !== advice.suggestedBan));
   }
 
   const evidence = await loadDataset(versionDir, manifest, 'evidence');
@@ -401,25 +443,26 @@ test('generator maps 30 roster players and closes reviewed match plans over calc
     assert.deepEqual(plan.weaknessEvidence, expectedPlanEvidence[plan.opponentTeamId].weaknesses);
     const exploits = new Map(opponent.scouting.exploits.map((item) => [item.evidenceId, item]));
     assert.ok(plan.weaknessEvidence.every((id) => exploits.get(id)?.delta < 0));
-    const edgeById = new Map(edges.find(({ opponentTeamId }) => (
-      opponentTeamId === plan.opponentTeamId
-    )).maps.map((item) => [`map-edge:${plan.opponentTeamId}:${item.map}`, item]));
-    for (const [action, expectedSign] of [['pick', 1], ['ban', -1]]) {
-      const evidenceId = `map-edge:${plan.opponentTeamId}:${plan[action]}`;
-      const edge = edgeById.get(evidenceId);
-      const override = plan.mapOverrides?.find((item) => (
-        item.action === action && item.map === plan[action]
-      ));
-      assert.ok(edge.edge * expectedSign > 0 || (
-        override?.rationale.length > 20
-          && override.evidenceIds.length > 0
-          && override.evidenceIds.every((id) => evidenceIds.has(id))
-      ), `${plan.opponentTeamId} ${action} direction`);
-    }
+    const advice = vetoAdvice.find(({ opponentTeamId }) => opponentTeamId === plan.opponentTeamId);
+    assert.deepEqual(plan.verdict, {
+      pick: advice.suggestedPick,
+      ban: advice.suggestedBan,
+      backup: advice.suggestedBackup,
+      source: 'veto-1',
+    });
+    assert.deepEqual(
+      plan.mapEvidence,
+      MAP_POOL.map((map) => `map-edge:${plan.opponentTeamId}:${map}`),
+    );
+    assert.equal(plan.maps.length, MAP_POOL.length);
+    assert.ok(Array.isArray(plan.comfortConflict));
+    assert.ok(plan.comfortConflict.some(({ map, verdictAction }) => (
+      map === plan.verdict.ban && verdictAction === 'ban'
+    )) || !['de_dust2', 'de_inferno'].includes(plan.verdict.ban));
     assert.equal(plan.snapshotRoot, EXPECTED_ROOT);
     assert.equal(plan.dataThrough, '2026-08-27');
     assert.equal(plan.reviewed, true);
-    assert.ok(plan.pick && plan.ban && plan.backup.length > 0 && plan.contingency);
+    assert.ok(plan.verdict.pick && plan.verdict.ban && plan.contingency);
     assert.ok(plan.threatEvidence.length >= 2);
     assert.ok(plan.weaknessEvidence.length >= 1);
     assert.equal(plan.threats.length, plan.threatEvidence.length);
@@ -433,7 +476,7 @@ test('generator maps 30 roster players and closes reviewed match plans over calc
     assert.ok(plan.do.length > 0 && plan.dont.length > 0);
     assert.equal(plan.personalTasks.length, 6);
     assert.ok(plan.trainingChecklist.length > 0 && plan.matchdayChecklist.length > 0);
-    assert.ok(['high', 'medium', 'low'].includes(plan.confidence));
+    assert.ok(['high', 'medium', 'low', 'none'].includes(plan.confidence));
     assert.ok(plan.caveats.some(({ evidenceId }) => evidenceId === 'limitation:cohesion'));
     assert.ok(plan.caveats.some(({ evidenceId }) => evidenceId === 'limitation:positions'));
     const references = [
@@ -588,7 +631,7 @@ test('verifier proves deterministic rebuild and rejects invalid reviewed inputs 
     ['root mismatch', (value) => { value.snapshotRoot = '0'.repeat(64); }],
     ['must be reviewed', (value) => { value.reviewed = false; }],
     ['stale', (value) => { value.dataThrough = '2026-08-26'; }],
-    ['missing evidence', (value) => { value.plans[0].mapEvidence = ['missing:evidence']; }],
+    ['missing evidence', (value) => { value.plans[0].caveats[0].evidenceId = 'missing:evidence'; }],
     ['unknown matchId', (value) => { value.plans[0].matchId = 'm99'; }],
     ['duplicate matchId', (value) => { value.plans[1].matchId = value.plans[0].matchId; }],
     ['threat evidence mismatch', (value) => {
@@ -603,19 +646,11 @@ test('verifier proves deterministic rebuild and rejects invalid reviewed inputs 
         'team:pocelui:recent:clutchWinRate',
       ];
     }],
-    ['map direction requires override', (value) => {
+    ['verdict is computed by veto-1', (value) => {
       value.plans[0].pick = 'de_dust2';
-      value.plans[0].mapEvidence = ['map-edge:pocelui:de_dust2'];
     }],
-    ['map override must cite its map evidence', (value) => {
-      value.plans[0].pick = 'de_dust2';
-      value.plans[0].mapEvidence = ['map-edge:pocelui:de_dust2'];
-      value.plans[0].mapOverrides = [{
-        action: 'pick',
-        map: 'de_dust2',
-        rationale: 'Ручное решение с длинным, но нерелевантным обоснованием.',
-        evidenceIds: ['limitation:cohesion'],
-      }];
+    ['missing contingency', (value) => {
+      delete value.plans[0].contingency;
     }],
   ];
   for (const [message, mutate] of mutations) {
