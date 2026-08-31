@@ -157,6 +157,21 @@
 .stats-dl dt { color: var(--text-mute); }
 .stats-dl dd { margin: 0; font-family: var(--font-mono); text-align: right; }
 
+.stats-roster-strip { display: grid; gap: var(--s2); }
+.stats-roster { display: flex; flex-wrap: wrap; gap: var(--s2); margin: 0; padding: 0; list-style: none; }
+.stats-roster-name { font-family: var(--font-display); font-size: 17px; text-transform: uppercase; overflow-wrap: anywhere; }
+.stats-roster-note { color: var(--text-mute); font: var(--fs-micro) var(--font-mono); letter-spacing: var(--tr-label); text-transform: uppercase; }
+
+.stats-roster--compact { gap: var(--s1) var(--s2); }
+.stats-roster--compact .stats-roster-name { font-size: 15px; }
+.stats-roster--compact li:not(:last-child)::after { content: ' ·'; color: var(--idle); }
+
+.stats-roster-section { display: grid; gap: var(--s3); }
+.stats-roster--full { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 2px; }
+.stats-roster--full li { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s2); min-height: 44px; padding: var(--s2) var(--s3); border-left: 2px solid var(--line-strong); background: var(--surface-1); }
+.stats-roster--full li.is-threat { border-left-color: var(--accent); }
+.stats-roster-meta { color: var(--text-mute); font: var(--fs-micro) var(--font-mono); }
+
 .stats-veto-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s2); }
 .stats-veto { display: grid; gap: var(--s1); min-width: 0; padding: var(--s4); border: 1px solid var(--line); background: var(--surface-1); }
 .stats-veto span { color: var(--text-mute); font: var(--fs-micro) var(--font-mono); letter-spacing: var(--tr-label); text-transform: uppercase; }

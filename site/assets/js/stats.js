@@ -157,6 +157,12 @@
     return roster ? roster.name : teamId;
   }
 
+  function rosterPlayers(rosters, teamId) {
+    var roster = findBy(rosters, 'teamId', teamId);
+    if (!roster || !Array.isArray(roster.players)) return [];
+    return roster.players.slice().sort(function (a, b) { return (b.draftRating || 0) - (a.draftRating || 0); });
+  }
+
   function playerName(rosters, steamid) {
     for (var i = 0; i < rosters.length; i++) {
       for (var j = 0; j < rosters[i].players.length; j++) {
@@ -214,6 +220,39 @@
 
   function metricValue(metric, value) {
     return RATE_METRICS[metric] ? pct1(value) : number(value, 2);
+  }
+
+  function rosterNote(count) {
+    return el('p', { class: 'stats-roster-note', text: 'Ростер ' + count + ' · пятёрка на матч не подтверждена' });
+  }
+
+  function rosterStrip(rosters, teamId) {
+    var players = rosterPlayers(rosters, teamId);
+    if (!players.length) return el('p', { class: 'stats-roster-note', text: 'Состав не сопоставлен' });
+    return el('div', { class: 'stats-roster-strip' }, [
+      el('ul', { class: 'stats-roster stats-roster--compact', 'aria-label': 'Ники соперника' }, players.map(function (player) {
+        return el('li', {}, routeLink(Core.href('player', player.steamid), player.displayName, 'stats-roster-name'));
+      })),
+      rosterNote(players.length)
+    ]);
+  }
+
+  function rosterBlock(rosters, teamId, threats) {
+    var players = rosterPlayers(rosters, teamId);
+    var flagged = new Set((threats || []).map(function (row) { return String(row.steamid); }));
+    if (!players.length) return el('section', { class: 'section' }, [el('h2', { text: 'Состав соперника' }), el('p', { text: 'Состав не сопоставлен' })]);
+    return el('section', { class: 'section stats-roster-section' }, [
+      el('h2', { text: 'Состав соперника · ' + rosterName(rosters, teamId) }),
+      el('ul', { class: 'stats-roster stats-roster--full', 'aria-label': 'Ники соперника' }, players.map(function (player) {
+        var threat = flagged.has(String(player.steamid));
+        return el('li', { class: threat ? 'is-threat' : null }, [
+          routeLink(Core.href('player', player.steamid), player.displayName, 'stats-roster-name'),
+          el('span', { class: 'stats-roster-meta', text: 'draft ' + number(player.draftRating, 3) }),
+          threat ? chip('угроза', 'signal') : null
+        ]);
+      })),
+      rosterNote(players.length)
+    ]);
   }
 
   function evidenceList(items, rosters) {
@@ -302,7 +341,8 @@
           routeLink(Core.href('match', nearest.matchId), 'Открыть полный план', 'stats-link stats-next__link')
         ])
       ]),
-      pickRow ? el('p', { class: 'stats-next__why', text: mapName(pickRow.map) + ': ' + (pickRow.headline || pickRow.rationale) }) : null
+      pickRow ? el('p', { class: 'stats-next__why', text: mapName(pickRow.map) + ': ' + (pickRow.headline || pickRow.rationale) }) : null,
+      rosterStrip(rosters, nearest.opponentTeamId)
     ]);
   }
 
@@ -1025,6 +1065,7 @@
         el('h2', { text: 'Кто у них опасен' }),
         threatCards(plan.threats, data.rosters, plan.personalTasks)
       ]),
+      rosterBlock(data.rosters, plan.opponentTeamId, plan.threats),
       el('section', { class: 'section' }, [el('h2', { text: 'Чеклист тренировки' }), simpleList(plan.trainingChecklist || [])]),
       el('section', { class: 'section' }, [
         el('h2', { text: 'Личные задачи' }),

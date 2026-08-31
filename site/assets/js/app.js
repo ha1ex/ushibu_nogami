@@ -171,6 +171,7 @@
           el('strong', { html: 'Поцелуй<br>всадницу' })
         ]),
         h2h(S.firstMatch.usRating, S.firstMatch.themRating),
+        opponentRoster(S.firstMatch.them),
         el('p', { class: 'label', style: 'margin-top:var(--s5)', text: 'Время матча не указано — уточнить у организатора.' })
       ]),
 
@@ -240,6 +241,18 @@
   }
 
   /* Полоса «мы против них»: доля пропорциональна рейтингам */
+  /* Ники соперника ближайшего матча — прямо на Обзоре, без перехода в «Соперники». */
+  function opponentRoster(teamName) {
+    var team = S.teams.filter(function (t) { return t.name === teamName; })[0];
+    if (!team || !team.roster || !team.roster.length) return null;
+    return el('div', { class: 'versus-roster' }, [
+      el('span', { class: 'label', text: 'Их состав · ' + team.roster.length + ' игроков, пятёрка не подтверждена' }),
+      el('ol', { class: 'versus-roster__list' }, team.roster.map(function (nick) {
+        return el('li', { text: nick });
+      }))
+    ]);
+  }
+
   function h2h(usRating, themRating) {
     var a = parseFloat(usRating), b = parseFloat(themRating);
     var share = (a + b) > 0 ? Math.round((a / (a + b)) * 100) : 50;
