@@ -98,22 +98,40 @@ test('tab keyboard keeps focus on the selected tab and in-panel drill-down focus
   await expect(page.getByRole('heading', { level: 1, name: /План матча/ })).toBeFocused();
 });
 
-test('opponent and match briefs stay payload-free until clicked', async ({ page }) => {
-  const dataRequests = [];
-  page.on('request', (request) => {
-    if (request.url().includes('/assets/data/whoajor/')) dataRequests.push(request.url());
-  });
+test('opponents tab enriches with verified comparison table and per-team stat boxes', async ({ page }) => {
   await page.goto('/#/soperniki');
+  const compare = page.getByRole('table', { name: 'Сравнение команд' });
+  await expect(compare).toBeVisible();
+  await expect(compare.locator('tbody tr')).toHaveCount(5);
+  await expect(compare.locator('tbody tr.is-us')).toHaveCount(1);
+  const statsbox = page.locator('[data-team-stats="pocelui"]');
+  await expect(statsbox).toContainText(/Rating/);
+  await expect(statsbox).toContainText(/Сильнейшая карта/);
+  await expect(statsbox).toContainText(/Пик/);
   const teamBrief = page.getByRole('link', { name: /открыть профиль Поцелуй всадницу/ });
   await expect(teamBrief).toBeVisible();
-  await expect(page.getByRole('link', { name: /Полный план против Поцелуй всадницу/ })).toBeVisible();
-  expect(dataRequests).toEqual([]);
   await teamBrief.click();
   await expect(page.getByRole('heading', { level: 1, name: 'Поцелуй всадницу' })).toBeVisible();
-  expect(dataRequests.length).toBeGreaterThan(0);
 
   await page.getByRole('tab', { name: /Матчи/ }).click();
   await expect(page.getByRole('link', { name: /Полный план Поцелуй всадницу/ }).first()).toBeVisible();
+});
+
+test('every metric column exposes a Russian tooltip explanation', async ({ page }) => {
+  await page.goto('/#/soperniki');
+  const compareHeads = page.getByRole('table', { name: 'Сравнение команд' }).locator('th.stats-help');
+  await expect(compareHeads.first()).toBeVisible();
+  expect(await compareHeads.count()).toBeGreaterThanOrEqual(10);
+  for (const title of await compareHeads.evaluateAll((nodes) => nodes.map((node) => node.title))) {
+    expect(title).toMatch(/[а-яА-ЯёЁ]/);
+    expect(title.length).toBeGreaterThanOrEqual(20);
+  }
+  await page.goto('/#/statistika');
+  const leagueButtons = page.getByRole('table', { name: 'Игроки лиги' }).locator('th button[title]');
+  expect(await leagueButtons.count()).toBeGreaterThanOrEqual(10);
+  await page.goto('/#/statistika/match/m01');
+  const matrixHelp = page.getByRole('table', { name: 'Вето-матрица' }).locator('th.stats-help');
+  expect(await matrixHelp.count()).toBeGreaterThanOrEqual(5);
 });
 
 test('browser back and forward restore statistics drill-downs', async ({ page }) => {

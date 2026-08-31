@@ -320,6 +320,19 @@
 .stats-league__filters button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
 .stats-threat--us { border-top: 3px solid var(--ok); }
 
+/* Подсказки метрик: пунктир под заголовком, курсор-вопрос, текст — в title */
+th.stats-help,
+.stats-league th button[title] { cursor: help; text-decoration: underline dotted; text-underline-offset: 3px; }
+
+/* Статистика на вкладке «Соперники» */
+.opponents-compare { margin-bottom: var(--s5); color: var(--text-dim); }
+.opponents-compare .stats-compare { display: grid; gap: var(--s3); }
+.opponents-compare h2 { margin: 0; color: var(--text); font-size: var(--fs-h4); }
+.stats-league tr.is-us td:first-child { border-left: 3px solid var(--ok); }
+.stats-teambox { display: grid; gap: var(--s2); margin-top: var(--s3); padding: var(--s3); border: 1px solid var(--line); background: var(--surface-1); font-family: var(--font-mono); font-size: var(--fs-sm); }
+.stats-teambox p { margin: 0; }
+.stats-teambox .stats-decision { margin-right: var(--s2); }
+
 @media (max-width: 760px) {
   .stats-next__row { flex-direction: column; align-items: flex-start; }
   .stats-heat { min-width: 560px; }

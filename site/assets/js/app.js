@@ -511,7 +511,8 @@
       ]),
       el('ol', { class: 'team__roster' }, t.roster.map(function (p, i) {
         return el('li', {}, [el('span', { class: 'team__roster-n', text: U.pad(i + 1) }), el('b', { text: p })]);
-      }))
+      })),
+      el('div', { class: 'team__statsbox', 'data-team-stats': t.id })
     ];
 
     var notes = [el('p', { class: 'card__body', style: 'font-size:var(--fs-sm)', text: t.rating })];
@@ -550,6 +551,7 @@
           el('span', { class: 'stat__label', text: 'команд × игроков' })
         ])),
       el('p', { class: 'lead', style: 'margin-bottom:var(--s5)', text: 'По порядку наших матчей. Рейтинги — avg и top-5 из таблицы лиги. До 30.09 чужих игр нет, поэтому по первым двум соперникам скаутинг — только профили; по двум последним успеем посмотреть их живые матчи.' }),
+      el('div', { id: 'opponents-compare', class: 'opponents-compare', text: 'Загружаем проверенную статистику…' }),
       el('div', { class: 'grid', style: 'gap:var(--s3)' }, S.teams.map(teamCard))
     ];
   }
@@ -842,6 +844,13 @@
         var normalized = window.StatsCore.parseHash(route.rawHash || route.path);
         window.Stats.open(normalized, { moveFocus: false });
       }).catch(renderStatsScriptError);
+    }
+
+    if (tab.id === 'opponents') {
+      ensureStats().then(function () { return window.Stats.enrichOpponents(); }).catch(function (error) {
+        var host = document.getElementById('opponents-compare');
+        if (host) host.textContent = 'Статистика недоступна: ' + String(error && error.message || 'ошибка загрузки');
+      });
     }
   }
 

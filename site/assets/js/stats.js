@@ -24,6 +24,45 @@
     { id: 'matchday', label: 'Закрыть чеклист матч-дня' }
   ];
 
+  /* Русские расшифровки метрик — тултипы на заголовках таблиц. */
+  var METRIC_HELP = {
+    rating: 'Rating 2 — общий вклад за раунд по формуле HLTV (килы, смерти, урон, KAST). 1.00 — средний уровень; выше — лучше.',
+    adr: 'ADR — средний урон за раунд. 80+ — очень хорошо.',
+    kd: 'K/D — отношение убийств к смертям.',
+    kast: 'KAST — доля раундов, где игрок сделал кил, ассист, выжил или был разменян. Показывает стабильность вклада.',
+    roundWinRate: 'WR — доля выигранных раундов за окно наблюдения.',
+    tRoundWinRate: 'T-WR — доля выигранных раундов в атаке (сторона T).',
+    ctRoundWinRate: 'CT-WR — доля выигранных раундов в обороне (сторона CT).',
+    openingDiffPer100: 'Entry — разница первых фрагов на 100 раундов: открыл минус был открыт. Плюс — первые дуэли чаще за нами.',
+    hsKillPct: 'HS% — доля убийств в голову за всё время. Показатель точности аима.',
+    preaimDeg: 'Преаим — на сколько градусов прицел был не на враге в момент контакта. Меньше — лучше держит прицел.',
+    ttdMs: 'TTD — время от появления врага до первого урона, в миллисекундах. Меньше — быстрее реакция.',
+    utilityDamagePerRound: 'Util — урон гранатами за раунд. Показатель работы с раскидками.',
+    flashAssistsPer100: 'Flash — флеш-ассисты на 100 раундов: килы союзников по ослеплённым этим игроком.',
+    tradeRate: 'Размены — доля смертей, за которые команда сразу отомстила. Показатель игры парами.',
+    clutchWinRate: 'Клатчи — доля выигранных ситуаций один против нескольких.',
+    retakeWinRate: 'Ретейки — доля отбитых точек после чужой закладки бомбы.',
+    postplantWinRate: 'Постплент — доля выигранных раундов после нашей закладки бомбы.',
+    pistolWinRate: 'Пистолетки — доля выигранных пистолетных раундов.',
+    forceWinRate: 'Форсы — доля выигранных раундов с неполным закупом.',
+    ecoWinRate: 'Эко — доля выигранных раундов почти без закупа.',
+    fullWinRate: 'Full-buy — доля выигранных раундов с полным закупом.',
+    rounds: 'Раундов в выборке: чем больше, тем надёжнее цифры. Меньше 200 — читать осторожно.',
+    edge: 'Edge — разница скорректированного Rating 2 между нами и ими на карте. Плюс — мы сильнее; |edge| < 0.03 — в пределах шума.',
+    decision: 'Вердикт движка veto-1: ПИК — играем, БАН — убираем, Б1/Б2 — запасные пики.',
+    sideMatchup: 'Наши раунды в атаке против их раундов в обороне на этой карте: у кого сторона сильнее.',
+    comfort: 'Голосование команды и практика. В расчёт вердикта не входит — только контекст.',
+    confidence: 'Уверенность по размеру выборки: 200+ раундов у обеих команд — средняя, 500+ — высокая.'
+  };
+
+  function helpTh(label, helpKey, extra) {
+    var attrs = { text: label };
+    var help = METRIC_HELP[helpKey];
+    if (help) { attrs.title = help; attrs.class = 'stats-help'; }
+    if (extra && extra.class) attrs.class = (attrs.class ? attrs.class + ' ' : '') + extra.class;
+    return el('th', attrs);
+  }
+
   var METRICS = {
     rating: 'Rating 2', adr: 'ADR', kd: 'K/D', kast: 'KAST', roundWinRate: 'Победы в раундах',
     openingDiffPer100: 'Разница открытий / 100', utilityDamagePerRound: 'Utility damage / раунд',
@@ -311,7 +350,7 @@
     });
     var planByOpponent = {};
     plans.forEach(function (plan) { planByOpponent[plan.opponentTeamId] = plan; });
-    var head = el('tr', {}, [el('th', { text: 'Карта' }), el('th', { text: 'Мы WR' })].concat(order.map(function (teamId) {
+    var head = el('tr', {}, [el('th', { text: 'Карта' }), helpTh('Мы WR', 'roundWinRate')].concat(order.map(function (teamId) {
       var plan = planByOpponent[teamId];
       return el('th', {}, [el('span', { class: 'stats-heat__opp', text: rosterName(rosters, teamId) }), el('small', { text: fmtShortDate(plan.date) })]);
     })));
@@ -662,7 +701,7 @@
     return el('section', { class: 'section' }, [
       el('h2', { text: 'Вето-матрица · 7 карт пула' }),
       el('div', { class: 'table-wrap', 'aria-label': 'Вето-матрица: прокрутите по горизонтали' }, el('table', { class: 'data stats-matrix', 'aria-label': 'Вето-матрица' }, [
-        el('thead', {}, el('tr', {}, [el('th', { text: 'Карта' }), el('th', { text: 'Решение' }), el('th', { text: 'Мы WR' }), el('th', { text: 'Они WR' }), el('th', { text: 'Edge' }), el('th', { class: 'stats-col-opt', text: 'Наш T → их CT' }), el('th', { text: 'Комфорт' }), el('th', { text: 'Данные' })])),
+        el('thead', {}, el('tr', {}, [el('th', { text: 'Карта' }), helpTh('Решение', 'decision'), helpTh('Мы WR', 'roundWinRate'), helpTh('Они WR', 'roundWinRate'), helpTh('Edge', 'edge'), helpTh('Наш T → их CT', 'sideMatchup', { class: 'stats-col-opt' }), helpTh('Комфорт', 'comfort'), helpTh('Данные', 'confidence')])),
         el('tbody', {}, rows)
       ])),
       el('p', { class: 'stats-legend', text: 'Сортировка — по score движка veto-1 (rating + winrate + матчап сторон, с поправкой на выборку). Edge — разница скорректированного Rating 2; |edge| < 0.03 — в пределах шума. WR — доля выигранных раундов за окно.' }),
@@ -742,7 +781,7 @@
       el('section', { class: 'section' }, [
         el('h2', { text: 'Наши 7 карт' }),
         el('div', { class: 'table-wrap', 'aria-label': 'Наши карты: прокрутите по горизонтали' }, el('table', { class: 'data stats-matrix', 'aria-label': 'Наши 7 карт' }, [
-          el('thead', {}, el('tr', {}, [el('th', { text: 'Карта' }), el('th', { text: 'WR' }), el('th', { text: 'T-WR' }), el('th', { text: 'CT-WR' }), el('th', { text: 'Раунды' }), el('th', { text: 'Rating' }), el('th', { text: 'Комфорт' })])),
+          el('thead', {}, el('tr', {}, [el('th', { text: 'Карта' }), helpTh('WR', 'roundWinRate'), helpTh('T-WR', 'tRoundWinRate'), helpTh('CT-WR', 'ctRoundWinRate'), helpTh('Раунды', 'rounds'), helpTh('Rating', 'rating'), helpTh('Комфорт', 'comfort')])),
           el('tbody', {}, sorted.map(function (row) {
             var rm = row.recent.metrics;
             return el('tr', {}, [
@@ -1227,11 +1266,126 @@
     if (currentRoute && currentRoute.view === 'overview') open(currentRoute, { moveFocus: false });
   });
 
+  /* ---- Обогащение вкладки «Соперники» лениво загруженной статистикой ---- */
+
+  var TEAM_COLUMNS = [
+    { key: 'rating', label: 'Rating', digits: 2 },
+    { key: 'roundWinRate', label: 'WR', pct: true },
+    { key: 'tRoundWinRate', label: 'T-WR', pct: true },
+    { key: 'ctRoundWinRate', label: 'CT-WR', pct: true },
+    { key: 'adr', label: 'ADR', digits: 1 },
+    { key: 'openingDiffPer100', label: 'Entry', digits: 1, signed: true },
+    { key: 'utilityDamagePerRound', label: 'Util', digits: 1 },
+    { key: 'flashAssistsPer100', label: 'Flash', digits: 1 },
+    { key: 'tradeRate', label: 'Размены', pct: true },
+    { key: 'clutchWinRate', label: 'Клатчи', pct: true },
+    { key: 'retakeWinRate', label: 'Ретейки', pct: true },
+    { key: 'postplantWinRate', label: 'Постплент', pct: true },
+    { key: 'pistolWinRate', label: 'Пистолетки', pct: true }
+  ];
+
+  function teamCompareSection(data, plans) {
+    var order = ['us'].concat(plans.map(function (plan) { return plan.opponentTeamId; }));
+    var teams = order.map(function (teamId) { return findBy(data.teamMetrics, 'teamId', teamId); }).filter(Boolean);
+    var extremes = {};
+    TEAM_COLUMNS.forEach(function (column) {
+      var values = teams.map(function (team) { return team.recent.metrics[column.key]; })
+        .filter(function (value) { return Number.isFinite(value); });
+      if (values.length >= 3) extremes[column.key] = { min: Math.min.apply(null, values), max: Math.max.apply(null, values) };
+    });
+    var head = el('tr', {}, [el('th', { text: 'Команда' }), helpTh('Раунды', 'rounds')].concat(TEAM_COLUMNS.map(function (column) {
+      return helpTh(column.label, column.key);
+    })));
+    var rows = teams.map(function (team) {
+      var cells = [
+        el('td', {}, [el('strong', { text: team.teamId === 'us' ? 'Мы · ' + team.name : team.name })]),
+        el('td', { text: String(team.recent.sums.rounds) })
+      ];
+      TEAM_COLUMNS.forEach(function (column) {
+        var value = team.recent.metrics[column.key];
+        var extreme = extremes[column.key];
+        var className = '';
+        if (extreme && Number.isFinite(value) && extreme.max !== extreme.min) {
+          if (value === extreme.max) className = ' stats-heat--us1';
+          else if (value === extreme.min) className = ' stats-heat--them1';
+        }
+        cells.push(el('td', { class: 'stats-league__cell' + className, text: formatCell(value, column) }));
+      });
+      var tr = el('tr', {}, cells);
+      if (team.teamId === 'us') tr.className = 'is-us';
+      return tr;
+    });
+    return el('section', { class: 'stats-compare' }, [
+      el('h2', { text: 'Сравнение команд по цифрам' }),
+      el('div', { class: 'table-wrap', 'aria-label': 'Сравнение команд: прокрутите по горизонтали' }, el('table', { class: 'data stats-league', 'aria-label': 'Сравнение команд' }, [el('thead', {}, head), el('tbody', {}, rows)])),
+      el('p', { class: 'stats-legend', text: 'Все числа — за окно 3 месяца, проекция из индивидуальной статистики. Зелёная ячейка — лучший в лиге по колонке, красная — худший. Наведите на заголовок колонки — там расшифровка метрики.' })
+    ]);
+  }
+
+  function bestWorstMaps(data, teamId) {
+    var rows = (data.teamMapStats || []).filter(function (row) {
+      return row.teamId === teamId && row.inPool && row.recent.sums.rounds >= 100 && row.recent.metrics.roundWinRate != null;
+    }).sort(function (a, b) { return b.recent.metrics.roundWinRate - a.recent.metrics.roundWinRate; });
+    return rows.length ? { best: rows[0], worst: rows[rows.length - 1] } : null;
+  }
+
+  function teamStatsBox(data, plans, teamId) {
+    var team = findBy(data.teamMetrics, 'teamId', teamId);
+    if (!team) return null;
+    var m = team.recent.metrics;
+    var lines = [el('p', {}, [
+      el('strong', { text: 'Rating ' + number(m.rating) }),
+      el('span', { text: ' · WR ' + percent(m.roundWinRate) + ' · T ' + percent(m.tRoundWinRate) + ' / CT ' + percent(m.ctRoundWinRate) + ' · ' + team.recent.sums.rounds + ' раундов' })
+    ])];
+    var maps = bestWorstMaps(data, teamId);
+    if (maps) {
+      lines.push(el('p', { text: 'Сильнейшая карта: ' + mapName(maps.best.map) + ' (WR ' + percent(maps.best.recent.metrics.roundWinRate) + ') · слабейшая: ' + mapName(maps.worst.map) + ' (WR ' + percent(maps.worst.recent.metrics.roundWinRate) + ')' }));
+    }
+    if (teamId === 'us') {
+      lines.push(el('p', {}, [routeLink(Core.href('team', 'us'), 'Самоскаутинг: наши 7 карт и сигнал на тренировку')]));
+    } else {
+      var plan = null;
+      plans.forEach(function (item) { if (item.opponentTeamId === teamId) plan = item; });
+      if (plan) {
+        lines.push(el('p', {}, [
+          el('span', { class: 'stats-decision stats-decision--pick', text: 'Пик ' + mapName(plan.verdict.pick) }),
+          el('span', { text: ' ' }),
+          el('span', { class: 'stats-decision stats-decision--ban', text: 'Бан ' + mapName(plan.verdict.ban) })
+        ]));
+      }
+    }
+    return el('div', { class: 'stats-teambox' }, lines);
+  }
+
+  async function enrichOpponents() {
+    var compare = document.getElementById('opponents-compare');
+    if (!compare || compare.getAttribute('data-loaded') === 'true') return;
+    compare.textContent = 'Загружаем проверенную статистику…';
+    try {
+      var names = ['rosters', 'teamMetrics', 'teamMapStats', 'vetoAdvice', 'recommendations', 'evidence'];
+      var values = await Promise.all(names.map(function (name) { return client.dataset(name); }));
+      var data = {};
+      names.forEach(function (name, index) { data[name] = values[index]; });
+      var state = await client.open();
+      var plans = validatePlans(data.recommendations, data.evidence, state.manifest)
+        .slice().sort(function (a, b) { return a.date.localeCompare(b.date); });
+      U.mount(compare, teamCompareSection(data, plans));
+      compare.setAttribute('data-loaded', 'true');
+      document.querySelectorAll('[data-team-stats]').forEach(function (host) {
+        var box = teamStatsBox(data, plans, host.getAttribute('data-team-stats'));
+        if (box) U.mount(host, box);
+      });
+    } catch (error) {
+      compare.textContent = 'Статистика недоступна: ' + text(error && error.message);
+    }
+  }
+
   window.Stats = {
     open: open,
     href: Core.href,
     hasTeam: function (teamId) { return knownTeams[teamId] === true; },
     hasMatch: function (matchId) { return knownMatches[matchId] === true; },
+    enrichOpponents: enrichOpponents,
     retry: retryOpen
   };
 })();
