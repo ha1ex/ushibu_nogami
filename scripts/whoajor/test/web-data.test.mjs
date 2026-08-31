@@ -298,6 +298,9 @@ test('generator maps 30 roster players and closes reviewed match plans over calc
 
   const playerMetrics = await loadDataset(versionDir, manifest, 'playerMetrics');
   assert.equal(playerMetrics.length, 30);
+  assert.ok(playerMetrics.every((player) => player.aim
+    && ['hsKillPct', 'preaimDeg', 'ttdMs', 'sprayAccuracy', 'enemyBlindPerRound']
+      .every((key) => key in player.aim)));
   const humarki = playerMetrics.find(({ steamid }) => steamid === '76561198033124797');
   assert.equal(humarki.recent.sums.sides.T.rounds, 631);
   assert.equal(humarki.recent.sums.sides.CT.rounds, 570);
@@ -378,6 +381,8 @@ test('generator maps 30 roster players and closes reviewed match plans over calc
     assert.deepEqual(scores, [...scores].sort((left, right) => right - left));
     assert.ok(advice.ranking.every((row) => (row.score === null) === (row.band === 'no-data')));
     assert.ok(advice.ranking.every((row) => typeof row.rationale === 'string' && row.rationale.length > 0));
+    assert.ok(advice.ranking.every((row) => typeof row.headline === 'string' && row.headline.length > 0
+      && !/[0-9]%|player:|map-edge:/.test(row.headline)));
     assert.ok(advice.ranking.every((row) => typeof row.comfort.practiced === 'boolean'
       && typeof row.crossModelDisagreement === 'boolean'));
     assert.equal(advice.suggestedPick, advice.ranking.find(({ score }) => score !== null).map);

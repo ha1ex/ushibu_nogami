@@ -203,7 +203,7 @@
 
   function datasetsForRoute(route) {
     var view = route && route.view;
-    if (view === 'overview') return ['rosters', 'teamMetrics', 'mapEdges', 'recommendations', 'evidence', 'teamMapStats', 'vetoAdvice'];
+    if (view === 'overview') return ['rosters', 'teamMetrics', 'mapEdges', 'recommendations', 'evidence', 'teamMapStats', 'vetoAdvice', 'playerMetrics'];
     if (view === 'team') return ['rosters', 'teamMetrics', 'mapEdges', 'recommendations', 'evidence', 'teamMapStats', 'vetoAdvice', 'playerMetrics'];
     if (view === 'player') return ['players', 'playerMetrics', 'rosters'];
     if (view === 'match') return ['recommendations', 'evidence', 'rosters', 'matches', 'teamMetrics', 'mapEdges', 'teamMapStats', 'vetoAdvice'];

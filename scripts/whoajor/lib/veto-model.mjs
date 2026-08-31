@@ -128,6 +128,27 @@ function signed(value, digits) {
   return `${value >= 0 ? '+' : '−'}${Math.abs(value).toFixed(digits)}`;
 }
 
+/* Человеческая фраза без чисел — то, что игрок читает первым; цифры остаются в formatRationale. */
+export function formatHeadline(row) {
+  if (row.score === null) return 'Нет данных за окно наблюдения.';
+  const { ratingEdge, rwrEdge, expT, expCT } = row.components;
+  const floor = VETO_MODEL.noiseFloor;
+  const parts = [];
+  if (ratingEdge >= 2 * floor.rating) parts.push('мы заметно сильнее по рейтингу');
+  else if (ratingEdge >= floor.rating) parts.push('мы сильнее по рейтингу');
+  else if (ratingEdge <= -2 * floor.rating) parts.push('они заметно сильнее по рейтингу');
+  else if (ratingEdge <= -floor.rating) parts.push('они сильнее по рейтингу');
+  if (rwrEdge >= floor.winRate) parts.push('выигрываем больше раундов');
+  else if (rwrEdge <= -floor.winRate) parts.push('забирают больше раундов');
+  if (expT >= 0.55) parts.push('наша атака продавливает их оборону');
+  else if (expCT <= 0.45) parts.push('их атака проламывает нашу оборону');
+  else if (expT <= 0.45) parts.push('их оборона глушит нашу атаку');
+  else if (expCT >= 0.55) parts.push('наша оборона держит их атаку');
+  if (!parts.length) return 'Примерно равная карта: явного преимущества нет ни у кого.';
+  const sentence = parts.join(', ');
+  return `${sentence.charAt(0).toUpperCase()}${sentence.slice(1)}.`;
+}
+
 export function formatRationale(row) {
   const label = MAP_LABELS[row.map] ?? row.map;
   if (row.score === null) {

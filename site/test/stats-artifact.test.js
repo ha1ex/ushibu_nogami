@@ -24,7 +24,7 @@ function fileFetch(url) {
 
 test('route loading plan requests only decision datasets for overview and bounded grains for lists', () => {
   assert.deepEqual(Array.from(Core.datasetsForRoute({ view: 'overview' })), [
-    'rosters', 'teamMetrics', 'mapEdges', 'recommendations', 'evidence', 'teamMapStats', 'vetoAdvice'
+    'rosters', 'teamMetrics', 'mapEdges', 'recommendations', 'evidence', 'teamMapStats', 'vetoAdvice', 'playerMetrics'
   ]);
   assert.deepEqual(Array.from(Core.datasetsForRoute({ view: 'team', teamId: 'pocelui' })), [
     'rosters', 'teamMetrics', 'mapEdges', 'recommendations', 'evidence', 'teamMapStats', 'vetoAdvice', 'playerMetrics'

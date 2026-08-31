@@ -221,6 +221,323 @@
     return { done: window.Store.countChecked(ids), total: ids.length };
   }
 
+  function fmtShortDate(date) {
+    return date.slice(5).split('-').reverse().join('.');
+  }
+
+  function trainingSignal(data) {
+    var us = findBy(data.teamMetrics || [], 'teamId', 'us');
+    var m = us && us.recent && us.recent.metrics;
+    var gap = m && m.tRoundWinRate != null && m.ctRoundWinRate != null ? m.ctRoundWinRate - m.tRoundWinRate : null;
+    var weakest = null;
+    (data.teamMapStats || []).forEach(function (row) {
+      if (row.teamId !== 'us' || !row.inPool) return;
+      var t = row.recent.metrics.tRoundWinRate;
+      if (t != null && (!weakest || t < weakest.value)) weakest = { map: row.map, value: t };
+    });
+    return { gap: gap, weakest: weakest };
+  }
+
+  /* Лента ближайшего матча: одна широкая полоса вместо узкой карточки с гигантским шрифтом. */
+  function nextMatchStrip(nearest, rosters, advice, completedFallback) {
+    if (!nearest) return null;
+    var ready = readiness(nearest.matchId);
+    var pickRow = advice ? findBy(advice.ranking, 'map', advice.suggestedPick) : null;
+    var nextTask = null;
+    for (var t = 0; t < TASKS.length; t++) {
+      if (!window.Store.getCheck(Core.scoutKey(nearest.matchId, TASKS[t].id))) { nextTask = TASKS[t]; break; }
+    }
+    return el('section', { class: 'stats-next' }, [
+      el('div', { class: 'stats-next__row' }, [
+        el('div', { class: 'stats-next__who' }, [
+          el('p', { class: 'stats-next__kicker', text: (completedFallback ? 'Последний матч · ' : 'Ближайший матч · ') + U.fmtFull(nearest.date) }),
+          el('h2', { class: 'stats-next__opp', text: rosterName(rosters, nearest.opponentTeamId) })
+        ]),
+        el('div', { class: 'stats-next__verdict' }, [
+          el('span', { class: 'stats-decision stats-decision--pick', text: 'Пик ' + mapName(nearest.verdict.pick) }),
+          el('span', { class: 'stats-decision stats-decision--ban', text: 'Бан ' + mapName(nearest.verdict.ban) }),
+          el('span', { class: 'stats-decision stats-decision--backup', text: 'Бэкап ' + (nearest.verdict.backup || []).map(mapName).join(' / ') })
+        ]),
+        el('div', { class: 'stats-next__cta' }, [
+          el('p', { class: 'stats-next__ready', text: 'Готовность ' + ready.done + '/' + ready.total + (nextTask ? ' · дальше: ' + nextTask.label : '') }),
+          routeLink(Core.href('match', nearest.matchId), 'Открыть полный план', 'stats-link stats-next__link')
+        ])
+      ]),
+      pickRow ? el('p', { class: 'stats-next__why', text: mapName(pickRow.map) + ': ' + (pickRow.headline || pickRow.rationale) }) : null
+    ]);
+  }
+
+  /* Тепловая карта: 7 карт × 4 соперника, цвет — чей перевес. */
+  function heatBand(row) {
+    if (!row || row.score === null) return 'none';
+    if (row.score >= 2) return 'us2';
+    if (row.band === 'pick-candidate') return 'us1';
+    if (row.score <= -2) return 'them2';
+    if (row.band === 'ban-candidate') return 'them1';
+    return 'even';
+  }
+
+  function heatmapSection(data, plans, rosters) {
+    var advices = data.vetoAdvice || [];
+    if (!advices.length) return null;
+    var order = plans.map(function (plan) { return plan.opponentTeamId; });
+    var byOpponent = {};
+    advices.forEach(function (advice) {
+      var rows = {};
+      advice.ranking.forEach(function (row) { rows[row.map] = row; });
+      byOpponent[advice.opponentTeamId] = rows;
+    });
+    var edgeByOpponent = {};
+    (data.mapEdges || []).forEach(function (opponent) {
+      var rows = {};
+      opponent.maps.forEach(function (row) { rows[row.map] = row; });
+      edgeByOpponent[opponent.opponentTeamId] = rows;
+    });
+    var usWr = {};
+    (data.teamMapStats || []).forEach(function (row) {
+      if (row.teamId === 'us' && row.inPool) usWr[row.map] = row.recent.metrics.roundWinRate;
+    });
+    var maps = advices[0].ranking.map(function (row) { return row.map; });
+    maps = maps.slice().sort(function (a, b) {
+      var mean = function (map) {
+        var total = 0, count = 0;
+        order.forEach(function (teamId) {
+          var row = byOpponent[teamId] && byOpponent[teamId][map];
+          if (row && row.score !== null) { total += row.score; count += 1; }
+        });
+        return count ? total / count : -Infinity;
+      };
+      return mean(b) - mean(a) || a.localeCompare(b);
+    });
+    var planByOpponent = {};
+    plans.forEach(function (plan) { planByOpponent[plan.opponentTeamId] = plan; });
+    var head = el('tr', {}, [el('th', { text: 'Карта' }), el('th', { text: 'Мы WR' })].concat(order.map(function (teamId) {
+      var plan = planByOpponent[teamId];
+      return el('th', {}, [el('span', { class: 'stats-heat__opp', text: rosterName(rosters, teamId) }), el('small', { text: fmtShortDate(plan.date) })]);
+    })));
+    var body = maps.map(function (map) {
+      var cells = [
+        el('td', {}, [el('strong', { text: mapName(map) })]),
+        el('td', { text: percent(usWr[map]) })
+      ];
+      order.forEach(function (teamId) {
+        var row = byOpponent[teamId] && byOpponent[teamId][map];
+        var edge = edgeByOpponent[teamId] && edgeByOpponent[teamId][map];
+        var band = heatBand(row);
+        var verdict = planByOpponent[teamId].verdict;
+        var mark = map === verdict.pick ? 'ПИК' : map === verdict.ban ? 'БАН' : null;
+        var labels = { us2: 'наш большой перевес', us1: 'наш перевес', even: 'примерно равные', them1: 'их перевес', them2: 'их большой перевес', none: 'нет данных' };
+        var cell = el('td', {
+          class: 'stats-heat__cell stats-heat--' + band,
+          role: 'img',
+          'aria-label': mapName(map) + ' против ' + rosterName(rosters, teamId) + ': ' + labels[band] + (mark ? ', ' + mark.toLowerCase() : '')
+        }, [
+          el('span', { text: band === 'none' ? '—' : signedNum(edge && edge.edge, 2) }),
+          mark ? el('b', { class: 'stats-heat__mark', text: mark }) : null
+        ]);
+        cells.push(cell);
+      });
+      return el('tr', {}, cells);
+    });
+    return el('section', { class: 'section' }, [
+      el('h2', { text: 'Карты против соперников' }),
+      el('div', { class: 'table-wrap', 'aria-label': 'Тепловая карта: прокрутите по горизонтали' }, el('table', { class: 'data stats-heat', 'aria-label': 'Тепловая карта' }, [el('thead', {}, head), el('tbody', {}, body)])),
+      el('p', { class: 'stats-legend' }, [
+        el('span', { class: 'stats-heat__key stats-heat--us1', text: 'зелёное — наш перевес' }),
+        el('span', { class: 'stats-heat__key stats-heat--even', text: 'серое — примерно равные' }),
+        el('span', { class: 'stats-heat__key stats-heat--them1', text: 'красное — их перевес' }),
+        el('span', { text: ' · число — разница рейтинга · ПИК/БАН — вердикт плана · строки отсортированы от нашей лучшей карты' })
+      ])
+    ]);
+  }
+
+  /* Сильные/слабые стороны команды и рекомендации — из отклонений от медианы лиги. */
+  function strengthsSection(data, plans) {
+    var us = findBy(data.teamMetrics || [], 'teamId', 'us');
+    if (!us || !us.scouting) return null;
+    function absDelta(metric, delta) {
+      return RATE_METRICS[metric] ? (Math.abs(delta) * 100).toFixed(1) + ' п.п.' : Math.abs(delta).toFixed(2);
+    }
+    function factList(rows, tone) {
+      return el('ul', { class: 'stats-list' }, (rows || []).slice(0, 3).map(function (row) {
+        return el('li', {}, [
+          el('strong', { text: metricName(row.metric) + ' ' + metricValue(row.metric, row.value) }),
+          el('span', { text: ' — ' + (tone === 'up' ? 'лучше' : 'хуже') + ' медианы лиги на ' + absDelta(row.metric, row.delta) })
+        ]);
+      }));
+    }
+    var strengths = (us.scouting.risks || []).filter(function (row) { return row.delta > 0; });
+    var weaknesses = (us.scouting.exploits || []).filter(function (row) { return row.delta < 0; });
+    var signal = trainingSignal(data);
+    var upcomingPicks = [];
+    plans.slice(0, 2).forEach(function (plan) {
+      if (upcomingPicks.indexOf(plan.verdict.pick) === -1) upcomingPicks.push(plan.verdict.pick);
+    });
+    var advice = el('ul', { class: 'stats-list' }, [
+      signal.gap != null ? el('li', { text: 'Атака отстаёт от обороны на ' + (signal.gap * 100).toFixed(1) + ' п.п.' + (signal.weakest ? '; слабейшая T-сторона — ' + mapName(signal.weakest.map) + ' (' + pct1(signal.weakest.value) + ')' : '') + ' — основной фокус тренировок.' }) : null,
+      upcomingPicks.length ? el('li', { text: 'Отработать пики ближайших матчей: ' + upcomingPicks.map(mapName).join(' и ') + '.' }) : null,
+      el('li', {}, [el('span', { text: 'Полный разбор наших карт — в ' }), routeLink(Core.href('team', 'us'), 'самоскаутинге')])
+    ]);
+    return el('section', { class: 'section' }, [
+      el('h2', { text: 'Наша команда: сильное, слабое, что тренировать' }),
+      el('div', { class: 'stats-hero-grid' }, [
+        card('Сильные стороны', strengths.length ? factList(strengths, 'up') : el('p', { text: 'Нет данных' })),
+        card('Слабые места', weaknesses.length ? factList(weaknesses, 'down') : el('p', { text: 'Нет данных' })),
+        card('Рекомендации', advice)
+      ])
+    ]);
+  }
+
+  /* Лиговая таблица игроков: HLTV/Leetify-набор метрик с тепловой окраской перцентилей. */
+  var PLAYER_COLUMNS = [
+    { key: 'rating', label: 'Rating', title: 'Rating 2 за окно', digits: 2 },
+    { key: 'adr', label: 'ADR', title: 'Средний урон за раунд', digits: 1 },
+    { key: 'kd', label: 'K/D', title: 'Убийства к смертям', digits: 2 },
+    { key: 'kast', label: 'KAST', title: 'Доля раундов с вкладом', pct: true },
+    { key: 'openingDiffPer100', label: 'Entry', title: 'Разница первых фрагов на 100 раундов', digits: 1, signed: true },
+    { key: 'hsKillPct', label: 'HS%', title: 'Доля убийств в голову (за всё время)', pct: true, aim: true },
+    { key: 'preaimDeg', label: 'Преаим', title: 'Средний угол доводки прицела, ° — меньше лучше', digits: 1, aim: true, lowerBetter: true },
+    { key: 'ttdMs', label: 'TTD', title: 'Время от контакта до урона, мс — меньше лучше', digits: 0, aim: true, lowerBetter: true },
+    { key: 'utilityDamagePerRound', label: 'Util', title: 'Урон гранатами за раунд', digits: 1 },
+    { key: 'flashAssistsPer100', label: 'Flash', title: 'Флеш-ассисты на 100 раундов', digits: 1 },
+    { key: 'tradeRate', label: 'Размен', title: 'Доля наших смертей, разменянных командой', pct: true },
+    { key: 'clutchWinRate', label: 'Клатчи', title: 'Доля выигранных клатчей', pct: true }
+  ];
+
+  function playerCellValue(player, column) {
+    if (column.aim) return player.aim ? player.aim[column.key] : null;
+    return player.recent.metrics[column.key];
+  }
+
+  function formatCell(value, column) {
+    if (value === null || value === undefined || !Number.isFinite(value)) return '—';
+    if (column.pct) return Math.round(value * 100) + '%';
+    if (column.signed) return signedNum(value, column.digits);
+    return value.toFixed(column.digits);
+  }
+
+  function playersLeagueSection(data, rosters) {
+    var players = (data.playerMetrics || []).slice();
+    if (!players.length) return null;
+    var eligible = players.filter(function (player) { return player.recent.sums.rounds >= 200; });
+    var bands = {};
+    PLAYER_COLUMNS.forEach(function (column) {
+      var values = eligible.map(function (player) { return playerCellValue(player, column); })
+        .filter(function (value) { return Number.isFinite(value); })
+        .sort(function (a, b) { return a - b; });
+      if (values.length < 5) return;
+      bands[column.key] = { low: values[Math.floor(values.length * 0.2)], high: values[Math.floor(values.length * 0.8)] };
+    });
+    function cellClass(player, column, value) {
+      var band = bands[column.key];
+      if (!band || !Number.isFinite(value) || player.recent.sums.rounds < 200) return '';
+      var good = column.lowerBetter ? value <= band.low : value >= band.high;
+      var bad = column.lowerBetter ? value >= band.high : value <= band.low;
+      return good ? ' stats-heat--us1' : bad ? ' stats-heat--them1' : '';
+    }
+    var state = { teamId: '', sortKey: 'rating', descending: true };
+    var tbody = el('tbody');
+    var status = el('p', { class: 'stats-legend', role: 'status' });
+    function render() {
+      var rows = players.filter(function (player) { return !state.teamId || player.teamId === state.teamId; });
+      var column = null;
+      PLAYER_COLUMNS.forEach(function (item) { if (item.key === state.sortKey) column = item; });
+      rows.sort(function (a, b) {
+        var left = column ? playerCellValue(a, column) : a.recent.metrics.rating;
+        var right = column ? playerCellValue(b, column) : b.recent.metrics.rating;
+        left = Number.isFinite(left) ? left : -Infinity;
+        right = Number.isFinite(right) ? right : -Infinity;
+        var sign = state.descending ? -1 : 1;
+        if (column && column.lowerBetter) sign = -sign;
+        return (left - right) * sign || a.displayName.localeCompare(b.displayName, 'ru');
+      });
+      tbody.textContent = '';
+      rows.forEach(function (player) {
+        var cells = [
+          el('td', {}, [routeLink(Core.href('player', player.steamid), player.displayName)]),
+          el('td', {}, [el('span', { class: 'stats-league__team', text: player.teamId === 'us' ? 'мы' : rosterName(rosters, player.teamId) })]),
+          el('td', { text: String(player.recent.sums.rounds) })
+        ];
+        PLAYER_COLUMNS.forEach(function (item) {
+          var value = playerCellValue(player, item);
+          cells.push(el('td', { class: 'stats-league__cell' + cellClass(player, item, value), text: formatCell(value, item) }));
+        });
+        tbody.appendChild(el('tr', {}, cells));
+      });
+      status.textContent = 'Показано ' + rows.length + ' из ' + players.length + ' игроков';
+    }
+    var filters = el('div', { class: 'stats-league__filters' }, [{ teamId: '', name: 'Все команды' }].concat(rosters.map(function (roster) {
+      return { teamId: roster.teamId, name: roster.teamId === 'us' ? 'Мы' : roster.name };
+    })).map(function (item) {
+      var button = el('button', { type: 'button', class: 'stats-detail-button', text: item.name, 'aria-pressed': item.teamId === state.teamId ? 'true' : 'false' });
+      button.addEventListener('click', function () {
+        state.teamId = item.teamId;
+        filters.querySelectorAll('button').forEach(function (node) { node.setAttribute('aria-pressed', 'false'); });
+        button.setAttribute('aria-pressed', 'true');
+        render();
+      });
+      return button;
+    }));
+    var head = el('tr', {}, [el('th', { text: 'Игрок' }), el('th', { text: 'Команда' }), el('th', { text: 'Раунды' })].concat(PLAYER_COLUMNS.map(function (column) {
+      var button = el('button', { type: 'button', text: column.label, title: column.title, 'aria-label': 'Сортировать по ' + column.title });
+      button.addEventListener('click', function () {
+        if (state.sortKey === column.key) state.descending = !state.descending;
+        else { state.sortKey = column.key; state.descending = true; }
+        render();
+      });
+      return el('th', {}, [button]);
+    })));
+    render();
+    return el('section', { class: 'section' }, [
+      el('h2', { text: 'Игроки лиги' }),
+      filters,
+      el('div', { class: 'table-wrap', 'aria-label': 'Таблица игроков: прокрутите по горизонтали' }, el('table', { class: 'data stats-league', 'aria-label': 'Игроки лиги' }, [el('thead', {}, head), tbody])),
+      status,
+      el('p', { class: 'stats-legend', text: 'Метрики за окно 3 месяца; HS%, преаим и TTD — за всё время (лидерборд). Зелёное — топ-20% лиги, красное — низ-20% (среди игроков с 200+ раундами). Преаим и TTD: меньше — лучше. Клик по заголовку — сортировка, наведение — расшифровка.' })
+    ]);
+  }
+
+  var INSIGHT_ROLES = {
+    rating: { role: 'главный фраггер', counter: 'не давать сухих дуэлей — только с разменом' },
+    opening: { role: 'открывает раунды', counter: 'первые контакты под флешку, не пикать в одиночку' },
+    utility: { role: 'гранатчик', counter: 'выходить до его раскидки или после её сгорания' }
+  };
+
+  function insightsSection(data, plans, rosters) {
+    var cards = plans.map(function (plan) {
+      var top = plan.threats[0];
+      if (!top) return null;
+      var kind = String(top.id || '').split(':').pop();
+      var meta = INSIGHT_ROLES[kind] || INSIGHT_ROLES.rating;
+      var counter = (plan.personalTasks || []).filter(function (task) {
+        return task.task.toLowerCase().indexOf(playerName(rosters, top.steamid).toLowerCase()) !== -1;
+      })[0];
+      var weakness = plan.weaknesses[0];
+      return el('article', { class: 'card stats-threat' }, [
+        el('p', { class: 'stats-threat__role', text: rosterName(rosters, plan.opponentTeamId) + ' · ' + fmtShortDate(plan.date) }),
+        routeLink(Core.href('player', top.steamid), playerName(rosters, top.steamid), 'stats-threat__name'),
+        el('p', { class: 'stats-threat__stat', text: meta.role + ' · ' + metricName(top.metric || 'rating') + ' ' + metricValue(top.metric || 'rating', top.value) }),
+        el('p', { class: 'stats-threat__answer', text: 'Закрывать: ' + (counter ? counter.task + ' (' + counter.draftName + ')' : meta.counter) }),
+        weakness ? el('p', { class: 'stats-threat__stat', text: 'Их слабость: ' + metricName(weakness.metric) + ' ' + metricValue(weakness.metric, weakness.value) + ' — давить именно это.' }) : null
+      ]);
+    }).filter(Boolean);
+    var us = (data.playerMetrics || []).filter(function (player) { return player.teamId === 'us' && player.recent.sums.rounds >= 200; });
+    if (us.length) {
+      var star = us.slice().sort(function (a, b) { return b.recent.metrics.rating - a.recent.metrics.rating; })[0];
+      cards.push(el('article', { class: 'card stats-threat stats-threat--us' }, [
+        el('p', { class: 'stats-threat__role', text: 'Наш козырь' }),
+        routeLink(Core.href('player', star.steamid), star.displayName, 'stats-threat__name'),
+        el('p', { class: 'stats-threat__stat', text: 'Rating ' + number(star.recent.metrics.rating) + ' · Entry ' + signedNum(star.recent.metrics.openingDiffPer100, 1) + '/100' }),
+        el('p', { class: 'stats-threat__answer', text: 'Соперник будет закрывать его первым: первый контакт — только под флешку и с разменом.' })
+      ]));
+    }
+    if (!cards.length) return null;
+    return el('section', { class: 'section' }, [
+      el('h2', { text: 'Инсайты: кого закрывать' }),
+      el('div', { class: 'stats-threat-grid' }, cards)
+    ]);
+  }
+
   function overviewView(data, manifest) {
     var rosters = data.rosters;
     var plans = validatePlans(data.recommendations, data.evidence, manifest).slice().sort(function (a, b) { return a.date.localeCompare(b.date); });
@@ -230,64 +547,46 @@
     var today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
     var scheduleSelection = Core.selectSchedulePlan(plans, today);
     var nearest = scheduleSelection.plan;
-    var ready = nearest ? readiness(nearest.matchId) : { done: 0, total: 0 };
     var advice = nearest ? findBy(data.vetoAdvice || [], 'opponentTeamId', nearest.opponentTeamId) : null;
-    var pickRow = advice ? findBy(advice.ranking, 'map', advice.suggestedPick) : null;
-    var nextTask = null;
-    if (nearest) {
-      for (var t = 0; t < TASKS.length; t++) {
-        if (!window.Store.getCheck(Core.scoutKey(nearest.matchId, TASKS[t].id))) { nextTask = TASKS[t]; break; }
-      }
-    }
-    function verdictLine(plan) {
-      return plan.verdict ? 'Пик ' + mapName(plan.verdict.pick) + ' · Бан ' + mapName(plan.verdict.ban) : '';
-    }
     var main = el('div', { class: 'stats-stack' }, [
       el('p', { class: 'lead stats-caveat', text: 'Проекция из индивидуальной статистики. Сыгранность пятёрок не измерена.' }),
-      el('div', { class: 'stats-hero-grid' }, [
-        card(scheduleSelection.completedFallback ? 'Последний матч · расписание завершено' : 'Ближайший матч', nearest ? el('div', {}, [
-          chip('план проверен штабом', 'ok'), el('p', { class: 'stats-big', text: rosterName(rosters, nearest.opponentTeamId) }),
-          el('time', { datetime: nearest.date, text: U.fmtFull(nearest.date) }),
-          el('p', { class: 'stats-verdict-line', text: verdictLine(nearest) }),
-          routeLink(Core.href('match', nearest.matchId), 'Открыть полный план')
-        ]) : el('p', { text: 'Нет данных' })),
-        card('Главный довод', pickRow ? el('div', {}, [
-          el('p', { text: pickRow.rationale }),
-          edgeBar(pickRow.components.ratingEdge),
-          confBadge(pickRow.confidence)
-        ]) : el('p', { text: 'Нет данных' })),
-        card('Готовность плана', el('div', {}, [
-          el('p', { class: 'stats-big', text: ready.done + ' / ' + ready.total }),
-          el('p', { text: 'общих задач закрыто' }),
-          nextTask ? el('small', { text: 'дальше: ' + nextTask.label }) : el('small', { text: 'все задачи закрыты' })
-        ])),
-        card('Главная угроза', nearest && nearest.threats.length ? threatCards([nearest.threats[0]], rosters, nearest.personalTasks) : el('p', { text: 'Нет данных' })),
-        card('Данные', el('div', {}, [
-          el('p', { class: 'stats-big', text: 'до ' + manifest.window.recentEnd.slice(5).split('-').reverse().join('.') }),
-          el('p', { text: 'окно ' + manifest.window.recentStart + ' — ' + manifest.window.recentEnd }),
-          el('p', { text: manifest.counts.matches + ' матчей · ' + manifest.counts.players + ' игроков · снимок 30.08' }),
-          routeLink('#/statistika/quality', 'Качество и provenance')
-        ]))
-      ]),
+      nextMatchStrip(nearest, rosters, advice, scheduleSelection.completedFallback),
+      heatmapSection(data, plans, rosters),
+      strengthsSection(data, plans),
+      insightsSection(data, plans, rosters),
+      playersLeagueSection(data, rosters),
       el('section', { class: 'section' }, [
         el('h2', { text: 'Четыре плана матчей' }),
         el('div', { class: 'stats-plan-grid' }, plans.map(function (plan) {
           var planReady = readiness(plan.matchId);
-          return routeLink(Core.href('match', plan.matchId),
-            plan.date + ' · ' + rosterName(rosters, plan.opponentTeamId) + ' · ' + verdictLine(plan) + ' · готовность ' + planReady.done + '/' + planReady.total,
-            'card stats-route-card');
+          var dot = function () { return el('span', { class: 'stats-plan-card__dot', text: ' · ' }); };
+          return el('a', { href: Core.href('match', plan.matchId), class: 'card stats-plan-card' }, [
+            el('span', { class: 'stats-plan-card__date', text: fmtShortDate(plan.date) }),
+            dot(),
+            el('strong', { class: 'stats-plan-card__opp', text: rosterName(rosters, plan.opponentTeamId) }),
+            dot(),
+            el('span', { class: 'stats-plan-card__chunk', text: 'Пик ' + mapName(plan.verdict.pick) }),
+            dot(),
+            el('span', { class: 'stats-plan-card__chunk', text: 'Бан ' + mapName(plan.verdict.ban) }),
+            dot(),
+            el('span', { class: 'stats-plan-card__ready stats-plan-card__chunk', text: 'готовность ' + planReady.done + '/' + planReady.total })
+          ]);
         }))
       ]),
       el('section', { class: 'section' }, [
         el('h2', { text: 'Пять проекций составов' }),
         el('div', { class: 'stats-plan-grid' }, rosters.map(function (roster) {
           var label = roster.teamId === 'us' ? roster.name + ' · мы · самоскаутинг' : roster.name + ' · ' + roster.players.length + ' игроков';
-          return routeLink(Core.href('team', roster.teamId), label, 'card stats-route-card');
+          return routeLink(Core.href('team', roster.teamId), label, 'card stats-plan-card');
         }))
+      ]),
+      el('p', { class: 'stats-legend' }, [
+        el('span', { text: 'Данные до ' + fmtShortDate(manifest.window.recentEnd) + ' (окно ' + manifest.window.recentStart + ' — ' + manifest.window.recentEnd + ') · ' + manifest.counts.matches + ' матчей · ' + manifest.counts.players + ' игроков · ' }),
+        routeLink('#/statistika/quality', 'качество и provenance')
       ]),
       directoryLinks(manifest)
     ]);
-    return shell('Статистика', 'Операционная сводка', main, 'Готово: четыре плана и пять проекций составов');
+    return shell('Статистика', 'Операционная сводка', main, 'Готово: тепловая карта, профиль команды и четыре плана');
   }
 
   function directoryLinks(manifest) {
@@ -369,7 +668,13 @@
       el('p', { class: 'stats-legend', text: 'Сортировка — по score движка veto-1 (rating + winrate + матчап сторон, с поправкой на выборку). Edge — разница скорректированного Rating 2; |edge| < 0.03 — в пределах шума. WR — доля выигранных раундов за окно.' }),
       el('details', { class: 'stats-proof stats-proof--block' }, [
         el('summary', { text: 'Пояснения движка по каждой карте' }),
-        el('ul', { class: 'stats-list' }, advice.ranking.map(function (row) { return el('li', { text: row.rationale }); }))
+        el('ul', { class: 'stats-list' }, advice.ranking.map(function (row) {
+          return el('li', {}, [
+            el('strong', { text: mapName(row.map) + ': ' }),
+            el('span', { text: row.headline || '' }),
+            el('small', { class: 'stats-fact__meta', text: ' ' + row.rationale })
+          ]);
+        }))
       ])
     ]);
   }
@@ -597,17 +902,18 @@
     var pickRow = advice ? findBy(advice.ranking, 'map', verdict.pick) : null;
     var banRow = advice ? findBy(advice.ranking, 'map', verdict.ban) : null;
     var branch = advice ? (advice.decisionTree.branches || []).filter(function (item) { return item.trigger.map === verdict.pick; })[0] : null;
-    function panel(kicker, map, why, type) {
+    function panel(kicker, map, why, tech, type) {
       return el('div', { class: 'stats-verdict__card stats-verdict__card--' + type }, [
         el('span', { class: 'stats-verdict__kicker', text: kicker }),
         el('strong', { class: 'stats-verdict__map', text: mapName(map) }),
-        why ? el('p', { class: 'stats-verdict__why', text: why }) : null
+        why ? el('p', { class: 'stats-verdict__why', text: why }) : null,
+        tech ? el('p', { class: 'stats-verdict__tech', text: tech }) : null
       ]);
     }
     return el('div', { class: 'stats-verdict' }, [
-      panel('Пикаем', verdict.pick, pickRow ? pickRow.rationale : '', 'pick'),
-      panel('Баним', verdict.ban, banRow ? 'Наш худший матчап из семи. ' + banRow.rationale : '', 'ban'),
-      branch && branch.response.map ? panel('Если ' + mapName(verdict.pick) + ' банят', branch.response.map, 'Следующая по score; полное дерево вето ниже.', 'branch') : null
+      panel('Пикаем', verdict.pick, pickRow ? pickRow.headline : '', pickRow ? pickRow.rationale : '', 'pick'),
+      panel('Баним', verdict.ban, banRow ? 'Наш худший расклад из семи. ' + (banRow.headline || '') : '', banRow ? banRow.rationale : '', 'ban'),
+      branch && branch.response.map ? panel('Если ' + mapName(verdict.pick) + ' банят', branch.response.map, 'Следующая по силе карта; полное дерево вето ниже.', null, 'branch') : null
     ]);
   }
 

@@ -19,7 +19,12 @@
 .stats-directory,
 .stats-row-detail { min-width: 0; }
 
-.stats-view { overflow-wrap: anywhere; }
+/* Переносы: слова не рвём; перенос «где угодно» — только для кодов, моно-строк и длинных ID. */
+.stats-mono,
+.stats-proof code,
+.stats-fact__meta,
+.stats-evidence small,
+.stats-directory-grid a { overflow-wrap: anywhere; }
 .stats-stack {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -28,7 +33,7 @@
 .stats-view .section,
 .stats-view .table-wrap { min-width: 0; max-width: 100%; }
 .stats-header { align-items: flex-end; }
-.stats-header h1 { max-width: 12ch; }
+.stats-header h1 { max-width: 22ch; text-wrap: balance; overflow-wrap: normal; hyphens: none; }
 
 .stats-nav {
   display: flex;
@@ -262,6 +267,62 @@
 @media (max-width: 760px) {
   .stats-col-opt { display: none; }
   .stats-matrix { min-width: 560px; }
+}
+
+/* Лента ближайшего матча */
+.stats-next { display: grid; gap: var(--s3); padding: var(--s4) var(--s5); border: 1px solid var(--line); border-top: 3px solid var(--accent); background: var(--surface-1); }
+.stats-next__row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s4) var(--s6); }
+.stats-next__who { min-width: 0; flex: 1 1 240px; }
+.stats-next__kicker { margin: 0 0 var(--s1); color: var(--text-mute); font: var(--fs-micro) var(--font-mono); letter-spacing: var(--tr-label); text-transform: uppercase; }
+.stats-next__opp { margin: 0; font: 700 clamp(22px, 3vw, 30px)/1.15 var(--font-display); text-transform: uppercase; text-wrap: balance; overflow-wrap: normal; }
+.stats-next__verdict { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.stats-next__verdict .stats-decision { padding: var(--s2) var(--s3); font-size: var(--fs-sm); }
+.stats-next__cta { display: grid; gap: var(--s2); justify-items: start; }
+.stats-next__ready { margin: 0; color: var(--text-dim); font-size: var(--fs-sm); }
+.stats-next__link { border: 1px solid var(--accent-line); background: var(--accent-soft); }
+.stats-next__why { margin: 0; color: var(--text-dim); max-width: 72ch; }
+
+/* Тепловая карта */
+.stats-heat { min-width: 640px; }
+.stats-heat th small { display: block; color: var(--text-mute); font-weight: 400; }
+.stats-heat__opp { display: block; overflow-wrap: normal; }
+.stats-heat td:first-child { white-space: nowrap; }
+.stats-heat__cell { position: relative; min-width: 92px; font-family: var(--font-mono); font-size: var(--fs-sm); text-align: center; }
+.stats-heat__mark { display: block; font: 700 var(--fs-micro) var(--font-mono); letter-spacing: .08em; }
+.stats-heat--us2 { background: color-mix(in srgb, var(--ok) 30%, transparent); }
+.stats-heat--us1 { background: color-mix(in srgb, var(--ok) 14%, transparent); }
+.stats-heat--even { background: color-mix(in srgb, var(--idle) 14%, transparent); }
+.stats-heat--them1 { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.stats-heat--them2 { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+.stats-heat--none { color: var(--text-mute); }
+.stats-heat__key { display: inline-block; margin-right: var(--s2); padding: 1px var(--s2); border: 1px solid var(--line); }
+
+/* Карточки планов и составов — обычный текст вместо гигантского капса */
+.stats-plan-card { display: block; min-height: 44px; padding: var(--s3) var(--s4); color: var(--text); font-size: var(--fs-sm); line-height: 1.5; text-decoration: none; }
+.stats-plan-card:hover { border-color: var(--accent-line); background-color: var(--accent-soft); }
+.stats-plan-card__opp { font-family: var(--font-display); font-size: 17px; text-transform: uppercase; }
+.stats-plan-card__date, .stats-plan-card__ready { color: var(--text-mute); font-family: var(--font-mono); font-size: var(--fs-micro); }
+.stats-plan-card__verdict { color: var(--text-dim); }
+.stats-plan-card__chunk { white-space: nowrap; }
+
+.stats-verdict__tech { margin: 0; color: var(--text-mute); font-family: var(--font-mono); font-size: var(--fs-micro); }
+
+/* Лиговая таблица игроков */
+.stats-league { min-width: 980px; }
+.stats-league th { padding: 0; white-space: nowrap; }
+.stats-league th button { width: 100%; min-height: 44px; padding: var(--s2); border: 0; background: transparent; color: var(--text); font: 500 var(--fs-micro) var(--font-mono); letter-spacing: .05em; text-transform: uppercase; text-align: right; cursor: pointer; }
+.stats-league th:first-child, .stats-league td:first-child { text-align: left; }
+.stats-league th button:hover { color: var(--accent); }
+.stats-league td { font-family: var(--font-mono); font-size: var(--fs-sm); text-align: right; white-space: nowrap; }
+.stats-league td:first-child, .stats-league td:nth-child(2) { text-align: left; }
+.stats-league__team { color: var(--text-mute); font-size: var(--fs-micro); text-transform: uppercase; }
+.stats-league__filters { display: flex; flex-wrap: wrap; gap: var(--s2); margin-bottom: var(--s3); }
+.stats-league__filters button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+.stats-threat--us { border-top: 3px solid var(--ok); }
+
+@media (max-width: 760px) {
+  .stats-next__row { flex-direction: column; align-items: flex-start; }
+  .stats-heat { min-width: 560px; }
 }
 
 @media (max-width: 760px) {

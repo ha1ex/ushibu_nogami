@@ -167,14 +167,32 @@ test('all controlled checklist IDs persist as team state and survive reload', as
   await expect(page.locator('[data-note="scout-v1-m02-matchday"]')).toHaveValue('Проверено всей командой');
 });
 
-test('overview verdict card exposes a labelled edge bar with a text equivalent', async ({ page }) => {
+test('overview heatmap covers the pool against every opponent with labelled cells', async ({ page }) => {
   await page.goto('/#/statistika');
-  const bar = page.locator('#statistics .stats-edgebar').first();
-  await expect(bar).toHaveAttribute('aria-label', /Edge [+−]/);
-  await expect(page.locator('#statistics .stats-edgebar-num').first()).toHaveText(/[+−]\d/);
+  const heat = page.getByRole('table', { name: 'Тепловая карта' });
+  await expect(heat.locator('tbody tr')).toHaveCount(7);
+  await expect(heat.locator('tbody td[role=img]')).toHaveCount(28);
+  await expect(heat.locator('.stats-heat__mark').filter({ hasText: 'ПИК' })).toHaveCount(4);
+  await expect(heat.locator('.stats-heat__mark').filter({ hasText: 'БАН' })).toHaveCount(4);
+  await expect(heat.locator('tbody td[role=img]').first()).toHaveAttribute('aria-label', /перевес|равные|нет данных/);
   await page.setViewportSize({ width: 1440, height: 900 });
   const layout = await page.evaluate(() => ({ client: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }));
   expect(layout.scroll).toBeLessThanOrEqual(layout.client);
+});
+
+test('overview strip and headings never break words apart', async ({ page }) => {
+  await page.goto('/#/statistika');
+  await expect(page.locator('.stats-next__opp')).toHaveText('Поцелуй всадницу');
+  const broken = await page.evaluate(() => {
+    const nodes = document.querySelectorAll('.stats-next__opp, #statistics h1, #statistics h2');
+    const offenders = [];
+    nodes.forEach((node) => {
+      const style = getComputedStyle(node);
+      if (style.overflowWrap === 'anywhere' || style.wordBreak === 'break-all') offenders.push(node.textContent.slice(0, 40));
+    });
+    return offenders;
+  });
+  expect(broken).toEqual([]);
 });
 
 test('player side chart stays labelled and noninteractive', async ({ page }) => {

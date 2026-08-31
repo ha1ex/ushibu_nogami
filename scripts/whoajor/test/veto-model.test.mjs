@@ -183,3 +183,34 @@ test('formatRationale renders deterministic Russian summaries', () => {
   const cache = ranking.find(({ map }) => map === 'de_cache');
   assert.equal(formatRationale(cache), 'Cache: нет данных за окно (выборка 12/0 раундов).');
 });
+
+test('formatHeadline renders human phrases without numbers or codes', async () => {
+  const { formatHeadline } = await import('../lib/veto-model.mjs');
+  const strong = formatHeadline({
+    score: 2.2,
+    band: 'pick-candidate',
+    components: {
+      ratingEdge: 0.21, rwrEdge: 0.06, sideEdge: 0.02,
+      expT: 0.56, expCT: 0.5,
+      sideRates: { usT: 0.54, usCT: 0.5, oppT: 0.5, oppCT: 0.46 },
+    },
+    sample: { usRounds: 381, oppRounds: 565 },
+  });
+  assert.equal(strong, 'Мы заметно сильнее по рейтингу, выигрываем больше раундов, наша атака продавливает их оборону.');
+  const noData = formatHeadline({ score: null, band: 'no-data', components: {}, sample: { usRounds: 0, oppRounds: 20 } });
+  assert.equal(noData, 'Нет данных за окно наблюдения.');
+  const even = formatHeadline({
+    score: 0.1,
+    band: 'neutral',
+    components: { ratingEdge: 0.01, rwrEdge: 0.01, sideEdge: 0, expT: 0.5, expCT: 0.5, sideRates: { usT: 0.5, usCT: 0.5, oppT: 0.5, oppCT: 0.5 } },
+    sample: { usRounds: 300, oppRounds: 300 },
+  });
+  assert.equal(even, 'Примерно равная карта: явного преимущества нет ни у кого.');
+  const bad = formatHeadline({
+    score: -2.1,
+    band: 'ban-candidate',
+    components: { ratingEdge: -0.2, rwrEdge: -0.07, sideEdge: -0.04, expT: 0.44, expCT: 0.49, sideRates: { usT: 0.42, usCT: 0.49, oppT: 0.51, oppCT: 0.56 } },
+    sample: { usRounds: 340, oppRounds: 468 },
+  });
+  assert.equal(bad, 'Они заметно сильнее по рейтингу, забирают больше раундов, их оборона глушит нашу атаку.');
+});

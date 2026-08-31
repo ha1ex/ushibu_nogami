@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { CANONICAL_ROOT, RECENT_WINDOW } from './web-data.mjs';
 import {
-  MAP_POOL_2026, VETO_MODEL, buildDecisionTree, formatRationale,
+  MAP_POOL_2026, VETO_MODEL, buildDecisionTree, formatHeadline, formatRationale,
   mapSignals, rankMaps, shrink, suggestVerdict,
 } from './veto-model.mjs';
 
@@ -188,6 +188,24 @@ function loadRosterPlayers(db, config) {
     throw new Error('roster mapping must resolve 30 unique players');
   }
   return teams;
+}
+
+/* Aim-профиль из лидерборда (агрегат за всё время): HS%, преаим, время до урона, спрей, флешки. */
+function loadAimProfiles(db, steamids) {
+  const placeholders = steamids.map(() => '?').join(',');
+  const rows = db.prepare(`select steamid, source_json from players where steamid in (${placeholders})`)
+    .all(...steamids);
+  return new Map(rows.map(({ steamid, source_json: sourceJson }) => {
+    const source = JSON.parse(sourceJson);
+    return [steamid, {
+      sampleRounds: source.rounds_played ?? 0,
+      hsKillPct: ratio(source.hs_kills, source.kills),
+      preaimDeg: ratio(source.preaim_sum, source.preaim_n),
+      ttdMs: ratio(source.ttd_sum, source.ttd_n),
+      sprayAccuracy: ratio(source.spray_hits, source.spray_shots),
+      enemyBlindPerRound: ratio(source.enemy_blind_time, source.rounds_played),
+    }];
+  }));
 }
 
 function playerMatches(db, steamid) {
@@ -396,6 +414,10 @@ export async function buildCalculatedDatasets(db, configDir, recommendationPath)
   const teamContext = JSON.parse(await readFile(join(configDir, 'team-context.json'), 'utf8'));
   const seasonSchedule = JSON.parse(await readFile(join(configDir, 'season-schedule.json'), 'utf8'));
   const rosters = loadRosterPlayers(db, rosterConfig);
+  const aimProfiles = loadAimProfiles(
+    db,
+    rosters.flatMap(({ players }) => players.map(({ steamid }) => steamid)),
+  );
   const playerMetrics = [];
   for (const roster of rosters) {
     for (const player of roster.players) {
@@ -405,6 +427,7 @@ export async function buildCalculatedDatasets(db, configDir, recommendationPath)
       playerMetrics.push({
         teamId: roster.teamId,
         ...player,
+        aim: aimProfiles.get(player.steamid) ?? null,
         recent: windowResult(recentMatches),
         allTime: windowResult(matches),
         maps: {
@@ -565,6 +588,7 @@ export async function buildCalculatedDatasets(db, configDir, recommendationPath)
     }))).map((row) => ({
       ...row,
       crossModelDisagreement: crossModelDisagreement(opponentTeamId, row.map, row.components.ratingEdge),
+      headline: formatHeadline(row),
       rationale: formatRationale(row),
     }));
     const verdict = suggestVerdict(ranking);

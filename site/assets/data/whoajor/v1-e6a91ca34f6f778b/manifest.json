@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": "v1-53ea6cfef9fd6797",
+  "version": "v1-e6a91ca34f6f778b",
   "contractVersion": "1.1.0",
   "root": "84a051d7989725f22fd8bc37969f9308b2282edcdc61bf6b3477a021d8c71ee2",
   "source": {
@@ -5761,9 +5761,9 @@
       "dataset": "playerMetrics",
       "path": "data/playerMetrics-000.json",
       "count": 30,
-      "bytes": 2038135,
-      "gzipBytes": 307802,
-      "sha256": "34d5519e1dfd1ff0f25ca954ca658c0b8e71d978de13962bc467753a112d11d1"
+      "bytes": 2043873,
+      "gzipBytes": 311743,
+      "sha256": "22a148be0b677ea69ce5742c148d49cc2ee7fec22248842d2967d9d4bd062df3"
     },
     {
       "dataset": "teamMetrics",
@@ -5793,9 +5793,9 @@
       "dataset": "vetoAdvice",
       "path": "data/vetoAdvice-000.json",
       "count": 4,
-      "bytes": 24331,
-      "gzipBytes": 4819,
-      "sha256": "61950e4c211d30537e4f91334cf0dd3554eb0dbf2fe1166a65c3b6de92d2b790"
+      "bytes": 26862,
+      "gzipBytes": 5160,
+      "sha256": "a7b1a6164a8a25e05ce9d4b61927225d4c9307b8d8dc6aab3d8d96e2dcd90657"
     },
     {
       "dataset": "evidence",
