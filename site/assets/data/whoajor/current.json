@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "v1-84a051d7989725f2",
+  "version": "v1-53ea6cfef9fd6797",
   "root": "84a051d7989725f22fd8bc37969f9308b2282edcdc61bf6b3477a021d8c71ee2",
-  "manifest": "v1-84a051d7989725f2/manifest.json",
-  "manifestSha256": "bf4d612c720d408fba0d36b1efe3b35c375c58a1a2a65798926a6dc0d3d13146"
+  "manifest": "v1-53ea6cfef9fd6797/manifest.json",
+  "manifestSha256": "5c1177c6effcd9e1896dc7715137f6c04306babdbdb6c523eb6c7e0130c1b097"
 }

@@ -89,10 +89,11 @@ test('keyed detail API verifies and fetches only the indexed shard for one sourc
   const rows = await client.datasetForKey('matchPlayers', 'matchId', matchId);
   assert.ok(rows.length > 0);
   assert.ok(rows.every((row) => row.matchId === matchId));
+  const state = await client.open();
   assert.deepEqual(seen, [
     '/assets/data/whoajor/current.json',
-    '/assets/data/whoajor/v1-84a051d7989725f2/manifest.json',
-    '/assets/data/whoajor/v1-84a051d7989725f2/data/matchPlayers-000.json',
+    `/assets/data/whoajor/${state.pointer.version}/manifest.json`,
+    `/assets/data/whoajor/${state.pointer.version}/data/matchPlayers-000.json`,
   ]);
   await assert.rejects(() => client.dataset('matchPlayers'), /keyed detail|ключ/i);
 });

@@ -254,7 +254,7 @@
 .stats-threat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--s3); }
 .stats-threat { display: grid; align-content: start; gap: var(--s2); padding: var(--s4); }
 .stats-threat__role { display: flex; align-items: center; gap: var(--s2); margin: 0; color: var(--text-mute); font: var(--fs-micro) var(--font-mono); letter-spacing: var(--tr-label); text-transform: uppercase; }
-.stats-threat__name { font: 600 20px var(--font-display); text-transform: uppercase; text-decoration: none; }
+.stats-threat__name { display: inline-flex; align-items: center; min-height: 44px; font: 600 20px var(--font-display); text-transform: uppercase; text-decoration: none; }
 .stats-threat__name:hover { color: var(--accent); }
 .stats-threat__stat { margin: 0; font-family: var(--font-mono); font-size: var(--fs-sm); }
 .stats-threat__answer { margin: 0; color: var(--text-dim); font-size: var(--fs-sm); }

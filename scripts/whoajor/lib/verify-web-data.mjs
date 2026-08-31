@@ -10,7 +10,7 @@ import {
 import { gzipSync } from 'node:zlib';
 import {
   assertShardGzipSize, CANONICAL_ROOT, DETAIL_INDEX_FIELDS, GAMEPLAY_TABLES, generateWebData,
-  RECENT_WINDOW, VERSION,
+  RECENT_WINDOW, VERSION_RE,
 } from './web-data.mjs';
 import { MAP_POOL_2026 } from './veto-model.mjs';
 
@@ -254,13 +254,13 @@ export async function verifyPublishedTree({ outputDir, sourceGzip }) {
   await assertRealpathContained(rootReal, currentPath, 'current pointer');
   const currentBytes = await readFile(currentPath);
   const current = JSON.parse(currentBytes.toString('utf8'));
-  if (current.root !== CANONICAL_ROOT || current.version !== VERSION) {
+  if (current.root !== CANONICAL_ROOT || !VERSION_RE.test(current.version ?? '')) {
     throw new Error('current pointer root/version mismatch');
   }
-  if (current.manifest !== `${VERSION}/manifest.json`) {
+  if (current.manifest !== `${current.version}/manifest.json`) {
     throw new Error(`unsafe manifest path: ${current.manifest}`);
   }
-  const manifestRelative = safeRelativePath(current.manifest, 'manifest', VERSION);
+  const manifestRelative = safeRelativePath(current.manifest, 'manifest', current.version);
   const manifestPath = join(outputDir, manifestRelative);
   await assertRealpathContained(rootReal, manifestPath, 'manifest');
   const manifestBytes = await readFile(manifestPath);
@@ -293,7 +293,7 @@ export async function verifyPublishedTree({ outputDir, sourceGzip }) {
     if (assetPaths.has(safe)) throw new Error(`duplicate asset path: ${safe}`);
     assetPaths.add(safe);
   }
-  const versionPrefix = `${VERSION}${sep}`;
+  const versionPrefix = `${current.version}${sep}`;
   const actualVersionFiles = files.filter((path) => path.startsWith(versionPrefix))
     .map((path) => path.slice(versionPrefix.length));
   const listedVersionFiles = new Set(['manifest.json', ...assetPaths]);
@@ -304,7 +304,7 @@ export async function verifyPublishedTree({ outputDir, sourceGzip }) {
   }
   const listedFiles = new Set([
     'current.json',
-    ...[...listedVersionFiles].map((path) => join(VERSION, path)),
+    ...[...listedVersionFiles].map((path) => join(current.version, path)),
   ]);
   const stale = files.filter((path) => !listedFiles.has(path));
   if (stale.length) throw new Error(`unlisted file: ${stale[0]}`);

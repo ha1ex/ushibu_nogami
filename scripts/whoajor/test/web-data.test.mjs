@@ -139,7 +139,8 @@ test('generator publishes canonical pointer and exact source counts', async (t) 
   const outputDir = await generate(t);
   const current = JSON.parse(await readFile(join(outputDir, 'current.json'), 'utf8'));
   assert.equal(current.root, EXPECTED_ROOT);
-  assert.equal(current.version, 'v1-84a051d7989725f2');
+  assert.match(current.version, /^v1-[a-f0-9]{16}$/);
+  assert.equal(current.manifest, `${current.version}/manifest.json`);
 
   const manifest = JSON.parse(await readFile(
     join(outputDir, current.version, 'manifest.json'),

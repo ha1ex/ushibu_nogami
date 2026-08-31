@@ -189,7 +189,8 @@ test('player side chart stays labelled and noninteractive', async ({ page }) => 
 test('pointer and versioned assets expose opposite cache policies in the test deployment', async ({ request }) => {
   const pointer = await request.get('/assets/data/whoajor/current.json');
   expect(pointer.headers()['cache-control']).toBe('no-cache, must-revalidate');
-  const manifest = await request.get('/assets/data/whoajor/v1-84a051d7989725f2/manifest.json');
+  const current = await (await request.get('/assets/data/whoajor/current.json')).json();
+  const manifest = await request.get(`/assets/data/whoajor/${current.manifest}`);
   expect(manifest.headers()['cache-control']).toBe('private, max-age=31536000, immutable');
 });
 
