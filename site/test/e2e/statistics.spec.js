@@ -51,6 +51,34 @@ for (const [hash, heading] of [
   });
 }
 
+test('nearest-match card and match plan show the opponent roster nicknames', async ({ page }) => {
+  await page.goto('/#/statistika');
+  const nearest = page.getByRole('article').filter({ hasText: 'Ближайший матч' });
+  await expect(nearest.getByRole('link', { name: 'professorkill', exact: true })).toBeVisible();
+  await expect(nearest.getByRole('link', { name: 'Сквиртолог Анзол', exact: true })).toBeVisible();
+  await expect(nearest.getByText(/Ростер 6 · пятёрка на матч не подтверждена/)).toBeVisible();
+
+  await page.goto('/#/statistika/match/m01');
+  const roster = page.locator('.stats-roster--full');
+  await expect(roster.getByRole('listitem')).toHaveCount(6);
+  await expect(roster.getByRole('link', { name: 'humarki', exact: true })).toBeVisible();
+  await expect(roster.locator('li.is-threat')).toHaveCount(3);
+  await roster.getByRole('link', { name: 'humarki', exact: true }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'humarki' })).toBeVisible();
+});
+
+test('overview tab lists the first-match opponent roster without any statistics request', async ({ page }) => {
+  const statsRequests = [];
+  page.on('request', (request) => {
+    if (/stats(?:-core)?\.js|assets\/data\/whoajor/.test(request.url())) statsRequests.push(request.url());
+  });
+  await page.goto('/#/obzor');
+  const versus = page.locator('.versus-roster');
+  await expect(versus.getByRole('listitem')).toHaveCount(6);
+  await expect(versus.getByText('enjoykaz', { exact: true })).toBeVisible();
+  expect(statsRequests).toEqual([]);
+});
+
 test('failed pointer stays local and ordinary tabs remain usable', async ({ page }) => {
   await page.route('**/assets/data/whoajor/current.json', (route) => route.fulfill({ status: 500, body: 'broken' }));
   await page.goto('/#/statistika');
