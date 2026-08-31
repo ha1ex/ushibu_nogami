@@ -254,7 +254,7 @@ test('profile принимает проверенные live date, local time, S
   assert.equal(report.status, 'complete');
 });
 
-test('dated snapshot не принимает обычные строки и HTTP Date за будущие/битые даты', async () => {
+test('dated snapshot игнорирует транспортный fetchedAt и HTTP Date при проверке будущих дат', async () => {
   const { dbPath, snapshotDir } = await buildValidatedFixture();
   const db = new Database(dbPath);
   db.pragma('foreign_keys = OFF');
@@ -268,6 +268,7 @@ test('dated snapshot не принимает обычные строки и HTTP
   }
   const request = db.prepare('SELECT rowid, source_json FROM requests LIMIT 1').get();
   const requestSource = JSON.parse(request.source_json);
+  requestSource.fetchedAt = '2026-09-01T00:00:00.000Z';
   requestSource.observedHeaders = {
     ...requestSource.observedHeaders,
     date: 'Sun, 30 Aug 2026 07:00:00 GMT',

@@ -42,6 +42,7 @@ const DISCRETE_COUNT_SUFFIXES = Object.freeze([
 const DATE_KEYS = new Set(['date', 'day']);
 const FLEXIBLE_DATE_KEYS = new Set(['max_date', 'min_date']);
 const TIMESTAMP_KEYS = new Set(['published_at', 'publishedat', 'started_at', 'startedat']);
+const TRANSPORT_TIMESTAMP_KEYS = new Set(['fetched_at', 'fetchedat']);
 const STEAM_ID_KEYS = new Set([
   'ct_steamids', 'ctsteamids', 'steamid', 'steamids', 't_steamids', 'tsteamids',
 ]);
@@ -142,6 +143,7 @@ function validTimestamp(value) {
 
 function dateKind(key) {
   const normalized = normalizedKey(key);
+  if (TRANSPORT_TIMESTAMP_KEYS.has(normalized)) return null;
   if (DATE_KEYS.has(normalized)) return 'date';
   if (FLEXIBLE_DATE_KEYS.has(normalized)) return 'flexible-date';
   if (TIMESTAMP_KEYS.has(normalized) || normalized.endsWith('_at')) return 'timestamp';
