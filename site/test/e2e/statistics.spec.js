@@ -36,6 +36,8 @@ test('statistics overview is lazy, verified and links every population', async (
 });
 
 for (const [hash, heading] of [
+  ['#/statistika/zerkalo', 'Как нас видят'],
+  ['#/statistika/zerkalo/takahuli', 'Нас глазами'],
   ['#/statistika/sopernik/pocelui', 'Поцелуй всадницу'],
   ['#/statistika/igrok/76561198050158798', 'enjoykaz'],
   ['#/statistika/match/m01', 'План матча'],
@@ -448,11 +450,64 @@ test('every statistics route avoids document overflow at 320px', async ({ page }
   await page.setViewportSize({ width: 320, height: 800 });
   for (const hash of [
     '#/statistika/sopernik/pocelui', '#/statistika/igrok/76561198050158798', '#/statistika/match/m01',
-    '#/statistika/maps', '#/statistika/weapons', '#/statistika/trends', '#/statistika/quality'
+    '#/statistika/maps', '#/statistika/weapons', '#/statistika/trends', '#/statistika/quality',
+    '#/statistika/zerkalo', '#/statistika/zerkalo/takahuli', '#/statistika/zerkalo/rassadnik'
   ]) {
     await page.goto('/' + hash);
     await expect(page.locator('#statistics [role=status]')).toContainText(/готово|показано/i);
     const layout = await page.evaluate(() => ({ client: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }));
     expect(layout.scroll, hash).toBeLessThanOrEqual(layout.client);
   }
+});
+
+test('mirror overview shows our profile from the opponent side with the cohesion caveat', async ({ page }) => {
+  await page.goto('/#/statistika/zerkalo');
+  await expect(page.getByRole('heading', { level: 1, name: 'Как нас видят' })).toBeVisible();
+  await expect(page.getByText(/сыгранность не измерена/)).toBeVisible();
+  await expect(page.getByText(/История вето соперников не наблюдалась ни разу/)).toBeVisible();
+
+  // Матрица покрывает семь карт пула и всех четырёх соперников.
+  const matrix = page.getByRole('table', { name: 'Зеркальные map edge по соперникам' });
+  await expect(matrix.locator('tbody tr')).toHaveCount(7);
+  await expect(matrix.locator('thead th')).toHaveCount(5);
+  for (const name of ['Поцелуй всадницу', 'Такахули', 'Рассадник добра', 'Smoke mid everyday']) {
+    await expect(page.getByRole('link', { name: new RegExp(name) })).toBeVisible();
+  }
+
+  // Угрозы и цели ведут на карточки игроков.
+  const threats = page.getByRole('article').filter({ hasText: 'Угрозы' });
+  await expect(threats.getByRole('link', { name: 'D4ba', exact: true }).first()).toBeVisible();
+  const soft = page.getByRole('article').filter({ hasText: 'Цели для размена' });
+  await expect(soft.getByRole('link', { name: 'kibkalo', exact: true }).first()).toBeVisible();
+});
+
+test('mirror report flags the veto clash and cites evidence for every claim', async ({ page }) => {
+  await page.goto('/#/statistika/zerkalo/takahuli');
+  await expect(page.getByRole('heading', { level: 1, name: /Нас глазами/ })).toBeVisible();
+
+  // Такахули — единственный соперник, чей вероятный бан совпадает с нашим плановым пиком.
+  await expect(page.getByText('Наш пик Anubis — их наиболее вероятный бан')).toBeVisible();
+  await expect(page.getByRole('link', { name: /полный план матча/ })).toBeVisible();
+
+  const maps = page.getByRole('table', { name: 'Зеркальные map edge' });
+  await expect(maps.locator('tbody tr')).toHaveCount(7);
+  await expect(page.getByText(/Вето соперников не наблюдалось/)).toBeVisible();
+
+  // Каждое утверждение о метриках подкреплено evidence-ID обеих сторон.
+  await expect(page.getByText('team:us:recent:clutchWinRate')).toBeVisible();
+  await expect(page.getByText('team:takahuli:recent:clutchWinRate')).toBeVisible();
+  await expect(page.getByText(/Сыгранность пятёрки не измерена/)).toBeVisible();
+
+  await page.getByRole('link', { name: 'Ко всем зеркальным отчётам' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Как нас видят' })).toBeVisible();
+});
+
+test('our own team page is labelled as ours and routes map edges to the mirror', async ({ page }) => {
+  await page.goto('/#/statistika/sopernik/us');
+  await expect(page.getByRole('heading', { level: 1, name: 'Ушибу ногами' })).toBeVisible();
+  await expect(page.getByText('Наша команда')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Открыть «Как нас видят»' })).toBeVisible();
+  // Все четыре плана, подписанные именем соперника, а не нашим.
+  await expect(page.getByRole('link', { name: /полный план против Такахули/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /полный план против Ушибу ногами/ })).toHaveCount(0);
 });

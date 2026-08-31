@@ -446,6 +446,145 @@ test('generator maps 30 roster players and closes reviewed match plans over calc
   }
 });
 
+test('generator mirrors our profile back from each opponent perspective', async (t) => {
+  const outputDir = await generate(t);
+  const { versionDir, manifest } = await loadBuild(outputDir);
+  const mirrors = await loadDataset(versionDir, manifest, 'mirrorScouting');
+  const edges = await loadDataset(versionDir, manifest, 'mapEdges');
+  const teams = await loadDataset(versionDir, manifest, 'teamMetrics');
+  const playerMetrics = await loadDataset(versionDir, manifest, 'playerMetrics');
+  const recommendations = await loadDataset(versionDir, manifest, 'recommendations');
+  const evidenceIds = new Set((await loadDataset(versionDir, manifest, 'evidence'))
+    .map(({ id }) => id));
+
+  assert.deepEqual(mirrors.map(({ opponentTeamId }) => opponentTeamId).sort(), [
+    'pocelui', 'rassadnik', 'smoke', 'takahuli',
+  ]);
+  assert.deepEqual(
+    mirrors.map(({ opponentTeamId }) => opponentTeamId),
+    edges.map(({ opponentTeamId }) => opponentTeamId),
+  );
+
+  const us = teams.find(({ teamId }) => teamId === 'us');
+  const ourPlayers = playerMetrics.filter(({ teamId }) => teamId === 'us');
+  const eligible = ourPlayers.filter(({ recent }) => recent.sums.rounds >= 200);
+  assert.ok(eligible.length > 0 && eligible.length <= 6);
+
+  for (const mirror of mirrors) {
+    const opponent = teams.find(({ teamId }) => teamId === mirror.opponentTeamId);
+    const edgeRow = edges.find(({ opponentTeamId }) => opponentTeamId === mirror.opponentTeamId);
+    assert.equal(mirror.opponentName, opponent.name);
+    assert.equal(mirror.sample.usPlayerRounds, us.recent.sums.rounds);
+    assert.equal(mirror.sample.opponentPlayerRounds, opponent.recent.sums.rounds);
+
+    // Пул — ровно семь карт сезона, отобранных из 32 карт mapEdges.
+    assert.equal(mirror.maps.length, 7);
+    assert.deepEqual([...mirror.maps.map(({ map }) => map)].sort(), [
+      'de_ancient', 'de_anubis', 'de_cache', 'de_dust2', 'de_inferno', 'de_mirage', 'de_nuke',
+    ]);
+    assert.ok(edgeRow.maps.length > mirror.maps.length);
+
+    for (let index = 1; index < mirror.maps.length; index += 1) {
+      assert.ok(mirror.maps[index - 1].mirrorEdge >= mirror.maps[index].mirrorEdge);
+    }
+    for (const map of mirror.maps) {
+      const source = edgeRow.maps.find((item) => item.map === map.map);
+      assert.equal(map.edge, source.edge);
+      assert.equal(map.mirrorEdge, -source.edge);
+      assert.equal(map.significant, source.significant);
+      assert.equal(map.confidence, source.confidence);
+      assert.equal(map.usAdjustedRating, source.us.adjustedRating);
+      assert.equal(map.opponentAdjustedRating, source.opponent.adjustedRating);
+      assert.equal(map.evidenceId, `map-edge:${mirror.opponentTeamId}:${map.map}`);
+      assert.ok(evidenceIds.has(map.evidenceId));
+    }
+
+    // Вероятный пик/бан выбирается только среди значимых расхождений.
+    const byMap = new Map(mirror.maps.map((item) => [item.map, item]));
+    if (mirror.likelyPick !== null) {
+      const pick = byMap.get(mirror.likelyPick);
+      assert.ok(pick.significant && pick.mirrorEdge > 0);
+      assert.equal(pick.mirrorEdge, Math.max(...mirror.maps
+        .filter((item) => item.significant && item.mirrorEdge > 0)
+        .map((item) => item.mirrorEdge)));
+    } else {
+      assert.ok(!mirror.maps.some((item) => item.significant && item.mirrorEdge > 0));
+    }
+    if (mirror.likelyBan !== null) {
+      const ban = byMap.get(mirror.likelyBan);
+      assert.ok(ban.significant && ban.mirrorEdge < 0);
+      assert.equal(ban.mirrorEdge, Math.min(...mirror.maps
+        .filter((item) => item.significant && item.mirrorEdge < 0)
+        .map((item) => item.mirrorEdge)));
+    } else {
+      assert.ok(!mirror.maps.some((item) => item.significant && item.mirrorEdge < 0));
+    }
+
+    const plan = recommendations.find(({ opponentTeamId }) => (
+      opponentTeamId === mirror.opponentTeamId
+    ));
+    assert.deepEqual(mirror.ourPlan, {
+      matchId: plan.matchId, date: plan.date, pick: plan.pick, ban: plan.ban,
+    });
+    assert.equal(mirror.clash.pickContested, mirror.likelyBan === plan.pick);
+    assert.equal(mirror.clash.banConfirmed, mirror.likelyPick === plan.ban);
+    assert.equal(mirror.clash.ourPickMirrorEdge, byMap.get(plan.pick).mirrorEdge);
+
+    // Попарное сравнение против конкретного соперника, а не против медианы лиги.
+    assert.equal(mirror.metricEdges.length, 12);
+    for (let index = 1; index < mirror.metricEdges.length; index += 1) {
+      assert.ok(mirror.metricEdges[index - 1].delta <= mirror.metricEdges[index].delta);
+    }
+    for (const entry of mirror.metricEdges) {
+      assert.equal(entry.usValue, us.recent.metrics[entry.metric]);
+      assert.equal(entry.opponentValue, opponent.recent.metrics[entry.metric]);
+      assert.ok(Math.abs(entry.delta - (entry.usValue - entry.opponentValue)) < 1e-12);
+      assert.equal(entry.usEvidenceId, `team:us:recent:${entry.metric}`);
+      assert.equal(entry.opponentEvidenceId, `team:${mirror.opponentTeamId}:recent:${entry.metric}`);
+      assert.ok(evidenceIds.has(entry.usEvidenceId) && evidenceIds.has(entry.opponentEvidenceId));
+    }
+
+    // Игроки с тонкой выборкой не попадают ни в угрозы, ни в цели.
+    const eligibleIds = new Set(eligible.map(({ steamid }) => steamid));
+    assert.deepEqual(mirror.focusTargets.map(({ kind }) => kind), [
+      'rating', 'rating', 'opening', 'utility',
+    ]);
+    assert.deepEqual(mirror.softTargets.map(({ kind }) => kind), ['rating', 'opening']);
+    for (const item of [...mirror.focusTargets, ...mirror.softTargets]) {
+      assert.ok(eligibleIds.has(item.steamid), `${item.steamid} below sample threshold`);
+      assert.ok(item.sampleRounds >= 200);
+      const player = ourPlayers.find(({ steamid }) => steamid === item.steamid);
+      assert.equal(item.value, player.recent.metrics[item.metric]);
+      assert.equal(item.evidenceId, `player:${item.steamid}:recent:${item.kind}`);
+      assert.ok(evidenceIds.has(item.evidenceId));
+    }
+    const best = (metric) => Math.max(...eligible.map((p) => p.recent.metrics[metric]));
+    const worst = (metric) => Math.min(...eligible.map((p) => p.recent.metrics[metric]));
+    assert.equal(mirror.focusTargets[0].value, best('rating'));
+    assert.equal(mirror.focusTargets[2].value, best('openingDiffPer100'));
+    assert.equal(mirror.focusTargets[3].value, best('utilityDamagePerRound'));
+    assert.equal(mirror.softTargets[0].value, worst('rating'));
+    assert.equal(mirror.softTargets[1].value, worst('openingDiffPer100'));
+
+    assert.deepEqual(mirror.caveatEvidenceIds, [
+      'limitation:cohesion', 'limitation:positions', 'confirmed-lineup:us',
+    ]);
+    assert.ok(mirror.caveatEvidenceIds.every((id) => evidenceIds.has(id)));
+  }
+
+  // Ранги лиги считаются для всех пяти команд и покрывают 1..5 без дыр.
+  const TEAM_METRIC_KEYS = mirrors[0].metricEdges.map(({ metric }) => metric);
+  for (const metric of TEAM_METRIC_KEYS) {
+    const ranks = teams.map((team) => team.scouting.leagueRanks[metric]);
+    assert.ok(ranks.every(({ of }) => of === 5));
+    assert.deepEqual([...ranks.map(({ rank }) => rank)].sort(), [1, 2, 3, 4, 5]);
+    const leader = teams.find((team) => team.scouting.leagueRanks[metric].rank === 1);
+    assert.equal(leader.recent.metrics[metric], Math.max(...teams.map((team) => (
+      team.recent.metrics[metric]
+    ))));
+  }
+});
+
 test('failed generation is clean for an empty target and preserves a valid target', async (t) => {
   const base = JSON.parse(await readFile(RECOMMENDATIONS, 'utf8'));
   base.snapshotRoot = '0'.repeat(64);

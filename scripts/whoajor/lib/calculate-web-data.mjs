@@ -15,6 +15,12 @@ const TEAM_METRIC_KEYS = [
   'clutchWinRate', 'forceWinRate', 'fullWinRate', 'tRoundWinRate', 'ctRoundWinRate',
   'utilityDamagePerRound', 'tradeRate',
 ];
+// Активный пул сезона — /03_wiki/map-pool-2026.md. mapEdges покрывают 32 карты,
+// включая коммьюнити- и воркшоп-карты; зеркальное вето считаем только по пулу.
+const SUFFICIENT_SAMPLE_ROUNDS = 200;
+const ACTIVE_MAP_POOL = [
+  'de_ancient', 'de_anubis', 'de_cache', 'de_dust2', 'de_inferno', 'de_mirage', 'de_nuke',
+];
 const REVIEWED_SCHEDULE = [
   { matchId: 'm01', date: '2026-09-30', opponentTeamId: 'pocelui' },
   { matchId: 'm02', date: '2026-10-01', opponentTeamId: 'takahuli' },
@@ -290,6 +296,125 @@ function buildEvidence(players, teams, mapEdges) {
   return evidence.sort((left, right) => left.id.localeCompare(right.id));
 }
 
+function leagueRanks(teams) {
+  const ranks = new Map(teams.map(({ teamId }) => [teamId, {}]));
+  for (const metric of TEAM_METRIC_KEYS) {
+    const scored = teams.filter((team) => team.recent.metrics[metric] !== null);
+    for (const team of scored) {
+      const value = team.recent.metrics[metric];
+      const better = scored.filter((other) => other.recent.metrics[metric] > value).length;
+      ranks.get(team.teamId)[metric] = { rank: better + 1, of: scored.length };
+    }
+  }
+  return ranks;
+}
+
+function rankBy(players, metric, direction) {
+  return [...players].sort((left, right) => {
+    const delta = right.recent.metrics[metric] - left.recent.metrics[metric];
+    return (direction === 'asc' ? -delta : delta) || left.steamid.localeCompare(right.steamid);
+  });
+}
+
+function target(player, kind, metric) {
+  return {
+    steamid: player.steamid,
+    kind,
+    metric,
+    value: player.recent.metrics[metric],
+    sampleRounds: player.recent.sums.rounds,
+    evidenceId: `player:${player.steamid}:recent:${kind}`,
+  };
+}
+
+// Зеркальный скаутинг: как наш профиль выглядит со стороны каждого соперника.
+// Переиспользует уже выпущенные evidence-ID, новых свидетельств не вводит.
+function buildMirrorScouting(teams, playersByTeam, mapEdges, recommendations) {
+  const teamById = new Map(teams.map((team) => [team.teamId, team]));
+  const us = teamById.get('us');
+  const eligible = playersByTeam.get('us')
+    .filter((player) => player.recent.sums.rounds >= SUFFICIENT_SAMPLE_ROUNDS);
+  if (eligible.length === 0) throw new Error('mirror scouting needs at least one eligible player');
+  const byRating = rankBy(eligible, 'rating', 'desc');
+  const byOpening = rankBy(eligible, 'openingDiffPer100', 'desc');
+  const byUtility = rankBy(eligible, 'utilityDamagePerRound', 'desc');
+  // Соперник видит те же публичные цифры, что и мы: топ-2 по рейтингу плюс лидеров
+  // по открытиям и утилите. Один игрок может попасть в несколько векторов угрозы.
+  const focusTargets = [
+    ...byRating.slice(0, 2).map((player) => target(player, 'rating', 'rating')),
+    target(byOpening[0], 'opening', 'openingDiffPer100'),
+    target(byUtility[0], 'utility', 'utilityDamagePerRound'),
+  ];
+  const softTargets = [
+    target(byRating[byRating.length - 1], 'rating', 'rating'),
+    target(byOpening[byOpening.length - 1], 'opening', 'openingDiffPer100'),
+  ];
+  const planByOpponent = new Map(recommendations.map((plan) => [plan.opponentTeamId, plan]));
+
+  return mapEdges.map(({ opponentTeamId, maps }) => {
+    const opponent = teamById.get(opponentTeamId);
+    const pool = ACTIVE_MAP_POOL.map((map) => {
+      const edge = maps.find((item) => item.map === map);
+      if (!edge) throw new Error(`mirror scouting missing map edge: ${opponentTeamId}/${map}`);
+      return {
+        map,
+        edge: edge.edge,
+        mirrorEdge: -edge.edge,
+        significant: edge.significant,
+        confidence: edge.confidence,
+        usAdjustedRating: edge.us.adjustedRating,
+        opponentAdjustedRating: edge.opponent.adjustedRating,
+        usPlayerRounds: edge.us.playerRounds,
+        opponentPlayerRounds: edge.opponent.playerRounds,
+        evidenceId: `map-edge:${opponentTeamId}:${map}`,
+      };
+    }).sort((left, right) => right.mirrorEdge - left.mirrorEdge
+      || left.map.localeCompare(right.map));
+    // Вето соперников ни разу не наблюдалось (/04_synthesis/open-questions.md Q2):
+    // это проекция силы на карте, а не история пиков.
+    const decisive = pool.filter((item) => item.significant);
+    const likelyPick = decisive.find((item) => item.mirrorEdge > 0)?.map ?? null;
+    const likelyBan = [...decisive].reverse().find((item) => item.mirrorEdge < 0)?.map ?? null;
+    const plan = planByOpponent.get(opponentTeamId) ?? null;
+    const metricEdges = TEAM_METRIC_KEYS.map((metric) => ({
+      metric,
+      usValue: us.recent.metrics[metric],
+      opponentValue: opponent.recent.metrics[metric],
+      delta: us.recent.metrics[metric] === null || opponent.recent.metrics[metric] === null
+        ? null : us.recent.metrics[metric] - opponent.recent.metrics[metric],
+      usEvidenceId: `team:us:recent:${metric}`,
+      opponentEvidenceId: `team:${opponentTeamId}:recent:${metric}`,
+    })).filter(({ delta }) => delta !== null).sort((left, right) => left.delta - right.delta);
+
+    return {
+      opponentTeamId,
+      opponentName: opponent.name,
+      sufficientSampleRounds: SUFFICIENT_SAMPLE_ROUNDS,
+      sample: {
+        usPlayerRounds: us.recent.sums.rounds,
+        opponentPlayerRounds: opponent.recent.sums.rounds,
+      },
+      maps: pool,
+      metricEdges,
+      likelyPick,
+      likelyBan,
+      ourPlan: plan ? {
+        matchId: plan.matchId, date: plan.date, pick: plan.pick, ban: plan.ban,
+      } : null,
+      clash: {
+        pickContested: Boolean(plan) && likelyBan === plan.pick,
+        banConfirmed: Boolean(plan) && likelyPick === plan.ban,
+        ourPickMirrorEdge: plan
+          ? pool.find((item) => item.map === plan.pick)?.mirrorEdge ?? null
+          : null,
+      },
+      focusTargets,
+      softTargets,
+      caveatEvidenceIds: ['limitation:cohesion', 'limitation:positions', 'confirmed-lineup:us'],
+    };
+  });
+}
+
 export function validateReviewedRecommendations(config, evidenceIndex, rosters, teams) {
   if (config.snapshotRoot !== CANONICAL_ROOT) throw new Error('recommendations root mismatch');
   if (config.reviewed !== true) throw new Error('recommendations must be reviewed');
@@ -464,6 +589,7 @@ export async function buildCalculatedDatasets(db, configDir, recommendationPath)
   const medians = Object.fromEntries(TEAM_METRIC_KEYS.map((metric) => [
     metric, median(teamMetrics.map((team) => team.recent.metrics[metric])),
   ]));
+  const ranks = leagueRanks(teamMetrics);
   for (const team of teamMetrics) {
     const deviations = TEAM_METRIC_KEYS.map((metric) => ({
       metric,
@@ -473,13 +599,15 @@ export async function buildCalculatedDatasets(db, configDir, recommendationPath)
         ? null : team.recent.metrics[metric] - medians[metric],
       evidenceId: `team:${team.teamId}:recent:${metric}`,
     })).filter(({ delta }) => delta !== null);
-    const eligible = playersByTeam.get(team.teamId).filter((player) => player.recent.sums.rounds >= 200);
+    const eligible = playersByTeam.get(team.teamId)
+      .filter((player) => player.recent.sums.rounds >= SUFFICIENT_SAMPLE_ROUNDS);
     const ratingRank = [...eligible].sort((left, right) => right.recent.metrics.rating - left.recent.metrics.rating);
     const openingRank = [...eligible].sort((left, right) => right.recent.metrics.openingDiffPer100 - left.recent.metrics.openingDiffPer100);
     const utilityRank = [...eligible].sort((left, right) => right.recent.metrics.utilityDamagePerRound - left.recent.metrics.utilityDamagePerRound);
     const ratingThreatIds = new Set(ratingRank.slice(0, 2).map(({ steamid }) => steamid));
     team.scouting = {
-      sufficientSampleRounds: 200,
+      sufficientSampleRounds: SUFFICIENT_SAMPLE_ROUNDS,
+      leagueRanks: ranks.get(team.teamId),
       ratingThreats: ratingRank.slice(0, 2).map((player) => ({ steamid: player.steamid, evidenceId: `player:${player.steamid}:recent:rating` })),
       openingLeader: openingRank[0] && !ratingThreatIds.has(openingRank[0].steamid)
         ? { steamid: openingRank[0].steamid, evidenceId: `player:${openingRank[0].steamid}:recent:opening` }
@@ -498,5 +626,13 @@ export async function buildCalculatedDatasets(db, configDir, recommendationPath)
     rosters,
     teamMetrics,
   );
-  return { rosters, playerMetrics, teamMetrics, mapEdges, evidence, recommendations };
+  const mirrorScouting = buildMirrorScouting(
+    teamMetrics,
+    playersByTeam,
+    mapEdges,
+    recommendations,
+  );
+  return {
+    rosters, playerMetrics, teamMetrics, mapEdges, evidence, recommendations, mirrorScouting,
+  };
 }

@@ -534,6 +534,13 @@
     }
 
     kids.push(el('div', { class: 'team__notes' }, notes));
+    if (t.us) {
+      kids.push(el('a', {
+        class: 'stats-brief-link',
+        href: '#/statistika/zerkalo',
+        text: 'Статистика / как нас видят соперники'
+      }));
+    }
     if (!t.us && /^(pocelui|takahuli|rassadnik|smoke)$/.test(t.id)) {
       var planIds = { pocelui: 'm01', takahuli: 'm02', rassadnik: 'm09', smoke: 'm10' };
       kids.push(el('a', {

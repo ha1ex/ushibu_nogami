@@ -233,3 +233,18 @@
 @media (prefers-reduced-motion: reduce) {
   .stats-loader { animation: none; }
 }
+
+/* --- Зеркальный скаутинг: тот же неймспейс stats-*, цвета только из токенов --- */
+.stats-mirror-matrix { min-width: 640px; }
+.stats-mirror-matrix th[scope='row'] { white-space: nowrap; }
+.stats-mirror-matrix td,
+.stats-mirror-maps td { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.stats-mirror-maps { min-width: 720px; }
+.stats-mirror--theirs { color: var(--warn); font-weight: 600; }
+.stats-mirror--ours { color: var(--ok); font-weight: 600; }
+.stats-mirror--flat { color: var(--text-mute); }
+
+@media (max-width: 760px) {
+  .stats-mirror-matrix { min-width: 560px; }
+  .stats-mirror-maps { min-width: 640px; }
+}

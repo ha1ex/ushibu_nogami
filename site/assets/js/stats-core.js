@@ -41,6 +41,9 @@
     if (parts.length === 1 && LEGACY[parts[0]]) return { tab: LEGACY[parts[0]], path: '#/' + parts[0] };
     if (parts[0] !== 'statistika') return { tab: 'overview', path: '#/obzor' };
     if (parts.length === 1) return { tab: 'statistics', view: 'overview', path: '#/statistika' };
+    if (parts.length === 2 && parts[1] === 'zerkalo') {
+      return { tab: 'statistics', view: 'mirror', path: '#/statistika/zerkalo' };
+    }
     if (parts.length === 2 && LIST_VIEWS.indexOf(parts[1]) !== -1) {
       return { tab: 'statistics', view: parts[1], path: '#/statistika/' + parts[1] };
     }
@@ -49,6 +52,9 @@
     if (!id) return invalid('неверный идентификатор');
     if (parts[1] === 'sopernik' && TEAM_RE.test(id)) {
       return { tab: 'statistics', view: 'team', teamId: id, path: '#/statistika/sopernik/' + encodeURIComponent(id) };
+    }
+    if (parts[1] === 'zerkalo' && TEAM_RE.test(id)) {
+      return { tab: 'statistics', view: 'mirrorTeam', teamId: id, path: '#/statistika/zerkalo/' + encodeURIComponent(id) };
     }
     if (parts[1] === 'igrok' && PLAYER_RE.test(id)) {
       return { tab: 'statistics', view: 'player', steamid: id, path: '#/statistika/igrok/' + id };
@@ -62,7 +68,7 @@
   function assertId(kind, id) {
     if (kind === 'player' && typeof id !== 'string') throw new Error('SteamID должен оставаться строкой');
     var value = String(id);
-    var valid = kind === 'team' ? TEAM_RE.test(value) : kind === 'player' ? PLAYER_RE.test(value) : kind === 'match' ? MATCH_RE.test(value) : false;
+    var valid = kind === 'team' || kind === 'mirror' ? TEAM_RE.test(value) : kind === 'player' ? PLAYER_RE.test(value) : kind === 'match' ? MATCH_RE.test(value) : false;
     if (!valid) throw new Error('Неверный идентификатор маршрута');
     return value;
   }
@@ -70,6 +76,7 @@
   function href(kind, id) {
     var value = assertId(kind, id);
     if (kind === 'team') return '#/statistika/sopernik/' + encodeURIComponent(value);
+    if (kind === 'mirror') return '#/statistika/zerkalo/' + encodeURIComponent(value);
     if (kind === 'player') return '#/statistika/igrok/' + value;
     return '#/statistika/match/' + encodeURIComponent(value);
   }
@@ -195,6 +202,8 @@
   function datasetsForRoute(route) {
     var view = route && route.view;
     if (view === 'overview' || view === 'team') return ['rosters', 'teamMetrics', 'mapEdges', 'recommendations', 'evidence'];
+    if (view === 'mirror') return ['rosters', 'teamMetrics', 'mirrorScouting', 'evidence'];
+    if (view === 'mirrorTeam') return ['rosters', 'teamMetrics', 'mirrorScouting', 'playerMetrics', 'evidence'];
     if (view === 'player') return ['players', 'playerMetrics', 'rosters'];
     if (view === 'match') return ['recommendations', 'evidence', 'rosters', 'matches'];
     if (view === 'maps') return ['maps'];

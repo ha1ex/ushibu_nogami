@@ -32,6 +32,7 @@
 - [Диагностика «Ушибу ногами»](./04_synthesis/cs2-team-diagnostics.md) — сильные стороны и системные провалы
 - [Стратегия вето](./04_synthesis/cs2-veto-strategy.md) — какие карты держать, какие банить
 - [Планы на четыре матча](./04_synthesis/cs2-opponent-plans.md) — пик, бан, что эксплуатируем
+- [Как нас видят соперники](./04_synthesis/cs2-mirror-scouting.md) — зеркальный скаутинг: наш профиль с их стороны
 - [Open questions](./04_synthesis/open-questions.md) — известные пробелы, требующие закрытия
 - [Contradictions](./04_synthesis/contradictions.md) — конфликты в источниках, зафиксированные дословно
 

@@ -75,8 +75,31 @@ test('parseHash preserves legacy routes and exact statistics drill-downs', () =>
   }
 });
 
+test('parseHash routes the mirror overview and per-opponent mirror reports', () => {
+  const plain = (value) => JSON.parse(JSON.stringify(value));
+  assert.deepEqual(plain(Core.parseHash('#/statistika/zerkalo')), {
+    tab: 'statistics', view: 'mirror', path: '#/statistika/zerkalo'
+  });
+  for (const teamId of ['pocelui', 'takahuli', 'rassadnik', 'smoke']) {
+    assert.deepEqual(plain(Core.parseHash(`#/statistika/zerkalo/${teamId}`)), {
+      tab: 'statistics', view: 'mirrorTeam', teamId, path: `#/statistika/zerkalo/${teamId}`
+    });
+  }
+  assert.equal(Core.href('mirror', 'smoke'), '#/statistika/zerkalo/smoke');
+  assert.throws(() => Core.href('mirror', '../private'), /идентификатор/i);
+  assert.deepEqual(Array.from(Core.datasetsForRoute({ view: 'mirror' })), [
+    'rosters', 'teamMetrics', 'mirrorScouting', 'evidence'
+  ]);
+  assert.deepEqual(Array.from(Core.datasetsForRoute({ view: 'mirrorTeam', teamId: 'smoke' })), [
+    'rosters', 'teamMetrics', 'mirrorScouting', 'playerMetrics', 'evidence'
+  ]);
+});
+
 test('parseHash rejects encoded separators, malformed SteamIDs and unknown statistics routes locally', () => {
   for (const hash of [
+    '#/statistika/zerkalo/POCELUI',
+    '#/statistika/zerkalo/pocelui%2Fextra',
+    '#/statistika/zerkalo/pocelui/extra',
     '#/statistika/sopernik/pocelui%2Fextra',
     '#/statistika/igrok/7656119805015879',
     '#/statistika/igrok/76561198050158798/extra',

@@ -311,6 +311,7 @@ export async function verifyPublishedTree({ outputDir, sourceGzip }) {
     playerWeaponDailyStats: (row) => `${row.steamid}|${row.weapon}|${row.day}`,
     weaponDailyStats: (row) => `${row.steamid}|${row.weapon}|${row.day}`,
     weaponSplits: (row) => `${row.steamid}|${row.weapon}`,
+    mirrorScouting: (row) => row.opponentTeamId,
   };
   for (const [dataset, grain] of Object.entries(grains)) {
     assertUnique(rowsByDataset.get(dataset) ?? [], dataset, grain);
@@ -344,10 +345,43 @@ export async function verifyPublishedTree({ outputDir, sourceGzip }) {
     const missing = references.filter((id) => !evidenceIds.has(id));
     if (missing.length) throw new Error(`recommendations missing evidence: ${missing.join(', ')}`);
   }
+  const mirrorScouting = rowsByDataset.get('mirrorScouting') ?? [];
+  const mirrorTeamIds = mirrorScouting.map(({ opponentTeamId }) => opponentTeamId);
+  if (mirrorScouting.length !== 4 || mirrorTeamIds.includes('us')) {
+    throw new Error('mirror scouting must cover exactly the four opponents');
+  }
+  const rosterTeamIds = new Set(rosters.map(({ teamId }) => teamId));
+  for (const mirror of mirrorScouting) {
+    if (!rosterTeamIds.has(mirror.opponentTeamId)) {
+      throw new Error(`mirror scouting unknown opponent: ${mirror.opponentTeamId}`);
+    }
+    if (mirror.maps.length !== 7) throw new Error('mirror scouting must cover the seven-map pool');
+    for (const map of mirror.maps) {
+      if (map.mirrorEdge !== -map.edge) throw new Error('mirror edge must invert the map edge');
+    }
+    for (const key of ['likelyPick', 'likelyBan']) {
+      const value = mirror[key];
+      if (value !== null && !mirror.maps.some((map) => map.map === value)) {
+        throw new Error(`mirror scouting ${key} is outside the map pool`);
+      }
+    }
+    const references = [
+      ...mirror.maps.map(({ evidenceId }) => evidenceId),
+      ...mirror.metricEdges.flatMap(({ usEvidenceId, opponentEvidenceId }) => [
+        usEvidenceId, opponentEvidenceId,
+      ]),
+      ...mirror.focusTargets.map(({ evidenceId }) => evidenceId),
+      ...mirror.softTargets.map(({ evidenceId }) => evidenceId),
+      ...mirror.caveatEvidenceIds,
+    ];
+    const missing = references.filter((id) => !evidenceIds.has(id));
+    if (missing.length) throw new Error(`mirror scouting missing evidence: ${missing.join(', ')}`);
+  }
   return {
     status: 'ok', root: CANONICAL_ROOT, assets: manifest.assets.length,
     maxGzipBytes, rosterMapping: `${rosterPlayers.length}/30`,
     evidence: evidenceIds.size, recommendations: recommendations.length,
+    mirrorScouting: mirrorScouting.length,
   };
 }
 

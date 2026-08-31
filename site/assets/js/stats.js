@@ -60,7 +60,8 @@
 
   function statsNav() {
     return el('nav', { class: 'stats-nav', 'aria-label': 'Разделы статистики' }, [
-      routeLink('#/statistika', 'Сводка'), routeLink('#/statistika/maps', 'Карты'),
+      routeLink('#/statistika', 'Сводка'), routeLink('#/statistika/zerkalo', 'Как нас видят'),
+      routeLink('#/statistika/maps', 'Карты'),
       routeLink('#/statistika/weapons', 'Оружие'), routeLink('#/statistika/trends', 'Тренды'),
       routeLink('#/statistika/quality', 'Качество')
     ]);
@@ -246,6 +247,10 @@
         card('Готовность плана', el('div', {}, [el('p', { class: 'stats-big', text: ready.done + ' / ' + ready.total }), el('p', { text: 'общих задач закрыто' }), el('small', { text: 'Снимок по ' + manifest.window.recentEnd })])),
         card('Главный edge', nearest ? mapFigure(nearest) : el('p', { text: 'Нет данных' })),
         card('Угрозы', nearest ? evidenceList(nearest.threats, rosters) : el('p', { text: 'Нет данных' })),
+        card('Как нас видят', el('div', {}, [
+          el('p', { text: 'Зеркальный скаутинг: наш профиль глазами каждого из четырёх соперников.' }),
+          routeLink('#/statistika/zerkalo', 'Открыть зеркальные отчёты')
+        ])),
         card('Свежесть', el('div', {}, [
           el('p', { class: 'stats-mono', text: manifest.root.slice(0, 12) + '…' }),
           el('p', { text: manifest.window.recentStart + ' — ' + manifest.window.recentEnd }),
@@ -308,6 +313,7 @@
     var lineup = metrics.confirmedLineup || {};
     var recent = metrics.recent || {};
     var all = metrics.allTime || {};
+    var isUs = route.teamId === 'us';
     var body = el('div', { class: 'stats-stack' }, [
       el('p', { class: 'lead stats-caveat', text: 'Командные показатели — проекция индивидуальной статистики; сыгранность пятёрки не измерена.' }),
       el('div', { class: 'stats-hero-grid' }, [
@@ -316,11 +322,15 @@
         card('Публикация', el('div', {}, [el('p', { text: 'Draft avg ' + number(metrics.publishedDraftAverage, 3) }), el('p', { text: 'Draft top-5 ' + number(metrics.publishedDraftTop5Average, 3) }), el('small', { text: manifest.window.recentStart + ' — ' + manifest.window.recentEnd })]))
       ]),
       el('section', { class: 'section' }, [el('h2', { text: 'Состав' }), el('div', { class: 'stats-plan-grid' }, roster.players.map(function (player) { return routeLink(Core.href('player', player.steamid), player.displayName + ' · draft ' + number(player.draftRating, 3), 'card stats-route-card'); }))]),
-      edgeTable(edges && edges.maps || []),
+      isUs ? el('section', { class: 'section' }, [
+        el('h2', { text: 'Map edges' }),
+        el('p', { text: 'Наши edge считаются попарно против каждого соперника — они собраны в зеркальном скаутинге.' }),
+        routeLink('#/statistika/zerkalo', 'Открыть «Как нас видят»')
+      ]) : edgeTable(edges && edges.maps || []),
       scouting(metrics.scouting, data.rosters),
-      planLinks(data.recommendations.filter(function (plan) { return plan.opponentTeamId === route.teamId; }), roster.name)
+      planLinks(isUs ? data.recommendations : data.recommendations.filter(function (plan) { return plan.opponentTeamId === route.teamId; }), data.rosters)
     ]);
-    return shell(roster.name, 'Профиль соперника', body, 'Готово: профиль ' + roster.name);
+    return shell(roster.name, isUs ? 'Наша команда' : 'Профиль соперника', body, 'Готово: профиль ' + roster.name);
   }
 
   function metricPairs(recent, all) {
@@ -349,8 +359,8 @@
     ])]);
   }
 
-  function planLinks(plans, name) {
-    return el('section', { class: 'section' }, [el('h2', { text: 'Матчи' }), plans.length ? el('div', { class: 'stats-plan-grid' }, plans.map(function (plan) { return routeLink(Core.href('match', plan.matchId), plan.date + ' · полный план против ' + name, 'card stats-route-card'); })) : el('p', { text: 'Нет данных' })]);
+  function planLinks(plans, rosters) {
+    return el('section', { class: 'section' }, [el('h2', { text: 'Матчи' }), plans.length ? el('div', { class: 'stats-plan-grid' }, plans.map(function (plan) { return routeLink(Core.href('match', plan.matchId), plan.date + ' · полный план против ' + rosterName(rosters, plan.opponentTeamId), 'card stats-route-card'); })) : el('p', { text: 'Нет данных' })]);
   }
 
   function playerView(data, route) {
@@ -598,6 +608,291 @@
     return shell('Качество данных', 'Provenance / validation', body, 'Готово: ' + manifest.assets.length + ' assets проверяются по SHA-256');
   }
 
+  /* --- Зеркальный скаутинг: наш профиль со стороны каждого соперника --- */
+
+  var MIRROR_KINDS = { rating: 'рейтинг', opening: 'открытия', utility: 'утилита' };
+  // Порог показа, а не порог пайплайна: на отдельной карте 200 раундов недостижимы,
+  // поэтому значения на тонкой выборке приглушаем, но не прячем.
+  var MIRROR_MAP_ROUNDS_FLOOR = 100;
+  var MIRROR_CAVEATS = {
+    'limitation:cohesion': 'Сыгранность пятёрки не измерена: источник не знает сущности «команда», все командные числа — проекция из индивидуальной статистики.',
+    'limitation:positions': 'Позиции и раскидки в источнике недоступны, поэтому противник видит только агрегаты, а не наши расстановки.',
+    'confirmed-lineup:us': 'Подтверждённых матчей нашей пятёркой в снимке нет — как мы играем составом, не видно ни им, ни нам.'
+  };
+
+  function signed(value, digits) {
+    return typeof value === 'number' && Number.isFinite(value)
+      ? (value > 0 ? '+' : '') + value.toFixed(digits == null ? 3 : digits) : 'Нет данных';
+  }
+
+  function mirrorEdgeClass(row) {
+    if (!row || !row.significant) return 'stats-mirror--flat';
+    return row.mirrorEdge > 0 ? 'stats-mirror--theirs' : 'stats-mirror--ours';
+  }
+
+  function mirrorOrder(mirrors) {
+    return mirrors.slice().sort(function (a, b) {
+      var left = a.ourPlan ? a.ourPlan.date : '9999-99-99';
+      var right = b.ourPlan ? b.ourPlan.date : '9999-99-99';
+      return left.localeCompare(right) || a.opponentTeamId.localeCompare(b.opponentTeamId);
+    });
+  }
+
+  function mirrorLead(teamMetrics, us) {
+    var rounds = us.recent && us.recent.sums ? us.recent.sums.rounds : 0;
+    var thickest = teamMetrics.reduce(function (max, team) {
+      return Math.max(max, team.recent && team.recent.sums ? team.recent.sums.rounds : 0);
+    }, 0);
+    var lineup = us.confirmedLineup || {};
+    return el('p', { class: 'lead stats-caveat', text: 'Наш профиль глазами соперника: те же публичные цифры, но с их стороны. '
+      + 'Командные показатели — проекция индивидуальной статистики шести игроков, сыгранность не измерена'
+      + (lineup.confirmed ? '.' : '; подтверждённой пятёрки у нас нет.')
+      + ' Наша выборка — ' + rounds + ' player-раундов против ' + thickest + ' у самой «толстой» команды лиги, поэтому наши числа шумнее.' });
+  }
+
+  function mirrorRankList(rows, us) {
+    return el('ul', { class: 'stats-evidence', 'data-evidence': 'true' }, (rows || []).map(function (row) {
+      var rank = (us.scouting && us.scouting.leagueRanks || {})[row.metric];
+      return el('li', {}, [
+        el('span', { text: metricName(row.metric) + ' · ' + number(row.value) }),
+        el('small', { text: (rank ? rank.rank + '-е из ' + rank.of + ' · ' : '')
+          + (row.delta === 0 ? 'ровно на медиане лиги' : 'к медиане ' + signed(row.delta)) + ' · ' + row.evidenceId })
+      ]);
+    }));
+  }
+
+  function mirrorTargets(title, rows, rosters, note) {
+    return card(title, el('div', {}, [
+      el('ul', { class: 'stats-evidence', 'data-evidence': 'true' }, (rows || []).map(function (row) {
+        return el('li', {}, [
+          el('span', {}, [
+            routeLink(Core.href('player', row.steamid), playerName(rosters, row.steamid)),
+            ' · ' + MIRROR_KINDS[row.kind] + ' ' + number(row.value)
+          ]),
+          el('small', { text: row.sampleRounds + ' раундов · ' + row.evidenceId })
+        ]);
+      })),
+      el('small', { class: 'stats-sync-note', text: note })
+    ]));
+  }
+
+  function mirrorVetoLine(mirror) {
+    return (mirror.likelyPick ? 'вероятный пик — ' + mapName(mirror.likelyPick) : 'нет карты, где они сильнее нас')
+      + ' · ' + (mirror.likelyBan ? 'вероятный бан — ' + mapName(mirror.likelyBan) : 'нет карты, где мы сильнее них');
+  }
+
+  function mirrorMatrix(mirrors) {
+    var maps = mirrors[0].maps.map(function (row) { return row.map; }).sort();
+    var byTeam = mirrors.map(function (mirror) {
+      var index = Object.create(null);
+      mirror.maps.forEach(function (row) { index[row.map] = row; });
+      return { mirror: mirror, index: index };
+    });
+    return el('section', { class: 'section' }, [
+      el('h2', { text: 'Матрица вето их глазами' }),
+      el('p', { class: 'stats-sync-note', text: 'Плюс — карта в пользу соперника, минус — в нашу. Жирным выделены значимые расхождения (|edge| ≥ 0.03).' }),
+      el('div', { class: 'table-wrap', 'aria-label': 'Матрица зеркальных map edge: прокрутите по горизонтали' },
+        el('table', { class: 'data stats-mirror-matrix', 'aria-label': 'Зеркальные map edge по соперникам' }, [
+          el('thead', {}, el('tr', {}, [el('th', { scope: 'col', text: 'Карта' })].concat(byTeam.map(function (entry) {
+            return el('th', { scope: 'col', text: entry.mirror.opponentName });
+          })))),
+          el('tbody', {}, maps.map(function (map) {
+            return el('tr', {}, [el('th', { scope: 'row', text: mapName(map) })].concat(byTeam.map(function (entry) {
+              var row = entry.index[map];
+              return el('td', { class: mirrorEdgeClass(row), text: row ? signed(row.mirrorEdge) : 'Нет данных' });
+            })));
+          }))
+        ]))
+    ]);
+  }
+
+  function mirrorView(data, manifest) {
+    var rosters = data.rosters;
+    var us = findBy(data.teamMetrics, 'teamId', 'us');
+    var mirrors = mirrorOrder(data.mirrorScouting || []);
+    if (!us || !mirrors.length) return emptyView('Зеркальный скаутинг недоступен в этом снимке');
+    rosters.forEach(function (row) { knownTeams[row.teamId] = true; });
+    var ranks = (us.scouting && us.scouting.leagueRanks) || {};
+    var ratingRank = ranks.rating;
+    var lineup = us.confirmedLineup || {};
+    var contested = mirrors.filter(function (mirror) { return mirror.clash && mirror.clash.pickContested; });
+    var main = el('div', { class: 'stats-stack' }, [
+      mirrorLead(data.teamMetrics, us),
+      el('div', { class: 'stats-hero-grid' }, [
+        card('Наш профиль в лиге', el('div', {}, [
+          el('p', { class: 'stats-big', text: number(us.recent.metrics.rating) }),
+          el('p', { text: 'Rating 2' + (ratingRank ? ' · ' + ratingRank.rank + '-е место из ' + ratingRank.of : '') }),
+          el('small', { text: 'ADR ' + number(us.recent.metrics.adr, 1) + ' · KAST ' + percent(us.recent.metrics.kast) })
+        ])),
+        card('Что они видят сильным', mirrorRankList(us.scouting && us.scouting.risks, us)),
+        card('Что они будут атаковать', mirrorRankList(us.scouting && us.scouting.exploits, us)),
+        card('Чего они про нас не знают', el('ul', { class: 'stats-list' }, [
+          el('li', { text: lineup.confirmed ? 'Пятёрка подтверждена' : 'Ни одного матча подтверждённой пятёркой — сыгранность не видна никому' }),
+          el('li', { text: 'Позиции и раскидки в источнике недоступны' }),
+          el('li', { text: 'История вето соперников не наблюдалась ни разу' })
+        ]))
+      ]),
+      contested.length ? el('p', { class: 'stats-caveat', text: 'Внимание: у ' + contested.length + ' из ' + mirrors.length
+        + ' соперников наш плановый пик совпадает с их наиболее вероятным баном — ' + contested.map(function (mirror) { return mirror.opponentName; }).join(', ') + '.' }) : null,
+      mirrorMatrix(mirrors),
+      el('section', { class: 'section' }, [
+        el('h2', { text: 'Четыре зеркальных отчёта' }),
+        el('div', { class: 'stats-plan-grid' }, mirrors.map(function (mirror) {
+          return routeLink(Core.href('mirror', mirror.opponentTeamId),
+            mirror.opponentName + ' · ' + mirrorVetoLine(mirror), 'card stats-route-card');
+        }))
+      ]),
+      el('section', { class: 'section' }, [
+        el('h2', { text: 'Кого они видят в нашем составе' }),
+        el('div', { class: 'stats-hero-grid' }, [
+          mirrorTargets('Угрозы', mirrors[0].focusTargets, rosters, 'Топ-2 по рейтингу плюс лидеры по открытиям и утилите. Один игрок может закрывать несколько векторов.'),
+          mirrorTargets('Цели для размена', mirrors[0].softTargets, rosters, 'Худшие по рейтингу и по разнице открытий среди игроков с выборкой от ' + mirrors[0].sufficientSampleRounds + ' раундов.')
+        ])
+      ]),
+      el('p', { class: 'stats-sync-note', text: 'Снимок по ' + manifest.window.recentEnd + ' · окно ' + manifest.window.recentStart + ' — ' + manifest.window.recentEnd })
+    ]);
+    return shell('Как нас видят', 'Зеркальный скаутинг', main, 'Готово: зеркальный профиль и ' + mirrors.length + ' отчёта соперников');
+  }
+
+  function mirrorMapTable(mirror) {
+    return el('section', { class: 'section' }, [
+      el('h2', { text: 'Вето их глазами' }),
+      el('p', { class: 'stats-sync-note', text: 'Сверху — карты, которые выгодны сопернику. Вето соперников не наблюдалось, это проекция силы на карте, а не история пиков.' }),
+      el('div', { class: 'table-wrap', 'aria-label': 'Таблица зеркальных map edge: прокрутите по горизонтали' },
+        el('table', { class: 'data stats-mirror-maps', 'aria-label': 'Зеркальные map edge' }, [
+          el('thead', {}, el('tr', {}, ['Карта', 'Edge для них', 'Мы', 'Они', 'Наши раунды', 'Их раунды', 'Confidence'].map(function (head) {
+            return el('th', { scope: 'col', text: head });
+          }))),
+          el('tbody', {}, mirror.maps.map(function (row) {
+            return el('tr', {}, [
+              el('th', { scope: 'row', text: mapName(row.map) }),
+              el('td', { class: mirrorEdgeClass(row), text: signed(row.mirrorEdge) }),
+              el('td', { text: number(row.usAdjustedRating) }),
+              el('td', { text: number(row.opponentAdjustedRating) }),
+              el('td', { text: String(row.usPlayerRounds) }),
+              el('td', { text: String(row.opponentPlayerRounds) }),
+              el('td', { text: confidence(row.confidence) })
+            ]);
+          }))
+        ]))
+    ]);
+  }
+
+  function mirrorMetricTable(mirror) {
+    var worse = mirror.metricEdges.filter(function (row) { return row.delta < 0; });
+    var better = mirror.metricEdges.filter(function (row) { return row.delta > 0; }).reverse();
+    function list(rows, empty) {
+      return rows.length ? el('ul', { class: 'stats-evidence', 'data-evidence': 'true' }, rows.slice(0, 3).map(function (row) {
+        return el('li', {}, [
+          el('span', { text: metricName(row.metric) + ' · мы ' + number(row.usValue) + ' / они ' + number(row.opponentValue) }),
+          el('small', { text: signed(row.delta) + ' · ' + row.usEvidenceId + ' · ' + row.opponentEvidenceId })
+        ]);
+      })) : el('p', { text: empty });
+    }
+    return el('section', { class: 'section' }, [
+      el('h2', { text: 'Мы против них' }),
+      el('div', { class: 'stats-hero-grid' }, [
+        card('Что они будут эксплуатировать', list(worse, 'Ни по одной метрике мы им не уступаем')),
+        card('Чего они опасаются', list(better, 'Ни по одной метрике мы их не превосходим'))
+      ])
+    ]);
+  }
+
+  function mirrorPickTable(mirror, players, rosters) {
+    // Значимого пика может не быть вовсе; тогда берём лучшую для них карту пула и помечаем это.
+    var focus = mirror.likelyPick || (mirror.maps[0] && mirror.maps[0].map);
+    if (!focus) return null;
+    var note = mirror.likelyPick
+      ? 'Карта, где соперник статистически сильнее нас.'
+      : 'Значимого перевеса у соперника нет ни на одной карте; это лучшая для них карта пула, расхождение незначимо.';
+    var rows = players.map(function (player) {
+      var window = (player.maps && player.maps.recent && player.maps.recent[focus]) || null;
+      return {
+        steamid: player.steamid,
+        rating: window ? window.metrics.rating : null,
+        rounds: window ? window.sums.rounds : 0
+      };
+    }).sort(function (a, b) {
+      if (a.rating === null) return 1;
+      if (b.rating === null) return -1;
+      return b.rating - a.rating;
+    });
+    return el('section', { class: 'section' }, [
+      el('h2', { text: 'Наши шесть на ' + mapName(focus) }),
+      el('p', { class: 'stats-sync-note', text: note + ' Rating 2 на одной карте считается по десяткам раундов: значения на выборке меньше '
+        + MIRROR_MAP_ROUNDS_FLOOR + ' раундов приглушены — это ориентир, а не оценка.' }),
+      el('div', { class: 'table-wrap', 'aria-label': 'Таблица нашего состава на вероятном пике соперника' },
+        el('table', { class: 'data', 'aria-label': 'Наш состав на вероятном пике соперника' }, [
+          el('thead', {}, el('tr', {}, ['Игрок', 'Rating 2', 'Раундов'].map(function (head) { return el('th', { scope: 'col', text: head }); }))),
+          el('tbody', {}, rows.map(function (row) {
+            return el('tr', {}, [
+              el('th', { scope: 'row' }, routeLink(Core.href('player', row.steamid), playerName(rosters, row.steamid))),
+              el('td', { class: row.rounds >= MIRROR_MAP_ROUNDS_FLOOR ? null : 'stats-mirror--flat', text: number(row.rating) }),
+              el('td', { class: row.rounds >= MIRROR_MAP_ROUNDS_FLOOR ? null : 'stats-mirror--flat', text: row.rounds ? String(row.rounds) : 'Нет данных' })
+            ]);
+          }))
+        ]))
+    ]);
+  }
+
+  function mirrorTeamView(data, route, manifest) {
+    var mirror = findBy(data.mirrorScouting || [], 'opponentTeamId', route.teamId);
+    if (!mirror) return emptyView('Зеркальный отчёт для команды ' + route.teamId + ' недоступен');
+    var rosters = data.rosters;
+    rosters.forEach(function (row) { knownTeams[row.teamId] = true; });
+    var players = (data.playerMetrics || []).filter(function (player) { return player.teamId === 'us'; });
+    var plan = mirror.ourPlan;
+    var clash = mirror.clash || {};
+    var evidenceById = Object.create(null);
+    (data.evidence || []).forEach(function (item) { evidenceById[item.id] = item; });
+    var body = el('div', { class: 'stats-stack' }, [
+      el('p', { class: 'lead stats-caveat', text: 'Проекция из индивидуальной статистики; сыгранность пятёрки не измерена. '
+        + 'Наши ' + mirror.sample.usPlayerRounds + ' player-раундов против их ' + mirror.sample.opponentPlayerRounds + '.' }),
+      el('div', { class: 'stats-hero-grid' }, [
+        card('Их вероятный пик', el('div', {}, [
+          el('p', { class: 'stats-big', text: mirror.likelyPick ? mapName(mirror.likelyPick) : '—' }),
+          el('p', { text: mirror.likelyPick ? 'карта, где они статистически сильнее нас' : 'нет карты, где они статистически сильнее нас' })
+        ])),
+        card('Их вероятный бан', el('div', {}, [
+          el('p', { class: 'stats-big', text: mirror.likelyBan ? mapName(mirror.likelyBan) : '—' }),
+          el('p', { text: mirror.likelyBan ? 'карта, где мы статистически сильнее' : 'нет карты, где мы статистически сильнее' })
+        ])),
+        card('Наш план против них', plan ? el('div', {}, [
+          el('p', { text: 'Пик ' + mapName(plan.pick) + ' · бан ' + mapName(plan.ban) }),
+          el('p', { text: 'Наш пик их глазами: ' + signed(clash.ourPickMirrorEdge) }),
+          routeLink(Core.href('match', plan.matchId), plan.date + ' · полный план матча')
+        ]) : el('p', { text: 'Нет данных' })),
+        card('Столкновение', el('ul', { class: 'stats-list' }, [
+          el('li', { text: clash.pickContested ? 'Наш пик ' + mapName(plan.pick) + ' — их наиболее вероятный бан' : 'Наш пик не совпадает с их вероятным баном' }),
+          el('li', { text: clash.banConfirmed ? 'Наш бан бьёт по их вероятному пику' : 'Наш бан не совпадает с их вероятным пиком' })
+        ]))
+      ]),
+      mirrorMapTable(mirror),
+      mirrorPickTable(mirror, players, rosters),
+      mirrorMetricTable(mirror),
+      el('section', { class: 'section' }, [
+        el('h2', { text: 'Кого они видят в нашем составе' }),
+        el('div', { class: 'stats-hero-grid' }, [
+          mirrorTargets('Угрозы', mirror.focusTargets, rosters, 'Топ-2 по рейтингу плюс лидеры по открытиям и утилите.'),
+          mirrorTargets('Цели для размена', mirror.softTargets, rosters, 'Худшие по рейтингу и по разнице открытий среди игроков с выборкой от ' + mirror.sufficientSampleRounds + ' раундов.')
+        ])
+      ]),
+      el('section', { class: 'section' }, [
+        el('h2', { text: 'Чего они не могут увидеть' }),
+        el('ul', { class: 'stats-evidence', 'data-evidence': 'true' }, mirror.caveatEvidenceIds.map(function (id) {
+          var item = evidenceById[id] || {};
+          return el('li', {}, [
+            el('span', { text: MIRROR_CAVEATS[id] || text(item.kind, id) }),
+            el('small', { text: 'значение ' + text(item.value === undefined ? null : String(item.value)) + ' · ' + id })
+          ]);
+        }))
+      ]),
+      el('p', { class: 'stats-sync-note', text: 'Снимок по ' + manifest.window.recentEnd }),
+      routeLink('#/statistika/zerkalo', 'Ко всем зеркальным отчётам')
+    ]);
+    return shell('Нас глазами «' + mirror.opponentName + '»', 'Зеркальный отчёт', body, 'Готово: зеркальный отчёт против ' + mirror.opponentName);
+  }
+
   async function loadRoute(route) {
     var state = await client.open();
     var names = Core.datasetsForRoute(route);
@@ -618,6 +913,8 @@
     if (route.view === 'team') return teamView(data, route, state.manifest);
     if (route.view === 'player') return playerView(data, route);
     if (route.view === 'match') return matchView(data, route, state.manifest);
+    if (route.view === 'mirror') return mirrorView(data, state.manifest);
+    if (route.view === 'mirrorTeam') return mirrorTeamView(data, route, state.manifest);
     if (route.view === 'maps') return mapsView(data.maps);
     if (route.view === 'weapons') return weaponsView(data.weapons);
     if (route.view === 'trends') return trendsView(data.trendPlayers);

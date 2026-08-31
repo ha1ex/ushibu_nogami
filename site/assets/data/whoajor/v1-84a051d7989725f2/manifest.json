@@ -5769,9 +5769,9 @@
       "dataset": "teamMetrics",
       "path": "data/teamMetrics-000.json",
       "count": 5,
-      "bytes": 30984,
-      "gzipBytes": 7865,
-      "sha256": "acdcc89344ec4cf3833f6867d93a3d835cfa417e894c7309ebb21e1fef3237fd"
+      "bytes": 33109,
+      "gzipBytes": 8131,
+      "sha256": "096a4be4ce836b54861823a248f0fab841c89adfb59cde88adf8f81c516e36a2"
     },
     {
       "dataset": "mapEdges",
@@ -5796,6 +5796,14 @@
       "bytes": 20522,
       "gzipBytes": 5309,
       "sha256": "abc591ff2d5fdb6131d67b96a4b3be0ac86a5f3435d350b0d100967daab135ce"
+    },
+    {
+      "dataset": "mirrorScouting",
+      "path": "data/mirrorScouting-000.json",
+      "count": 4,
+      "bytes": 25257,
+      "gzipBytes": 4024,
+      "sha256": "1a75f6754e7619eee358a8bfd2c8d0a5618f86247f1c5eabbd22c86973ce32af"
     }
   ]
 }
