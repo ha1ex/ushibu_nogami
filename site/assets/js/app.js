@@ -38,6 +38,10 @@
     return (rows || []).filter(function (row) { return row.id === id; })[0] || null;
   }
 
+  function vetoCard(match) {
+    return match ? find(match.cards, match.vetoCardId) : null;
+  }
+
   function formatDate(iso) {
     var parts = String(iso || '').split('-');
     return parts.length === 3 ? parts[2] + '.' + parts[1] + '.' + parts[0] : 'Дата неизвестна';
@@ -176,9 +180,10 @@
     return [
       header('Маршрут сезона', 'Матчи', 'Только наши матчи из репозиторного оперативного источника.', operations.matches.length + ' матча'),
       create('div', { class: 'ops-list' }, operations.matches.map(function (match) {
+        var veto = vetoCard(match);
         return create('article', { class: 'ops-list-row' }, [
           create('time', { datetime: match.date, text: formatDate(match.date) }),
-          create('div', {}, [create('h2', { text: match.opponent }), create('p', { text: 'Вето не утверждено' })]),
+          create('div', {}, [create('h2', { text: match.opponent }), create('p', { text: veto ? veto.title : 'Статус вето не указан' })]),
           create('a', { class: 'ops-row-link', href: '#/match/' + match.id, text: 'Открыть матч' })
         ]);
       }))
@@ -187,12 +192,12 @@
 
   function renderMatch(match) {
     if (!match) return renderNotFound();
-    var vetoUnknown = match.cards.some(function (card) { return card.id.indexOf('-veto') !== -1 && card.type === 'unknown'; });
+    var veto = vetoCard(match);
     return [
       header('Матч ' + match.id.toUpperCase(), match.opponent, 'Оперативная карточка на ' + formatDate(match.date), formatDate(match.date)),
-      create('div', { class: 'ops-status-strip' }, [
+      create('div', { class: 'ops-status-strip', 'data-veto-type': veto ? veto.type : 'missing' }, [
         create('span', { class: 'ops-status-dot', 'aria-hidden': 'true' }),
-        create('strong', { text: vetoUnknown ? 'Вето не утверждено' : 'Статус вето неизвестен' })
+        create('strong', { text: veto ? veto.title : 'Статус вето не указан' })
       ]),
       section('Факты и неизвестные', cardsGrid(match.cards.filter(function (card) { return card.type !== 'action'; })), 'Состояние матча'),
       section('Действия', cardsGrid(match.cards.filter(function (card) { return card.type === 'action'; }), { checkable: true }), 'Выполнение, не освоение'),
@@ -331,7 +336,10 @@
       operational.hidden = true; statistics.hidden = false;
       document.title = 'Данные — Штаб CS2 «Ушибу ногами»';
       ensureStats().then(function () {
-        window.Stats.open(window.StatsCore.parseHash(route.rawHash), { moveFocus: false });
+        window.Stats.open(window.StatsCore.parseHash(route.rawHash), {
+          moveFocus: false,
+          canonicalMaps: operations.maps.map(function (map) { return { id: map.id, name: map.name }; })
+        });
       }).catch(function (error) { renderStatsError(error, route); });
       return;
     }

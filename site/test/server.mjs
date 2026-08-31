@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const root = path.resolve(import.meta.dirname, '..');
+const port = Number(process.env.PLAYWRIGHT_PORT || 4173);
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.jpg': 'image/jpeg', '.woff2': 'font/woff2' };
 let teamState = { checks: {}, notes: {} };
 
@@ -37,5 +38,5 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(4173, '127.0.0.1');
+server.listen(port, '127.0.0.1');
 for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => server.close(() => process.exit(0)));

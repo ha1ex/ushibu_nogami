@@ -97,10 +97,11 @@
     },
     "match": {
       "type": "object", "additionalProperties": false,
-      "required": ["id", "date", "opponentId", "opponent", "cards"],
+      "required": ["id", "date", "opponentId", "opponent", "vetoCardId", "cards"],
       "properties": {
         "id": { "$ref": "#/$defs/id" }, "date": { "$ref": "#/$defs/date" },
         "opponentId": { "$ref": "#/$defs/id" }, "opponent": { "$ref": "#/$defs/nonEmpty" },
+        "vetoCardId": { "$ref": "#/$defs/id" },
         "cards": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/card" } }
       }
     },

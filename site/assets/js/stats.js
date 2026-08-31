@@ -8,6 +8,7 @@
   var activeController = null;
   var requestToken = 0;
   var currentRoute = null;
+  var canonicalMaps = [];
   var focusNext = false;
   var knownTeams = Object.create(null);
   var knownMatches = Object.create(null);
@@ -184,7 +185,7 @@
     matchesLink.addEventListener('click', function (event) { event.preventDefault(); loadDirectory('matches', matchesHost); });
     return el('section', { class: 'section stats-directory-links' }, [
       el('h2', { text: 'Детали снимка' }),
-      routeLink('#/statistika/maps', manifest.counts.maps + ' карт'),
+      routeLink('#/statistika/maps', canonicalMaps.length + ' карт в пуле'),
       routeLink('#/statistika/weapons', manifest.counts.weapons + ' видов оружия'),
       routeLink('#/statistika/trends', manifest.counts.trendPlayers + ' тренд-профилей'),
       playersLink, matchesLink, playersHost, matchesHost
@@ -245,9 +246,16 @@
   }
 
   function edgeTable(rows) {
+    rows = Core.canonicalMapRows(rows, canonicalMaps, true);
+    if (!rows.length) {
+      return el('section', { class: 'section' }, [
+        el('h2', { text: 'Сравнение по картам' }),
+        el('p', { text: 'Нет карт текущего пула с наблюдениями у обеих сторон.' })
+      ]);
+    }
     return el('section', { class: 'section' }, [el('h2', { text: 'Сравнение по картам' }), el('div', { class: 'table-wrap', 'aria-label': 'Таблица сравнения карт: прокрутите по горизонтали' }, el('table', { class: 'data', 'aria-label': 'Сравнение по картам' }, [
-      el('thead', {}, el('tr', {}, [el('th', { text: 'Карта' }), el('th', { text: 'Разница Rating' }), el('th', { text: 'Наша выборка' }), el('th', { text: 'Их выборка' }), el('th', { text: 'Уверенность' })])),
-      el('tbody', {}, rows.map(function (row) { return el('tr', {}, [el('td', { text: mapName(row.map) }), el('td', { text: number(row.edge, 3) }), el('td', { text: String(row.us.playerRounds) }), el('td', { text: String(row.opponent.playerRounds) }), el('td', { text: confidence(row.confidence) })]); }))
+      el('thead', {}, el('tr', {}, [el('th', { text: 'Карта' }), el('th', { text: 'Разница Rating' }), el('th', { text: 'Наша выборка, раундов' }), el('th', { text: 'Их выборка, раундов' }), el('th', { text: 'Уверенность' })])),
+      el('tbody', {}, rows.map(function (row) { return el('tr', {}, [el('td', { text: row.canonicalName }), el('td', { text: number(row.edge, 3) }), el('td', { text: String(row.us.playerRounds) }), el('td', { text: String(row.opponent.playerRounds) }), el('td', { text: confidence(row.confidence) })]); }))
     ]))]);
   }
 
@@ -294,9 +302,10 @@
   }
 
   function playerMapTable(rows) {
+    rows = Core.canonicalMapRows(rows, canonicalMaps, false);
     return simpleTableSection('Карты игрока', ['Карта', 'Rating', 'Раунды'], rows.slice(0, 46).map(function (item) {
       var value = item.value || {}, metrics = value.metrics || value, sums = value.sums || value;
-      return [mapName(item.map), number(metrics.rating || metrics.rating2), text(sums.rounds || sums.rounds_played)];
+      return [item.canonicalName, number(metrics.rating || metrics.rating2), text(sums.rounds || sums.rounds_played)];
     }));
   }
 
@@ -425,8 +434,9 @@
   }
 
   function mapsView(rows) {
-    return sortableView('Карты', '46 карт / aggregate', rows, { defaultKey: 'n', search: function (row) { return row.map; }, name: function (row) { return mapName(row.map); }, columns: [
-      { key: 'map', label: 'Карта', value: function (row) { return mapName(row.map); } }, { key: 'n', label: 'Матчам', value: function (row) { return row.n; } }
+    rows = Core.canonicalMapRows(rows, canonicalMaps, false);
+    return sortableView('Карты', rows.length + ' карт / текущий пул', rows, { defaultKey: 'n', search: function (row) { return row.canonicalName; }, name: function (row) { return row.canonicalName; }, columns: [
+      { key: 'canonicalName', label: 'Карта', value: function (row) { return row.canonicalName; } }, { key: 'n', label: 'Матчам', value: function (row) { return row.n; } }
     ] }, async function (row, host, button, status) {
       button.disabled = true; host.textContent = 'Загрузка…';
       try {
@@ -507,6 +517,7 @@
 
   async function open(route, options) {
     currentRoute = route;
+    if (options && Array.isArray(options.canonicalMaps)) canonicalMaps = options.canonicalMaps.slice();
     var shouldFocus = !!(options && options.moveFocus) || focusNext;
     focusNext = false;
     if (activeController) activeController.abort();

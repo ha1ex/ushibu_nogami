@@ -31,10 +31,12 @@ export function validateOperations(data) {
   const entities = allEntities(data);
   const cards = entities.flatMap((entity) => entity.cards);
   const knownIds = new Set();
+  const cardById = new Map();
   for (const item of [...entities, ...cards]) {
     if (knownIds.has(item.id)) errors.push(`Повтор ID: ${item.id}`);
     knownIds.add(item.id);
   }
+  for (const card of cards) cardById.set(card.id, card);
   const cardIds = new Set(cards.map((card) => card.id));
   const matchById = new Map(data.matches.map((match) => [match.id, match]));
   const opponentIds = new Set(data.opponents.map((opponent) => opponent.id));
@@ -43,6 +45,9 @@ export function validateOperations(data) {
   for (const match of data.matches) {
     if (!opponentIds.has(match.opponentId)) errors.push(`${match.id}: неизвестный opponentId ${match.opponentId}`);
     if (match.cards.filter((card) => card.type === 'action').length > 3) errors.push(`${match.id}: разрешено не более трёх действий`);
+    const vetoCard = cardById.get(match.vetoCardId);
+    if (!vetoCard || !match.cards.includes(vetoCard)) errors.push(`${match.id}: неизвестная vetoCardId ${match.vetoCardId}`);
+    else if (vetoCard.type !== 'unknown' && vetoCard.type !== 'decision') errors.push(`${match.id}: vetoCardId должна ссылаться на unknown или decision`);
   }
   for (const session of data.training) {
     if (!mapIds.has(session.mapId)) errors.push(`${session.id}: неизвестный mapId ${session.mapId}`);
@@ -54,7 +59,19 @@ export function validateOperations(data) {
   }
   for (const card of cards) {
     const refs = card.type === 'decision' ? card.evidenceIds : card.type === 'action' ? card.dependsOn : [];
-    for (const id of refs) if (!cardIds.has(id)) errors.push(`${card.id}: неизвестная ссылка ${id}`);
+    for (const id of refs) {
+      if (!cardIds.has(id)) {
+        errors.push(`${card.id}: неизвестная ссылка ${id}`);
+        continue;
+      }
+      const referenced = cardById.get(id);
+      if (card.type === 'decision' && referenced.type !== 'fact' && referenced.type !== 'projection') {
+        errors.push(`${card.id}: evidence ${id} должна ссылаться на fact или projection`);
+      }
+      if (card.type === 'action' && referenced.type !== 'unknown' && referenced.type !== 'action') {
+        errors.push(`${card.id}: dependsOn ${id} должна ссылаться на unknown или action`);
+      }
+    }
   }
   return { valid: errors.length === 0, errors };
 }

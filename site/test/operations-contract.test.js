@@ -67,6 +67,63 @@ test('validator rejects unknown evidence and dependency IDs', async () => {
   assert.equal(validateOperations(action).valid, false);
 });
 
+test('validator enforces evidence and dependency card types for existing IDs', async () => {
+  const { validateOperations, operations } = await load();
+
+  for (const wrongEvidenceId of ['action-m01-confirm-time', 'unknown-m01-time']) {
+    const changed = clone(operations);
+    changed.matches[0].cards.push({
+      id: 'decision-test', type: 'decision', title: 'Тест', body: 'Тестовое решение',
+      owner: 'Капитан', decidedAt: '2026-08-31', rationale: 'Проверка типа ссылки',
+      evidenceIds: [wrongEvidenceId]
+    });
+    assert.equal(validateOperations(changed).valid, false, `${wrongEvidenceId} is not evidence`);
+  }
+
+  const decisionEvidence = clone(operations);
+  decisionEvidence.matches[0].cards.push(
+    {
+      id: 'decision-source', type: 'decision', title: 'Первое решение', body: 'Решение на факте',
+      owner: 'Капитан', decidedAt: '2026-08-31', rationale: 'Проверка типа решения',
+      evidenceIds: ['fact-m01-schedule']
+    },
+    {
+      id: 'decision-dependent', type: 'decision', title: 'Второе решение', body: 'Ссылка на решение',
+      owner: 'Капитан', decidedAt: '2026-08-31', rationale: 'Проверка типа ссылки',
+      evidenceIds: ['decision-source']
+    }
+  );
+  assert.equal(validateOperations(decisionEvidence).valid, false, 'decision is not evidence');
+
+  for (const wrongDependencyId of ['fact-m01-schedule', 'projection-opponent-pocelui-method']) {
+    const changed = clone(operations);
+    changed.matches[0].cards.find((card) => card.id === 'action-m01-confirm-time').dependsOn = [wrongDependencyId];
+    assert.equal(validateOperations(changed).valid, false, `${wrongDependencyId} is not a dependency`);
+  }
+  const decisionDependency = clone(operations);
+  decisionDependency.matches[0].cards.push({
+    id: 'decision-source', type: 'decision', title: 'Решение', body: 'Решение на факте',
+    owner: 'Капитан', decidedAt: '2026-08-31', rationale: 'Проверка типа зависимости',
+    evidenceIds: ['fact-m01-schedule']
+  });
+  decisionDependency.matches[0].cards.find((card) => card.id === 'action-m01-confirm-time').dependsOn = ['decision-source'];
+  assert.equal(validateOperations(decisionDependency).valid, false, 'decision is not an action dependency');
+});
+
+test('match veto relation accepts an explicit unknown or decision card, not an action', async () => {
+  const { validateOperations, operations } = await load();
+  const linked = clone(operations);
+  const links = {
+    m01: 'unknown-m01-veto', m02: 'unknown-m02-veto',
+    m09: 'unknown-m09-veto', m10: 'unknown-m10-veto'
+  };
+  for (const match of linked.matches) match.vetoCardId = links[match.id];
+  assert.equal(validateOperations(linked).valid, true);
+
+  linked.matches[0].vetoCardId = 'action-m01-record-veto';
+  assert.equal(validateOperations(linked).valid, false);
+});
+
 test('content keeps operational truth bounded and explicit', async () => {
   const { operations } = await load();
   assert.equal(Object.hasOwn(operations.meta, 'today'), false);

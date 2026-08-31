@@ -1,4 +1,7 @@
 import { test, expect } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
+
+const operationsFixture = JSON.parse(await readFile(new URL('../../assets/data/operations.json', import.meta.url), 'utf8'));
 
 let pageErrors;
 test.beforeEach(async ({ page }) => {
@@ -23,6 +26,7 @@ test('home is an operational route with semantic navigation and no Whoajor reque
 });
 
 test('now shows the nearest match, honest blockers and at most three actions', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-08-31T12:00:00+03:00'));
   await page.goto('/#/seichas');
   await expect(page.getByText('Поцелуй всадницу', { exact: true })).toBeVisible();
   await expect(page.locator('.ops-match-hero time')).toHaveText('30.09.2026');
@@ -31,6 +35,43 @@ test('now shows the nearest match, honest blockers and at most three actions', a
   await expect(page.getByText(/фактическая пятёрка/i)).toBeVisible();
   await expect(page.locator('[data-card-type="action"]')).toHaveCount(3);
   await expect(page.locator('#operational')).not.toContainText(/reviewed|insight|готовность|evidence|sha-256|\bPICK\b/i);
+});
+
+test('now advances to the next scheduled match between match windows', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-10-10T12:00:00+03:00'));
+  await page.goto('/#/seichas');
+  await expect(page.getByText('Рассадник добра', { exact: true })).toBeVisible();
+  await expect(page.locator('.ops-match-hero time')).toHaveText('21.10.2026');
+  await expect(page.getByText(/ближайший предстоящий матч/i)).toBeVisible();
+});
+
+test('now shows the final match with an honest fallback after the season', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-11-01T12:00:00+03:00'));
+  await page.goto('/#/seichas');
+  await expect(page.getByText('Smoke mid everyday', { exact: true })).toBeVisible();
+  await expect(page.locator('.ops-match-hero time')).toHaveText('22.10.2026');
+  await expect(page.getByText(/все матчи расписания прошли.*показан последний матч/i)).toBeVisible();
+});
+
+test('veto status on list and detail follows the explicitly linked typed card', async ({ page }) => {
+  const operations = structuredClone(operationsFixture);
+  const match = operations.matches.find((item) => item.id === 'm01');
+  match.cards = match.cards.filter((card) => card.id !== 'unknown-m01-veto');
+  match.cards.push({
+    id: 'decision-m01-veto', type: 'decision', title: 'Вето утверждено',
+    body: 'Капитан зафиксировал согласованную ветку вето.', owner: 'Капитан',
+    decidedAt: '2026-09-29', rationale: 'Пятёрка подтвердила командное решение.',
+    evidenceIds: ['fact-m01-schedule']
+  });
+  match.vetoCardId = 'decision-m01-veto';
+  await page.route('**/assets/data/operations.json', (route) => route.fulfill({ json: operations }));
+
+  await page.goto('/#/matchi');
+  const row = page.locator('.ops-list-row').filter({ hasText: 'Поцелуй всадницу' });
+  await expect(row).toContainText('Вето утверждено');
+  await row.getByRole('link', { name: 'Открыть матч' }).click();
+  await expect(page.locator('.ops-status-strip')).toHaveText(/Вето утверждено/);
+  await expect(page.locator('[data-card-type="decision"]')).toContainText('Вето утверждено');
 });
 
 test('match detail exposes actions, notes, checklists and score using stable shared keys', async ({ page }) => {

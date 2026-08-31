@@ -8,7 +8,7 @@
   },
   "matches": [
     {
-      "id": "m01", "date": "2026-09-30", "opponentId": "pocelui", "opponent": "Поцелуй всадницу",
+      "id": "m01", "date": "2026-09-30", "opponentId": "pocelui", "opponent": "Поцелуй всадницу", "vetoCardId": "unknown-m01-veto",
       "cards": [
         { "id": "fact-m01-schedule", "type": "fact", "title": "Матч 01", "body": "30.09.2026 — Ушибу ногами против Поцелуй всадницу.", "source": "/00_context/product.md", "sourceLabel": "Контекст проекта", "asOf": "2026-08-30", "confidence": "high" },
         { "id": "unknown-m01-time", "type": "unknown", "title": "Время матча неизвестно", "body": "В расписании есть дата, но нет подтверждённого времени начала.", "blocking": true, "owner": "Капитан", "closeWith": "Сообщение организатора с временем матча", "dueAt": "2026-09-29" },
@@ -20,7 +20,7 @@
       ]
     },
     {
-      "id": "m02", "date": "2026-10-01", "opponentId": "takahuli", "opponent": "Такахули",
+      "id": "m02", "date": "2026-10-01", "opponentId": "takahuli", "opponent": "Такахули", "vetoCardId": "unknown-m02-veto",
       "cards": [
         { "id": "fact-m02-schedule", "type": "fact", "title": "Матч 02", "body": "01.10.2026 — Ушибу ногами против Такахули.", "source": "/00_context/product.md", "sourceLabel": "Контекст проекта", "asOf": "2026-08-30", "confidence": "high" },
         { "id": "unknown-m02-lineup", "type": "unknown", "title": "Фактическая пятёрка соперника неизвестна", "body": "Состав на дату матча не подтверждён.", "blocking": true, "owner": "Аналитик", "closeWith": "Проверка ростера в день матча", "dueAt": "2026-10-01" },
@@ -29,7 +29,7 @@
       ]
     },
     {
-      "id": "m09", "date": "2026-10-21", "opponentId": "rassadnik", "opponent": "Рассадник добра",
+      "id": "m09", "date": "2026-10-21", "opponentId": "rassadnik", "opponent": "Рассадник добра", "vetoCardId": "unknown-m09-veto",
       "cards": [
         { "id": "fact-m09-schedule", "type": "fact", "title": "Матч 09", "body": "21.10.2026 — Ушибу ногами против Рассадника добра.", "source": "/00_context/product.md", "sourceLabel": "Контекст проекта", "asOf": "2026-08-30", "confidence": "high" },
         { "id": "unknown-m09-veto", "type": "unknown", "title": "Вето не утверждено", "body": "Пики и баны не должны появиться до отдельного командного решения.", "blocking": true, "owner": "Капитан", "closeWith": "Запись утверждённого вето", "dueAt": "2026-10-20" },
@@ -37,7 +37,7 @@
       ]
     },
     {
-      "id": "m10", "date": "2026-10-22", "opponentId": "smoke", "opponent": "Smoke mid everyday",
+      "id": "m10", "date": "2026-10-22", "opponentId": "smoke", "opponent": "Smoke mid everyday", "vetoCardId": "unknown-m10-veto",
       "cards": [
         { "id": "fact-m10-schedule", "type": "fact", "title": "Матч 10", "body": "22.10.2026 — Ушибу ногами против Smoke mid everyday.", "source": "/00_context/product.md", "sourceLabel": "Контекст проекта", "asOf": "2026-08-30", "confidence": "high" },
         { "id": "unknown-m10-veto", "type": "unknown", "title": "Вето не утверждено", "body": "Пики и баны не должны появиться до отдельного командного решения.", "blocking": true, "owner": "Капитан", "closeWith": "Запись утверждённого вето", "dueAt": "2026-10-21" },

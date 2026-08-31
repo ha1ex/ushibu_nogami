@@ -15,6 +15,7 @@ test('Data overview loads lazily, states methodology and avoids recommendations'
   await expect(page.getByText(/снимок.*30\.08\.2026/i)).toBeVisible();
   await expect(page.getByText(/проекция из индивидуальных данных/i)).toBeVisible();
   await expect(page.getByText(/сыгранность.*не измерена/i)).toBeVisible();
+  await expect(page.getByRole('link', { name: '7 карт в пуле' })).toBeVisible();
   expect(paths[0]).not.toContain('stats');
   expect(paths).toContain('/assets/js/stats-core.js');
   expect(paths).toContain('/assets/js/stats.js');
@@ -37,6 +38,22 @@ test('Data overview and team remain neutral and hide technical IDs in a disclosu
   await expect(page.getByRole('table', { name: /показатели команды/i })).toBeVisible();
   await expect(page.locator('#statistics')).not.toContainText(/угроз|уязвим|эксплоит|риск|reviewed/i);
   expect(paths.some((path) => path.endsWith('/data/recommendations-000.json'))).toBeFalsy();
+});
+
+test('team comparison contains only bilateral samples from the seven canonical maps', async ({ page }) => {
+  await page.goto('/#/statistika/team/pocelui');
+  const rows = await page.getByRole('table', { name: 'Сравнение по картам' }).locator('tbody tr').evaluateAll((nodes) => nodes.map((row) =>
+    Array.from(row.cells, (cell) => cell.textContent.trim())
+  ));
+  expect(rows).toHaveLength(7);
+  expect(rows.map((row) => row[0]).sort()).toEqual([
+    'Ancient', 'Anubis', 'Cache', 'Dust 2', 'Inferno', 'Mirage', 'Nuke'
+  ]);
+  for (const row of rows) {
+    expect(Number(row[2]), `${row[0]} our sample`).toBeGreaterThan(0);
+    expect(Number(row[3]), `${row[0]} opponent sample`).toBeGreaterThan(0);
+    expect(row[4], `${row[0]} confidence`).toMatch(/^(низкая|средняя|высокая)$/);
+  }
 });
 
 test('planned match IDs redirect to operations while source match IDs keep lazy detail', async ({ page }) => {
@@ -67,11 +84,30 @@ test('catalog populations remain lazy and verified', async ({ page }) => {
   await expect(page.locator('#stats-match-directory a')).toHaveCount(368);
 });
 
-test('human-readable map and weapon labels do not expose raw IDs in primary cells', async ({ page }) => {
+test('all primary map and weapon rows use exact human-readable labels', async ({ page }) => {
   await page.goto('/#/statistika/weapons');
-  await expect(page.locator('#statistics tbody tr').first()).not.toContainText(/^weapon_/i);
+  await expect(page.locator('#statistics tbody tr')).toHaveCount(39);
+  const weaponLabels = await page.locator('#statistics tbody tr td:first-child').allTextContents();
+  expect(weaponLabels.sort()).toEqual([
+    'AK-47', 'AUG', 'AWP', 'CZ75-Auto', 'Desert Eagle', 'Dual Berettas', 'FAMAS', 'Five-SeveN',
+    'G3SG1', 'Galil AR', 'Glock-18', 'M249', 'M4A1-S', 'M4A4', 'MAC-10', 'MAG-7', 'MP5-SD',
+    'MP7', 'MP9', 'Negev', 'Nova', 'P2000', 'P250', 'P90', 'R8 Revolver', 'SCAR-20', 'SG 553',
+    'SSG 08', 'Sawed-Off', 'Tec-9', 'USP-S', 'XM1014', 'Zeus x27', 'Коктейль Молотова', 'Нож',
+    'Огонь', 'Осколочная граната', 'ПП-19 Бизон', 'UMP-45'
+  ].sort());
   await page.goto('/#/statistika/maps');
-  await expect(page.locator('#statistics tbody tr').first()).not.toContainText(/de_/i);
+  await expect(page.locator('#statistics tbody tr')).toHaveCount(7);
+  const mapLabels = await page.locator('#statistics tbody tr td:first-child').allTextContents();
+  expect(mapLabels.sort()).toEqual(['Ancient', 'Anubis', 'Cache', 'Dust 2', 'Inferno', 'Mirage', 'Nuke']);
+
+  await page.goto('/#/statistika/igrok/76561198050158798');
+  const playerMapTable = page.getByRole('table', { name: 'Карты игрока' });
+  await expect(playerMapTable).toBeVisible();
+  const playerMapLabels = await playerMapTable.locator('tbody tr td:first-child').allTextContents();
+  expect(playerMapLabels.length).toBeGreaterThan(0);
+  for (const label of playerMapLabels) {
+    expect(['Ancient', 'Anubis', 'Cache', 'Dust 2', 'Inferno', 'Mirage', 'Nuke']).toContain(label);
+  }
 });
 
 test('Data failures stay local, announced and retryable', async ({ page }) => {

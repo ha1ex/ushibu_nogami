@@ -145,6 +145,30 @@ test('sortRows is deterministic and does not mutate source rows', () => {
   assert.deepEqual(rows.map((row) => row.name), ['Zed', 'Alpha', 'Beta']);
 });
 
+test('canonicalMapRows derives the pool from input and rejects non-bilateral comparisons', () => {
+  const pool = [
+    { id: 'dust-2', name: 'Dust 2' },
+    { id: 'inferno', name: 'Inferno' },
+    { id: 'cache', name: 'Cache' }
+  ];
+  const rows = [
+    { map: 'acs2_assault', n: 90, us: { playerRounds: 90 }, opponent: { playerRounds: 80 }, edge: 0.4 },
+    { map: 'de_dust2', n: 20, us: { playerRounds: 20 }, opponent: { playerRounds: 30 }, edge: 0.1 },
+    { map: 'de_inferno', n: 10, us: { playerRounds: 10 }, opponent: { playerRounds: 0 }, edge: 0.2 },
+    { map: 'de_cache', n: 8, us: { playerRounds: 8 }, opponent: { playerRounds: 12 }, edge: -0.1 }
+  ];
+
+  assert.deepEqual(JSON.parse(JSON.stringify(Core.canonicalMapRows(rows, pool, false))), [
+    { ...rows[1], canonicalId: 'dust-2', canonicalName: 'Dust 2' },
+    { ...rows[2], canonicalId: 'inferno', canonicalName: 'Inferno' },
+    { ...rows[3], canonicalId: 'cache', canonicalName: 'Cache' }
+  ]);
+  assert.deepEqual(JSON.parse(JSON.stringify(Core.canonicalMapRows(rows, pool, true))), [
+    { ...rows[1], canonicalId: 'dust-2', canonicalName: 'Dust 2' },
+    { ...rows[3], canonicalId: 'cache', canonicalName: 'Cache' }
+  ]);
+});
+
 test('data client performs no request until explicitly opened', async () => {
   const seen = [];
   const client = Core.createClient(async (url) => {

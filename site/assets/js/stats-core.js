@@ -147,6 +147,29 @@
     }).map(function (item) { return item.row; });
   }
 
+  function mapKey(value) {
+    return String(value || '').replace(/^(?:de|cs)_/, '').replace(/[^a-z0-9]+/gi, '').toLowerCase();
+  }
+
+  function canonicalMapRows(rows, canonicalMaps, requireBilateral) {
+    var canonicalByKey = Object.create(null);
+    (canonicalMaps || []).forEach(function (map) {
+      canonicalByKey[mapKey(map.id)] = map;
+      canonicalByKey[mapKey(map.name)] = map;
+    });
+    return (rows || []).reduce(function (selected, row) {
+      var canonical = canonicalByKey[mapKey(row.map)];
+      if (!canonical) return selected;
+      if (requireBilateral) {
+        var ourRounds = row.us && row.us.playerRounds;
+        var opponentRounds = row.opponent && row.opponent.playerRounds;
+        if (!(ourRounds > 0 && opponentRounds > 0)) return selected;
+      }
+      selected.push(Object.assign({}, row, { canonicalId: canonical.id, canonicalName: canonical.name }));
+      return selected;
+    }, []);
+  }
+
   function datasetsForRoute(route) {
     var view = route && route.view;
     if (view === 'overview' || view === 'team') return ['rosters', 'teamMetrics', 'mapEdges'];
@@ -235,6 +258,7 @@
     verifyBytes: verifyBytes,
     assetsFor: assetsFor,
     sortRows: sortRows,
+    canonicalMapRows: canonicalMapRows,
     datasetsForRoute: datasetsForRoute,
     createClient: createClient
   };
