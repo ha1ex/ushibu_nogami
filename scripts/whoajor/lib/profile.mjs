@@ -42,7 +42,6 @@ const DISCRETE_COUNT_SUFFIXES = Object.freeze([
 const DATE_KEYS = new Set(['date', 'day']);
 const FLEXIBLE_DATE_KEYS = new Set(['max_date', 'min_date']);
 const TIMESTAMP_KEYS = new Set(['published_at', 'publishedat', 'started_at', 'startedat']);
-const TRANSPORT_TIMESTAMP_KEYS = new Set(['fetched_at', 'fetchedat']);
 const STEAM_ID_KEYS = new Set([
   'ct_steamids', 'ctsteamids', 'steamid', 'steamids', 't_steamids', 'tsteamids',
 ]);
@@ -143,7 +142,6 @@ function validTimestamp(value) {
 
 function dateKind(key) {
   const normalized = normalizedKey(key);
-  if (TRANSPORT_TIMESTAMP_KEYS.has(normalized)) return null;
   if (DATE_KEYS.has(normalized)) return 'date';
   if (FLEXIBLE_DATE_KEYS.has(normalized)) return 'flexible-date';
   if (TIMESTAMP_KEYS.has(normalized) || normalized.endsWith('_at')) return 'timestamp';
@@ -221,22 +219,38 @@ function invalidMetricTypeOrValue(key, type, value) {
   return impossibleMetric(normalized, value);
 }
 
-function invalidJsonDate(path, type, value) {
+function transportFetchedAt(scope, path) {
+  if (semanticPathKey(path) !== 'fetched_at') return false;
+  const tokens = pathTokens(path);
+  if (scope?.table === 'requests' && scope.column === 'source_json') {
+    return tokens.length === 1;
+  }
+  return scope?.table === 'snapshots'
+    && scope.column === 'source_json'
+    && tokens.length === 3
+    && tokens[0] === 'requests'
+    && /^\d+$/.test(tokens[1]);
+}
+
+function invalidJsonDate(scope, path, type, value) {
   const tokens = pathTokens(path);
   if (tokens.at(-2) === 'observed_headers' && tokens.at(-1) === 'date') return false;
   const key = semanticPathKey(path);
+  if (transportFetchedAt(scope, path)) return false;
   if (!dateKind(key) || type === 'null') return false;
   return type !== 'text' || invalidDateValue(key, value);
 }
 
-function futureJsonDate(path, type, value, asOf) {
+function futureJsonDate(scope, path, type, value, asOf) {
   const tokens = pathTokens(path);
   if (tokens.at(-2) === 'observed_headers' && tokens.at(-1) === 'date') return false;
+  if (transportFetchedAt(scope, path)) return false;
   return type === 'text' && futureDateValue(semanticPathKey(path), value, asOf);
 }
 
 function registerAuditFunctions(db, asOf) {
   const deterministic = { deterministic: true };
+  let jsonDateScope = null;
   db.function('whoajor_invalid_typed_id', deterministic, (key, value) => (
     invalidIdentifier(key, value) ? 1 : 0
   ));
@@ -261,11 +275,16 @@ function registerAuditFunctions(db, asOf) {
     invalidJsonIdentifier(path, type, value) ? 1 : 0
   ));
   db.function('whoajor_invalid_json_date', deterministic, (path, type, value) => (
-    invalidJsonDate(path, type, value) ? 1 : 0
+    invalidJsonDate(jsonDateScope, path, type, value) ? 1 : 0
   ));
   db.function('whoajor_future_json_date', deterministic, (path, type, value) => (
-    futureJsonDate(path, type, value, asOf) ? 1 : 0
+    futureJsonDate(jsonDateScope, path, type, value, asOf) ? 1 : 0
   ));
+  return {
+    setJsonDateScope(scope) {
+      jsonDateScope = scope;
+    },
+  };
 }
 
 function normalizeRows(rows, { sort = false } = {}) {
@@ -431,7 +450,8 @@ function profileTypedColumn(recorder, table, column) {
   return result;
 }
 
-function profileJsonColumn(recorder, table, column) {
+function profileJsonColumn(recorder, table, column, setJsonDateScope) {
+  setJsonDateScope({ column: column.name, table });
   const identifier = quoteIdentifier(column.name);
   return recorder.one(tableQueryId(table, `json.${column.name}`), `
     WITH documents AS MATERIALIZED (
@@ -662,7 +682,7 @@ function buildProfile(db, snapshotDir) {
     rootHash: null,
     status: null,
   };
-  registerAuditFunctions(db, snapshotDate(snapshot.id));
+  const { setJsonDateScope } = registerAuditFunctions(db, snapshotDate(snapshot.id));
 
   const anomalies = {
     fractionalCountMetrics: 0,
@@ -679,7 +699,9 @@ function buildProfile(db, snapshotDir) {
         addAnomalies(anomalies, profileTypedColumn(recorder, table.name, column));
       }
       if (normalizedKey(column.name).endsWith('_json')) {
-        addAnomalies(anomalies, profileJsonColumn(recorder, table.name, column));
+        addAnomalies(anomalies, profileJsonColumn(
+          recorder, table.name, column, setJsonDateScope,
+        ));
       }
     }
   }
