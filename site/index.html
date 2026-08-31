@@ -4,88 +4,58 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>Штаб CS2 — Ушибу ногами</title>
-  <meta name="description" content="План тренировок, плейбуки по картам, соперники, матчи и регламент команды «Ушибу ногами» перед первым матчем 30 сентября 2026 года.">
-
+  <title>Сейчас — Штаб CS2 «Ушибу ногами»</title>
+  <meta name="description" content="Маршрутный штаб команды «Ушибу ногами»: матчи, факты, блокеры и подтверждаемые действия.">
   <link rel="icon" href="assets/img/logo.jpg">
-
   <link rel="stylesheet" href="assets/css/fonts.css">
   <link rel="stylesheet" href="assets/css/tokens.css">
   <link rel="stylesheet" href="assets/css/theme.css">
   <link rel="stylesheet" href="assets/css/base.css">
   <link rel="stylesheet" href="assets/css/layout.css">
   <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/operations.css">
   <link rel="stylesheet" href="assets/css/stats.css">
   <link rel="stylesheet" href="assets/css/print.css">
-
 </head>
 <body class="is-booting">
   <a href="#content" class="skip-link">Перейти к содержимому</a>
-
   <div class="shell">
     <aside class="sidebar">
-      <a class="brand" href="index.html" aria-label="Штаб команды Ушибу ногами">
+      <a class="brand" href="#/seichas" aria-label="Сейчас — штаб команды Ушибу ногами">
         <img class="brand__mark" src="assets/img/logo.jpg" alt="" width="46" height="46">
         <span class="brand__text">
           <b class="brand__name">Ушибу ногами</b>
-          <small class="brand__sub">CS2 / штаб сезона</small>
+          <small class="brand__sub">CS2 / маршрутный штаб</small>
         </span>
       </a>
-
-        <button type="button" class="tools-toggle" id="tools-toggle" aria-expanded="false" aria-controls="sidebar-tools" aria-label="Настройки и действия">⋯</button>
-
+      <button type="button" class="tools-toggle" id="tools-toggle" aria-expanded="false" aria-controls="sidebar-tools" aria-label="Настройки и действия">⋯</button>
       <div class="season"><span>Сезон</span><b>09—10 / 2026</b></div>
-
-      <nav class="nav" role="tablist" aria-label="Разделы штаба">
-        <button type="button" class="nav__item" role="tab" id="tab-overview"    data-tab="overview"    aria-controls="overview"    aria-selected="true"><span class="nav__num">01</span> Обзор</button>
-        <button type="button" class="nav__item" role="tab" id="tab-training"    data-tab="training"    aria-controls="training"    aria-selected="false" tabindex="-1"><span class="nav__num">02</span> Тренировки</button>
-        <button type="button" class="nav__item" role="tab" id="tab-tactics"     data-tab="tactics"     aria-controls="tactics"     aria-selected="false" tabindex="-1"><span class="nav__num">03</span> Тактики</button>
-        <button type="button" class="nav__item" role="tab" id="tab-opponents"   data-tab="opponents"   aria-controls="opponents"   aria-selected="false" tabindex="-1"><span class="nav__num">04</span> Соперники</button>
-        <button type="button" class="nav__item" role="tab" id="tab-matches"     data-tab="matches"     aria-controls="matches"     aria-selected="false" tabindex="-1"><span class="nav__num">05</span> Матчи</button>
-        <button type="button" class="nav__item" role="tab" id="tab-regulations" data-tab="regulations" aria-controls="regulations" aria-selected="false" tabindex="-1"><span class="nav__num">06</span> Регламент</button>
-        <button type="button" class="nav__item" role="tab" id="tab-polls"       data-tab="polls"       aria-controls="polls"       aria-selected="false" tabindex="-1"><span class="nav__num">07</span> Голосование</button>
-        <button type="button" class="nav__item" role="tab" id="tab-statistics"  data-tab="statistics"  aria-controls="statistics"  aria-selected="false" tabindex="-1"><span class="nav__num">08</span> Статистика</button>
+      <nav class="nav" aria-label="Разделы штаба">
+        <a class="nav__item" data-section="seichas" href="#/seichas"><span class="nav__num">01</span> Сейчас</a>
+        <a class="nav__item" data-section="matchi" href="#/matchi"><span class="nav__num">02</span> Матчи</a>
+        <a class="nav__item" data-section="trenirovki" href="#/trenirovki"><span class="nav__num">03</span> Тренировки</a>
+        <a class="nav__item" data-section="karty" href="#/karty"><span class="nav__num">04</span> Карты</a>
+        <a class="nav__item" data-section="soperniki" href="#/soperniki"><span class="nav__num">05</span> Соперники</a>
+        <a class="nav__item" data-section="statistika" href="#/statistika"><span class="nav__num">06</span> Данные</a>
       </nav>
-
-      <nav class="nav nav--sub" aria-label="Другие страницы">
-        <a class="nav__item" href="pravila.html"><span class="nav__num">★</span> Правила</a>
-      </nav>
-
       <div class="sidebar__foot" id="sidebar-tools">
-        <div class="whoami">
-          <span class="label">Вы вошли как</span>
-          <b data-whoami>…</b>
-        </div>
-        <div class="syncbar" id="syncbar"><i></i><span id="sync-text">загрузка…</span></div>
+        <div class="whoami"><span class="label">Вы вошли как</span><b data-whoami>…</b></div>
+        <div class="syncbar" id="syncbar" role="status" aria-live="polite"><i aria-hidden="true"></i><span id="sync-text">загрузка…</span></div>
         <div class="btn-row">
           <button type="button" class="btn-text" data-action="print">Печать / PDF</button>
           <button type="button" class="btn-text" data-action="export">Бэкап</button>
         </div>
-        <div class="btn-row">
-          <button type="button" class="btn-text btn-text--danger" data-action="reset">Сбросить моё</button>
-          <button type="button" class="btn-text" data-action="logout">Выйти</button>
-        </div>
+        <button type="button" class="btn-text" data-action="logout">Выйти</button>
       </div>
     </aside>
-
     <main class="main" id="content">
-      <section class="panel" id="overview"    role="tabpanel" aria-labelledby="tab-overview"    tabindex="0"></section>
-      <section class="panel" id="training"    role="tabpanel" aria-labelledby="tab-training"    tabindex="0" hidden></section>
-      <section class="panel" id="tactics"     role="tabpanel" aria-labelledby="tab-tactics"     tabindex="0" hidden></section>
-      <section class="panel" id="opponents"   role="tabpanel" aria-labelledby="tab-opponents"   tabindex="0" hidden></section>
-      <section class="panel" id="matches"     role="tabpanel" aria-labelledby="tab-matches"     tabindex="0" hidden></section>
-      <section class="panel" id="regulations" role="tabpanel" aria-labelledby="tab-regulations" tabindex="0" hidden></section>
-      <section class="panel" id="polls"       role="tabpanel" aria-labelledby="tab-polls"       tabindex="0" hidden></section>
-      <section class="panel" id="statistics" role="tabpanel" aria-labelledby="tab-statistics" tabindex="0" hidden></section>
+      <section class="panel" id="operational" aria-live="off"></section>
+      <section class="panel" id="statistics" hidden></section>
     </main>
   </div>
-
-  <script src="assets/js/data.season.js"></script>
-  <script src="assets/js/data.playbook.js"></script>
-  <script src="assets/js/data.rules.js"></script>
+  <script src="assets/js/operations-core.js"></script>
   <script src="assets/js/store.js"></script>
   <script src="assets/js/ui.js"></script>
-  <script src="assets/js/team-progress.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
 </html>

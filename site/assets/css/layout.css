@@ -121,7 +121,7 @@
 }
 
 .btn-text {
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 var(--s3);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);

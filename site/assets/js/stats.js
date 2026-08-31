@@ -17,19 +17,21 @@
     return window.fetch(url, next);
   });
 
-  var TASKS = [
-    { id: 'brief-read', label: 'Прочитать бриф и ограничения' },
-    { id: 'veto-confirmed', label: 'Подтвердить pick / ban / backup' },
-    { id: 'anti-threat', label: 'Назначить ответ на главную угрозу' },
-    { id: 'matchday', label: 'Закрыть чеклист матч-дня' }
-  ];
-
   var METRICS = {
     rating: 'Rating 2', adr: 'ADR', kd: 'K/D', kast: 'KAST', roundWinRate: 'Победы в раундах',
     openingDiffPer100: 'Разница открытий / 100', utilityDamagePerRound: 'Utility damage / раунд',
     flashAssistsPer100: 'Флеш-ассисты / 100', tradeRate: 'Размены', retakeWinRate: 'Ретейки',
     postplantWinRate: 'Постплент', clutchWinRate: 'Клатчи', forceWinRate: 'Форсы',
     fullWinRate: 'Full-buy', pistolWinRate: 'Пистолетные', tRoundWinRate: 'T-раунды', ctRoundWinRate: 'CT-раунды'
+  };
+  var WEAPONS = {
+    ak47: 'AK-47', aug: 'AUG', awp: 'AWP', bizon: 'ПП-19 Бизон', cz75a: 'CZ75-Auto', deagle: 'Desert Eagle',
+    elite: 'Dual Berettas', famas: 'FAMAS', fiveseven: 'Five-SeveN', g3sg1: 'G3SG1', galilar: 'Galil AR',
+    glock: 'Glock-18', hegrenade: 'Осколочная граната', hkp2000: 'P2000', inferno: 'Огонь', knife: 'Нож',
+    m249: 'M249', m4a1: 'M4A4', m4a1_silencer: 'M4A1-S', mac10: 'MAC-10', mag7: 'MAG-7', molotov: 'Коктейль Молотова',
+    mp5sd: 'MP5-SD', mp7: 'MP7', mp9: 'MP9', negev: 'Negev', nova: 'Nova', p250: 'P250', p90: 'P90',
+    revolver: 'R8 Revolver', sawedoff: 'Sawed-Off', scar20: 'SCAR-20', sg556: 'SG 553', ssg08: 'SSG 08',
+    taser: 'Zeus x27', tec9: 'Tec-9', ump45: 'UMP-45', usp_silencer: 'USP-S', xm1014: 'XM1014'
   };
 
   function text(value, empty) {
@@ -49,6 +51,7 @@
   }
 
   function metricName(value) { return METRICS[value] || text(value); }
+  function weaponName(value) { return WEAPONS[value] || 'Неизвестное оружие'; }
 
   function routeLink(href, label, className) {
     return el('a', { href: href, class: className || 'stats-link', text: label });
@@ -59,7 +62,7 @@
   }
 
   function statsNav() {
-    return el('nav', { class: 'stats-nav', 'aria-label': 'Разделы статистики' }, [
+    return el('nav', { class: 'stats-nav', 'aria-label': 'Разделы данных' }, [
       routeLink('#/statistika', 'Сводка'), routeLink('#/statistika/maps', 'Карты'),
       routeLink('#/statistika/weapons', 'Оружие'), routeLink('#/statistika/trends', 'Тренды'),
       routeLink('#/statistika/quality', 'Качество')
@@ -85,20 +88,20 @@
   }
 
   function loading(route) {
-    var names = { overview: 'Статистика', team: 'Профиль соперника', player: 'Профиль игрока', match: 'План матча', maps: 'Карты', weapons: 'Оружие', trends: 'Тренды', quality: 'Качество данных' };
-    return shell(names[route.view] || 'Статистика', 'Загрузка проверенных данных',
-      el('div', { class: 'stats-state', 'aria-busy': 'true' }, [el('span', { class: 'stats-loader', 'aria-hidden': 'true' }), el('p', { text: 'Проверяем root и SHA-256…' })]),
-      'Загрузка статистики');
+    var names = { overview: 'Данные', team: 'Профиль состава', player: 'Профиль игрока', match: 'Исходный матч', maps: 'Карты', weapons: 'Оружие', trends: 'Тренды', quality: 'Качество данных' };
+    return shell(names[route.view] || 'Данные', 'Загрузка проверенных данных',
+      el('div', { class: 'stats-state', 'aria-busy': 'true' }, [el('span', { class: 'stats-loader', 'aria-hidden': 'true' }), el('p', { text: 'Проверяем целостность снимка…' })]),
+      'Загрузка данных');
   }
 
   function errorView(error) {
     var retry = el('button', { type: 'button', class: 'stats-retry', text: 'Повторить загрузку' });
     retry.addEventListener('click', retryOpen);
-    return shell('Статистика недоступна', 'Локальная ошибка данных',
+    return shell('Данные недоступны', 'Локальная ошибка данных',
       el('div', { class: 'stats-state stats-state--error' }, [
-        el('p', { text: 'Планы скрыты: проверка источника не пройдена.' }),
+        el('p', { text: 'Снимок скрыт: проверка источника не пройдена.' }),
         el('p', { class: 'stats-mono', text: text(error && error.message, 'Неизвестная ошибка') }), retry
-      ]), 'Ошибка статистики. Остальные разделы штаба доступны.');
+      ]), 'Ошибка данных. Остальные разделы штаба доступны.');
   }
 
   function emptyView(reason) {
@@ -137,76 +140,16 @@
     return el('article', { class: 'card stats-card' + (className ? ' ' + className : '') }, [el('h2', { text: title }), body]);
   }
 
-  function evidenceList(items, rosters) {
-    return el('ul', { class: 'stats-evidence', 'data-evidence': 'true' }, (items || []).map(function (item) {
-      var label = item.steamid ? playerName(rosters, item.steamid) + ' · ' : '';
-      label += metricName(item.metric) + ' ' + number(item.value, 2);
-      var sample = item.sampleRounds || item.samplePlayerRounds;
-      return el('li', {}, [el('span', { text: label }), el('small', { text: 'evidence ' + text(item.id) + (sample ? ' · n=' + sample : '') })]);
-    }));
-  }
-
-  function validatePlans(recommendations, evidence, manifest) {
-    var ids = new Set(evidence.map(function (row) { return row.id; }));
-    return recommendations.map(function (rec) { return Core.validateRecommendation(rec, manifest, ids); });
-  }
-
-  function mapFigure(rec) {
-    var row = (rec.maps || []).filter(function (item) { return item.map === rec.pick; })[0] || (rec.maps || [])[0];
-    if (!row) return el('p', { text: 'Нет данных по карте.' });
-    var us = Math.max(0, Math.min(2, row.us.adjustedRating || 0));
-    var them = Math.max(0, Math.min(2, row.opponent.adjustedRating || 0));
-    var chartLabel = 'Скорректированный Rating на ' + mapName(row.map) + ': Ушибу ногами ' + number(us) + ', соперник ' + number(them);
-    return el('figure', { class: 'stats-chart' }, [
-      el('figcaption', {}, [el('strong', { text: 'Map edge · ' + mapName(row.map) }), el('span', { text: 'выборка ' + row.us.playerRounds + '/' + row.opponent.playerRounds + ' player-rounds · уверенность ' + confidence(row.confidence) })]),
-      el('div', { class: 'stats-chart-graphic', role: 'img', 'aria-label': chartLabel }, el('div', { class: 'stats-bars' }, [
-        el('div', { class: 'stats-bar stats-bar--ct' }, [el('span', { text: 'Мы' }), el('i', { style: '--value:' + (us / 2 * 100) + '%' }), el('b', { text: number(us) })]),
-        el('div', { class: 'stats-bar stats-bar--t' }, [el('span', { text: 'Они' }), el('i', { style: '--value:' + (them / 2 * 100) + '%' }), el('b', { text: number(them) })])
-      ])),
-      el('details', {}, [el('summary', { text: 'Табличный эквивалент' }), el('table', { class: 'data', 'aria-label': 'Map edge · ' + mapName(row.map) }, [
-        el('thead', {}, el('tr', {}, [el('th', { text: 'Сторона' }), el('th', { text: 'Rating' }), el('th', { text: 'Выборка' })])),
-        el('tbody', {}, [el('tr', {}, [el('td', { text: 'Ушибу ногами' }), el('td', { text: number(us) }), el('td', { text: String(row.us.playerRounds) })]), el('tr', {}, [el('td', { text: 'Соперник' }), el('td', { text: number(them) }), el('td', { text: String(row.opponent.playerRounds) })])])
-      ])])
-    ]);
-  }
-
-  function readiness(matchId) {
-    var ids = TASKS.map(function (task) { return Core.scoutKey(matchId, task.id); });
-    return { done: window.Store.countChecked(ids), total: ids.length };
-  }
-
   function overviewView(data, manifest) {
     var rosters = data.rosters;
-    var plans = validatePlans(data.recommendations, data.evidence, manifest).slice().sort(function (a, b) { return a.date.localeCompare(b.date); });
     rosters.forEach(function (row) { knownTeams[row.teamId] = true; });
-    plans.forEach(function (row) { knownMatches[row.matchId] = true; });
-    var now = new Date();
-    var today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
-    var scheduleSelection = Core.selectSchedulePlan(plans, today);
-    var nearest = scheduleSelection.plan;
-    var ready = nearest ? readiness(nearest.matchId) : { done: 0, total: 0 };
     var main = el('div', { class: 'stats-stack' }, [
-      el('p', { class: 'lead stats-caveat', text: 'Проекция из индивидуальной статистики. Сыгранность пятёрок не измерена.' }),
+      el('p', { class: 'lead stats-caveat', text: 'Снимок по 30.08.2026. Проекция из индивидуальных данных игроков; сыгранность пятёрок не измерена.' }),
       el('div', { class: 'stats-hero-grid' }, [
-        card(scheduleSelection.completedFallback ? 'Последний матч · расписание завершено' : 'Ближайший матч', nearest ? el('div', {}, [
-          chip('reviewed', 'ok'), el('p', { class: 'stats-big', text: rosterName(rosters, nearest.opponentTeamId) }),
-          el('time', { datetime: nearest.date, text: U.fmtFull(nearest.date) }),
-          routeLink(Core.href('match', nearest.matchId), 'Открыть полный план ' + rosterName(rosters, nearest.opponentTeamId))
-        ]) : el('p', { text: 'Нет данных · низкая уверенность' })),
-        card('Готовность плана', el('div', {}, [el('p', { class: 'stats-big', text: ready.done + ' / ' + ready.total }), el('p', { text: 'общих задач закрыто' }), el('small', { text: 'Снимок по ' + manifest.window.recentEnd })])),
-        card('Главный edge', nearest ? mapFigure(nearest) : el('p', { text: 'Нет данных' })),
-        card('Угрозы', nearest ? evidenceList(nearest.threats, rosters) : el('p', { text: 'Нет данных' })),
-        card('Свежесть', el('div', {}, [
-          el('p', { class: 'stats-mono', text: manifest.root.slice(0, 12) + '…' }),
-          el('p', { text: manifest.window.recentStart + ' — ' + manifest.window.recentEnd }),
-          routeLink('#/statistika/quality', 'Открыть качество и provenance')
-        ]))
-      ]),
-      el('section', { class: 'section' }, [
-        el('h2', { text: 'Четыре плана матчей' }),
-        el('div', { class: 'stats-plan-grid' }, plans.map(function (plan) {
-          return routeLink(Core.href('match', plan.matchId), plan.date + ' · ' + rosterName(rosters, plan.opponentTeamId) + ' · pick ' + mapName(plan.pick), 'card stats-route-card');
-        }))
+        card('Составы', el('div', {}, [el('p', { class: 'stats-big', text: String(rosters.length) }), el('p', { text: 'проекций ростеров в снимке' })])),
+        card('Игроки', el('div', {}, [el('p', { class: 'stats-big', text: String(manifest.counts.players) }), el('p', { text: 'игроков в каталоге' })])),
+        card('Исходные матчи', el('div', {}, [el('p', { class: 'stats-big', text: String(manifest.counts.matches) }), el('p', { text: 'матчей доступны для проверки' })])),
+        card('Окно данных', el('div', {}, [el('p', { text: manifest.window.recentStart + ' — ' + manifest.window.recentEnd }), routeLink('#/statistika/quality', 'Открыть качество данных')]))
       ]),
       el('section', { class: 'section' }, [
         el('h2', { text: 'Пять проекций составов' }),
@@ -214,9 +157,22 @@
           return routeLink(Core.href('team', roster.teamId), roster.name + ' · ' + roster.players.length + ' игроков', 'card stats-route-card');
         }))
       ]),
-      directoryLinks(manifest)
+      directoryLinks(manifest),
+      technicalDetails(manifest)
     ]);
-    return shell('Статистика', 'Операционная сводка', main, 'Готово: четыре плана и пять проекций составов');
+    return shell('Данные', 'Whoajor / нейтральный снимок', main, 'Готово: нейтральный каталог данных');
+  }
+
+  function technicalDetails(manifest, rows) {
+    return el('details', { class: 'stats-diagnostics' }, [
+      el('summary', { text: 'Техническая диагностика' }),
+      el('dl', { class: 'stats-dl' }, [
+        el('dt', { text: 'Root' }), el('dd', { class: 'stats-mono', text: manifest.root }),
+        el('dt', { text: 'Версия' }), el('dd', { class: 'stats-mono', text: manifest.version }),
+        el('dt', { text: 'Проверка' }), el('dd', { text: 'Manifest и assets проверяются по SHA-256' })
+      ]),
+      rows || null
+    ]);
   }
 
   function directoryLinks(manifest) {
@@ -241,10 +197,10 @@
       var rows = await client.dataset(kind);
       if (kind === 'players') {
         rows.forEach(function (row) { if (typeof row.steamid === 'string') knownTeams[row.teamId || ''] = knownTeams[row.teamId || ''] || false; });
-        U.mount(host, el('div', { class: 'stats-directory-grid' }, rows.map(function (row) { return routeLink(Core.href('player', row.steamid), row.displayName + ' · ' + row.steamid); })));
+        U.mount(host, el('div', { class: 'stats-directory-grid' }, rows.map(function (row) { return routeLink(Core.href('player', row.steamid), row.displayName); })));
       } else {
         rows.forEach(function (row) { knownMatches[row.matchId] = true; });
-        U.mount(host, el('div', { class: 'stats-directory-grid' }, rows.map(function (row) { return routeLink(Core.href('match', row.matchId), U.fmtFull(row.startedAt) + ' · ' + mapName(row.map) + ' · ' + row.matchId); })));
+        U.mount(host, el('div', { class: 'stats-directory-grid' }, rows.map(function (row) { return routeLink(Core.href('match', row.matchId), U.fmtFull(row.startedAt) + ' · ' + mapName(row.map)); })));
       }
     } catch (error) { host.textContent = 'Нет данных: ' + text(error.message); }
   }
@@ -262,48 +218,40 @@
       el('p', { class: 'lead stats-caveat', text: 'Командные показатели — проекция индивидуальной статистики; сыгранность пятёрки не измерена.' }),
       el('div', { class: 'stats-hero-grid' }, [
         card('Покрытие', el('div', {}, [el('p', { class: 'stats-big', text: roster.players.length + ' / 6' }), el('p', { text: 'игроков сопоставлено; top-5 считается отдельно' }), el('p', { text: lineup.confirmed ? 'Пятёрка подтверждена' : 'Подтверждённой пятёрки нет' })])),
-        card('Recent / all-time', metricPairs(recent.metrics, all.metrics)),
+        card('Rating', ratingMeters(recent.metrics, all.metrics)),
         card('Публикация', el('div', {}, [el('p', { text: 'Draft avg ' + number(metrics.publishedDraftAverage, 3) }), el('p', { text: 'Draft top-5 ' + number(metrics.publishedDraftTop5Average, 3) }), el('small', { text: manifest.window.recentStart + ' — ' + manifest.window.recentEnd })]))
       ]),
       el('section', { class: 'section' }, [el('h2', { text: 'Состав' }), el('div', { class: 'stats-plan-grid' }, roster.players.map(function (player) { return routeLink(Core.href('player', player.steamid), player.displayName + ' · draft ' + number(player.draftRating, 3), 'card stats-route-card'); }))]),
+      metricTable(recent.metrics, all.metrics),
       edgeTable(edges && edges.maps || []),
-      scouting(metrics.scouting, data.rosters),
-      planLinks(data.recommendations.filter(function (plan) { return plan.opponentTeamId === route.teamId; }), roster.name)
+      technicalDetails(manifest, el('p', { class: 'stats-mono', text: 'teamId: ' + route.teamId }))
     ]);
-    return shell(roster.name, 'Профиль соперника', body, 'Готово: профиль ' + roster.name);
+    return shell(roster.name, 'Проекция состава', body, 'Готово: профиль ' + roster.name);
   }
 
-  function metricPairs(recent, all) {
+  function metricTable(recent, all) {
     recent = recent || {}; all = all || {};
-    return el('dl', { class: 'stats-dl' }, ['rating', 'adr', 'kast', 'openingDiffPer100'].map(function (key) {
-      return [el('dt', { text: metricName(key) }), el('dd', { text: number(recent[key]) + ' / ' + number(all[key]) })];
+    return simpleTableSection('Показатели команды', ['Метрика', 'Последнее окно', 'За всё время'], ['rating', 'adr', 'kast', 'openingDiffPer100'].map(function (key) {
+      return [metricName(key), number(recent[key]), number(all[key])];
     }));
   }
 
+  function ratingMeters(recent, all) {
+    recent = recent || {}; all = all || {};
+    return el('div', { class: 'stats-bars' }, [
+      el('div', { class: 'stats-bar stats-bar--ct' }, [el('span', { text: 'Последнее окно' }), el('meter', { min: '0', max: '2', value: String(recent.rating || 0), text: number(recent.rating) }), el('b', { text: number(recent.rating) })]),
+      el('div', { class: 'stats-bar stats-bar--t' }, [el('span', { text: 'За всё время' }), el('meter', { min: '0', max: '2', value: String(all.rating || 0), text: number(all.rating) }), el('b', { text: number(all.rating) })])
+    ]);
+  }
+
   function edgeTable(rows) {
-    return el('section', { class: 'section' }, [el('h2', { text: 'Map edges' }), el('div', { class: 'table-wrap', 'aria-label': 'Таблица map edges: прокрутите по горизонтали' }, el('table', { class: 'data', 'aria-label': 'Map edges' }, [
-      el('thead', {}, el('tr', {}, [el('th', { text: 'Карта' }), el('th', { text: 'Edge' }), el('th', { text: 'Мы n' }), el('th', { text: 'Они n' }), el('th', { text: 'Confidence' })])),
+    return el('section', { class: 'section' }, [el('h2', { text: 'Сравнение по картам' }), el('div', { class: 'table-wrap', 'aria-label': 'Таблица сравнения карт: прокрутите по горизонтали' }, el('table', { class: 'data', 'aria-label': 'Сравнение по картам' }, [
+      el('thead', {}, el('tr', {}, [el('th', { text: 'Карта' }), el('th', { text: 'Разница Rating' }), el('th', { text: 'Наша выборка' }), el('th', { text: 'Их выборка' }), el('th', { text: 'Уверенность' })])),
       el('tbody', {}, rows.map(function (row) { return el('tr', {}, [el('td', { text: mapName(row.map) }), el('td', { text: number(row.edge, 3) }), el('td', { text: String(row.us.playerRounds) }), el('td', { text: String(row.opponent.playerRounds) }), el('td', { text: confidence(row.confidence) })]); }))
     ]))]);
   }
 
-  function scouting(value, rosters) {
-    value = value || {};
-    function metricCards(title, rows) {
-      return card(title, el('ul', { class: 'stats-evidence', 'data-evidence': 'true' }, (rows || []).map(function (row) { return el('li', {}, [el('span', { text: metricName(row.metric) + ' · ' + number(row.value) }), el('small', { text: 'delta ' + number(row.delta) + ' · ' + row.evidenceId })]); })));
-    }
-    var threatRows = (value.ratingThreats || []).concat(value.openingLeader || []).concat(value.utilityLeader || []);
-    return el('section', { class: 'section' }, [el('h2', { text: 'Угрозы, уязвимости и риски' }), el('div', { class: 'stats-hero-grid' }, [
-      card('Угрозы', el('ul', { class: 'stats-evidence', 'data-evidence': 'true' }, threatRows.map(function (row) { return el('li', {}, [routeLink(Core.href('player', row.steamid), playerName(rosters, row.steamid)), el('small', { text: row.evidenceId })]); }))),
-      metricCards('Уязвимости', value.exploits), metricCards('Риски', value.risks)
-    ])]);
-  }
-
-  function planLinks(plans, name) {
-    return el('section', { class: 'section' }, [el('h2', { text: 'Матчи' }), plans.length ? el('div', { class: 'stats-plan-grid' }, plans.map(function (plan) { return routeLink(Core.href('match', plan.matchId), plan.date + ' · полный план против ' + name, 'card stats-route-card'); })) : el('p', { text: 'Нет данных' })]);
-  }
-
-  function playerView(data, route) {
+  function playerView(data, route, manifest) {
     var raw = findBy(data.players, 'steamid', route.steamid);
     var metric = findBy(data.playerMetrics, 'steamid', route.steamid);
     if (!raw && !metric) return emptyView('Игрок ' + route.steamid + ' не найден');
@@ -314,26 +262,33 @@
     var weapons = data.playerWeaponStats.filter(function (row) { return row.steamid === route.steamid; }).slice(0, 20);
     var trends = data.trendMatches.filter(function (row) { return row.steamid === route.steamid; }).slice(-20);
     var body = el('div', { class: 'stats-stack' }, [
-      el('p', { class: 'stats-mono', text: route.steamid }),
       roster ? routeLink(Core.href('team', roster.teamId), 'Вернуться к составу ' + roster.name) : el('p', { text: 'Команда не сопоставлена' }),
       el('div', { class: 'stats-hero-grid' }, [
-        card('Recent / all-time', metric ? metricPairs(metric.recent.metrics, metric.allTime.metrics) : metricPairs({ rating: raw.rating2, adr: raw.adr, kast: raw.kast_pct / 100 }, {})),
+        card('Последнее окно / всё время', metric ? metricPairs(metric.recent.metrics, metric.allTime.metrics) : metricPairs({ rating: raw.rating2, adr: raw.adr, kast: raw.kast_pct / 100 }, {})),
         card('Стороны', metric && metric.recent.metrics ? sideFigure(metric.recent.metrics.sides, metric.recent.sums.rounds) : el('p', { text: 'Нет данных' })),
-        card('Выборка', el('div', {}, [el('p', { class: 'stats-big', text: String(metric ? metric.recent.sums.rounds : raw.rounds_played) }), el('p', { text: 'recent rounds' })]))
+        card('Выборка', el('div', {}, [el('p', { class: 'stats-big', text: String(metric ? metric.recent.sums.rounds : raw.rounds_played) }), el('p', { text: 'раундов в последнем окне' })]))
       ]),
-      playerMapTable(maps), playerWeaponTable(weapons), trendTable(trends), playerClutchTable(data.playerClutches || [])
+      playerMapTable(maps), playerWeaponTable(weapons), trendTable(trends), playerClutchTable(data.playerClutches || []),
+      technicalDetails(manifest, el('p', { class: 'stats-mono', text: 'steamid: ' + route.steamid }))
     ]);
     return shell(name, 'Профиль игрока', body, 'Готово: профиль ' + name);
+  }
+
+  function metricPairs(recent, all) {
+    recent = recent || {}; all = all || {};
+    return el('dl', { class: 'stats-dl' }, ['rating', 'adr', 'kast', 'openingDiffPer100'].map(function (key) {
+      return [el('dt', { text: metricName(key) }), el('dd', { text: number(recent[key]) + ' / ' + number(all[key]) })];
+    }));
   }
 
   function sideFigure(sides, sample) {
     sides = sides || {};
     var t = sides.T || {}, ct = sides.CT || {};
-    return el('figure', { class: 'stats-chart', role: 'img', 'aria-label': 'Rating игрока: T ' + number(t.rating) + ', CT ' + number(ct.rating) }, [
+    return el('figure', { class: 'stats-chart', 'aria-label': 'Rating игрока: T ' + number(t.rating) + ', CT ' + number(ct.rating) }, [
       el('figcaption', {}, [el('strong', { text: 'T / CT split' }), el('span', { text: 'n=' + sample + ' раундов; стороны различаются буквами и цветом' })]),
       el('div', { class: 'stats-bars' }, [
-        el('div', { class: 'stats-bar stats-bar--t' }, [el('span', { text: 'T' }), el('i', { style: '--value:' + Math.min(100, (t.rating || 0) * 50) + '%' }), el('b', { text: number(t.rating) })]),
-        el('div', { class: 'stats-bar stats-bar--ct' }, [el('span', { text: 'CT' }), el('i', { style: '--value:' + Math.min(100, (ct.rating || 0) * 50) + '%' }), el('b', { text: number(ct.rating) })])
+        el('div', { class: 'stats-bar stats-bar--t' }, [el('span', { text: 'T' }), el('meter', { min: '0', max: '2', value: String(t.rating || 0), text: number(t.rating) }), el('b', { text: number(t.rating) })]),
+        el('div', { class: 'stats-bar stats-bar--ct' }, [el('span', { text: 'CT' }), el('meter', { min: '0', max: '2', value: String(ct.rating || 0), text: number(ct.rating) }), el('b', { text: number(ct.rating) })])
       ])
     ]);
   }
@@ -346,7 +301,7 @@
   }
 
   function playerWeaponTable(rows) {
-    return simpleTableSection('Оружие игрока', ['Оружие', 'Убийства', 'Выстрелы'], rows.map(function (row) { return [text(row.weapon), text(row.kills), text(row.shots)]; }));
+    return simpleTableSection('Оружие игрока', ['Оружие', 'Убийства', 'Выстрелы'], rows.map(function (row) { return [weaponName(row.weapon), text(row.kills), text(row.shots)]; }));
   }
 
   function trendTable(rows) {
@@ -354,8 +309,8 @@
   }
 
   function playerClutchTable(rows) {
-    return simpleTableSection('Клатчи игрока', ['Матч', 'Раунд', 'Против', 'Убийства', 'Победа', 'Выжил'], rows.map(function (row) {
-      return [row.matchId, row.round, '1v' + row.vs, row.kills, row.won ? 'Да' : 'Нет', row.survived ? 'Да' : 'Нет'];
+    return simpleTableSection('Клатчи игрока', ['Раунд', 'Против', 'Убийства', 'Победа', 'Выжил'], rows.map(function (row) {
+      return [row.round, '1v' + row.vs, row.kills, row.won ? 'Да' : 'Нет', row.survived ? 'Да' : 'Нет'];
     }));
   }
 
@@ -367,44 +322,13 @@
   }
 
   function matchView(data, route, manifest) {
-    var plan = findBy(data.recommendations, 'matchId', route.matchId);
-    if (!plan) {
-      var source = findBy(data.matches, 'matchId', route.matchId);
-      return source ? sourceMatchView(source) : emptyView('Матч ' + route.matchId + ' не найден');
-    }
-    validatePlans([plan], data.evidence, manifest);
-    knownMatches[plan.matchId] = true;
-    var opponent = rosterName(data.rosters, plan.opponentTeamId);
-    var tasks = el('div', { class: 'stats-tasks' }, TASKS.map(function (task) {
-      var key = Core.scoutKey(plan.matchId, task.id);
-      return el('div', { class: 'stats-task' }, [U.check(key, task.label), U.noteField(key, 'Общая заметка', 'Короткая договорённость по задаче…')]);
-    }));
-    var body = el('div', { class: 'stats-stack' }, [
-      el('p', { class: 'lead stats-caveat', text: 'План read-only. Командные числа — проекция игроков; сыгранность не измерена.' }),
-      el('div', { class: 'stats-veto-strip' }, [veto('Pick', plan.pick, 'ct'), veto('Ban', plan.ban, 'signal'), veto('Backup', (plan.backup || []).map(mapName).join(' / '), 'ghost')]),
-      card('Contingency', el('p', { text: plan.contingency })),
-      simpleTableSection('Цифры по картам', ['Карта', 'Edge', 'Наш Rating', 'Их Rating', 'Наши раунды', 'Их раунды', 'Confidence'], (plan.maps || []).map(function (row) {
-        return [mapName(row.map), number(row.edge, 3), number(row.us && row.us.adjustedRating, 3), number(row.opponent && row.opponent.adjustedRating, 3), text(row.us && row.us.playerRounds), text(row.opponent && row.opponent.playerRounds), confidence(row.confidence)];
-      })),
-      (plan.mapOverrides || []).length ? simpleTableSection('Ручные решения по картам', ['Решение', 'Карта', 'Обоснование', 'Evidence'], plan.mapOverrides.map(function (row) {
-        return [text(row.action), mapName(row.map), text(row.rationale), (row.evidenceIds || []).join(', ')];
-      })) : null,
-      el('div', { class: 'stats-hero-grid' }, [card('Угрозы', evidenceList(plan.threats, data.rosters)), card('Уязвимости', evidenceList(plan.weaknesses, data.rosters)), card('Confidence', el('div', {}, [el('p', { class: 'stats-big', text: confidence(plan.confidence) }), el('p', { text: 'reviewed ' + plan.reviewedAt + ' · data through ' + plan.dataThrough })]))]),
-      el('div', { class: 'stats-hero-grid' }, [listCard('Делать', plan.do), listCard('Не делать', plan.dont), listCard('Ограничения', (plan.caveats || []).map(function (row) { return row.text; }))]),
-      el('section', { class: 'section' }, [el('h2', { text: 'Чеклист тренировки' }), simpleList(plan.trainingChecklist || [])]),
-      el('section', { class: 'section' }, [el('h2', { text: 'Чеклист матч-дня' }), simpleList(plan.matchdayChecklist || [])]),
-      el('section', { class: 'section' }, [el('h2', { text: 'Общие задачи' }), tasks, el('p', { class: 'stats-sync-note', text: 'Сохраняется в командное состояние; одновременное редактирование одной заметки — last write wins.' })]),
-      el('section', { class: 'section' }, [el('h2', { text: 'Личные задачи в плане (read-only)' }), simpleList((plan.personalTasks || []).map(function (task) { return task.draftName + ': ' + task.task; }))]),
-      el('section', { class: 'section', 'data-evidence': 'true' }, [el('h2', { text: 'Evidence IDs' }), simpleList(Core.recommendationEvidenceIds(plan))])
-    ]);
-    return shell('План матча · ' + opponent, plan.date + ' / ' + plan.matchId, body, 'Готово: reviewed план матча ' + plan.matchId);
+    var source = findBy(data.matches, 'matchId', route.matchId);
+    return source ? sourceMatchView(source, manifest) : emptyView('Исходный матч не найден');
   }
 
-  function veto(label, value, type) { return el('div', { class: 'stats-veto stats-veto--' + type }, [el('span', { text: label }), el('strong', { text: Array.isArray(value) ? value.map(mapName).join(' / ') : mapName(value) })]); }
-  function listCard(title, rows) { return card(title, simpleList(rows || [])); }
   function simpleList(rows) { return rows.length ? el('ul', { class: 'stats-list' }, rows.map(function (row) { return el('li', { text: text(row) }); })) : el('p', { text: 'Нет данных' }); }
 
-  function sourceMatchView(source) {
+  function sourceMatchView(source, manifest) {
     var detailHosts = [el('div'), el('div'), el('div')];
     var host = el('div', { id: 'stats-source-match-detail', class: 'stats-directory', 'data-detail-readonly': 'true' }, detailHosts);
     var load = el('button', { type: 'button', class: 'stats-detail-button', text: 'Загрузить детали матча' });
@@ -414,8 +338,8 @@
       detailHosts.forEach(function (detailHost) { detailHost.textContent = 'Загрузка…'; });
       var loaders = [
         { dataset: 'matchPlayers', label: 'игроки', render: function (rows) {
-          return simpleTableSection('Игроки матча', ['SteamID', 'Имя', 'Rating', 'Результат'], rows.map(function (row) {
-            return [row.steamid, row.name, number(row.rating2), row.matchResult];
+          return simpleTableSection('Игроки матча', ['Игрок', 'Rating', 'Результат'], rows.map(function (row) {
+            return [row.name, number(row.rating2), row.matchResult];
           }));
         } },
         { dataset: 'matchRounds', label: 'раунды', render: function (rows) {
@@ -424,8 +348,8 @@
           }));
         } },
         { dataset: 'matchPlayerWeapons', label: 'оружие', render: function (rows) {
-          return simpleTableSection('Оружие матча', ['SteamID', 'Оружие', 'Убийства', 'Урон', 'Выстрелы'], rows.map(function (row) {
-            return [row.steamid, row.weapon, row.kills, row.damage, row.shots];
+          return simpleTableSection('Оружие матча', ['Оружие', 'Убийства', 'Урон', 'Выстрелы'], rows.map(function (row) {
+            return [weaponName(row.weapon), row.kills, row.damage, row.shots];
           }));
         } }
       ];
@@ -448,8 +372,9 @@
         status.textContent = 'Детали матча загружены';
       }
     });
-    var view = shell('Исходный матч · ' + mapName(source.map), source.startedAt + ' / ' + source.matchId, el('div', { class: 'stats-stack' }, [
-      card('Матч', el('dl', { class: 'stats-dl' }, [el('dt', { text: 'Раунды' }), el('dd', { text: String(source.roundsPlayed) }), el('dt', { text: 'Режим' }), el('dd', { text: text(source.mode) }), el('dt', { text: 'Server' }), el('dd', { text: text(source.serverName) })])), load, host
+    var view = shell('Исходный матч · ' + mapName(source.map), U.fmtFull(source.startedAt), el('div', { class: 'stats-stack' }, [
+      card('Матч', el('dl', { class: 'stats-dl' }, [el('dt', { text: 'Раунды' }), el('dd', { text: String(source.roundsPlayed) }), el('dt', { text: 'Режим' }), el('dd', { text: text(source.mode) }), el('dt', { text: 'Сервер' }), el('dd', { text: text(source.serverName) })])),
+      load, host, technicalDetails(manifest, el('p', { class: 'stats-mono', text: 'matchId: ' + source.matchId }))
     ]), 'Готово: исходный матч');
     status = view.node.querySelector('[role="status"]');
     return view;
@@ -506,7 +431,7 @@
       button.disabled = true; host.textContent = 'Загрузка…';
       try {
         var details = (await client.datasetForKey('playerMapStats', 'map', row.map)).slice(0, 10);
-        U.mount(host, simpleList(details.map(function (item) { return text(item.name || item.steamid) + ' · Rating ' + number(item.rating2 || item.rating); })));
+        U.mount(host, simpleList(details.map(function (item, index) { return 'Игрок ' + (index + 1) + ' · Rating ' + number(item.rating2 || item.rating); })));
         status.textContent = 'Детали карты ' + mapName(row.map) + ' загружены';
       } catch (error) {
         host.textContent = 'Нет данных: ' + error.message; button.disabled = false;
@@ -516,35 +441,41 @@
   }
 
   function weaponsView(rows) {
-    return sortableView('Оружие', '39 видов оружия / aggregate', rows, { defaultKey: 'kills', search: function (row) { return row.weapon; }, name: function (row) { return row.weapon; }, columns: [
-      { key: 'weapon', label: 'Оружие', value: function (row) { return row.weapon; } }, { key: 'kills', label: 'Убийствам', value: function (row) { return row.kills; } }, { key: 'shots', label: 'Выстрелам', value: function (row) { return row.shots; } }, { key: 'players', label: 'Игрокам', value: function (row) { return row.players; } }
+    return sortableView('Оружие', '39 видов оружия / агрегат', rows, { defaultKey: 'kills', search: function (row) { return weaponName(row.weapon); }, name: function (row) { return weaponName(row.weapon); }, columns: [
+      { key: 'weapon', label: 'Оружие', value: function (row) { return weaponName(row.weapon); } }, { key: 'kills', label: 'Убийствам', value: function (row) { return row.kills; } }, { key: 'shots', label: 'Выстрелам', value: function (row) { return row.shots; } }, { key: 'players', label: 'Игрокам', value: function (row) { return row.players; } }
     ] }, async function (row, host, button, status) {
       button.disabled = true; host.textContent = 'Загрузка…';
       try {
         var details = (await client.datasetForKey('playerWeaponStats', 'weapon', row.weapon)).slice(0, 10);
         U.mount(host, simpleList(details.map(function (item) { return text(item.name || item.steamid) + ' · ' + text(item.kills) + ' убийств'; })));
-        status.textContent = 'Детали оружия ' + text(row.weapon) + ' загружены';
+        status.textContent = 'Детали оружия ' + weaponName(row.weapon) + ' загружены';
       } catch (error) {
         host.textContent = 'Нет данных: ' + error.message; button.disabled = false;
-        status.textContent = 'Ошибка деталей оружия ' + text(row.weapon) + '. Можно повторить.';
+        status.textContent = 'Ошибка деталей оружия ' + weaponName(row.weapon) + '. Можно повторить.';
       }
     });
   }
 
   function trendsView(rows) {
-    return sortableView('Тренды', '20 профилей / recent movement', rows, { defaultKey: 'roundsTotal', search: function (row) { return row.name + ' ' + row.steamid; }, name: function (row) { return row.name; }, columns: [
-      { key: 'name', label: 'Игроку', value: function (row) { return row.name; } }, { key: 'roundsTotal', label: 'Раундам', value: function (row) { return row.roundsTotal; } }, { key: 'steamid', label: 'SteamID', value: function (row) { return row.steamid; } }
+    return sortableView('Тренды', '20 профилей / динамика', rows, { defaultKey: 'roundsTotal', search: function (row) { return row.name; }, name: function (row) { return row.name; }, columns: [
+      { key: 'name', label: 'Игроку', value: function (row) { return row.name; } }, { key: 'roundsTotal', label: 'Раундам', value: function (row) { return row.roundsTotal; } }
     ] }, function (row) { window.location.hash = Core.href('player', row.steamid); });
   }
 
   function qualityView(rows, manifest) {
     var quality = rows[0] || {};
     var body = el('div', { class: 'stats-stack' }, [
-      el('div', { class: 'stats-hero-grid' }, [card('Integrity', el('div', {}, [chip(text(quality.integrity), quality.integrity === 'ok' ? 'ok' : 'signal'), el('p', { text: quality.foreignKeyViolations + ' FK violations · ' + quality.sourceDiscrepancies + ' discrepancies' })])), card('Root', el('p', { class: 'stats-mono', text: manifest.root })), card('Окно', el('p', { text: manifest.window.recentStart + ' — ' + manifest.window.recentEnd }))]),
-      simpleTableSection('Покрытие', ['Dataset', 'Строк', 'Шардов'], Object.keys(manifest.counts).map(function (key) { return [key, manifest.counts[key], manifest.assets.filter(function (asset) { return asset.dataset === key; }).length || '—']; })),
-      simpleTableSection('Проверенные assets', ['Dataset', 'Путь', 'Строк', 'SHA-256'], manifest.assets.map(function (asset) { return [asset.dataset, asset.path, asset.count, asset.sha256.slice(0, 12) + '…']; }))
+      el('div', { class: 'stats-hero-grid' }, [
+        card('Целостность', el('div', {}, [chip(quality.integrity === 'ok' ? 'Проверена' : 'Есть ошибки', quality.integrity === 'ok' ? 'ok' : 'signal'), el('p', { text: quality.foreignKeyViolations + ' нарушений связей · ' + quality.sourceDiscrepancies + ' расхождений источника' })])),
+        card('Окно', el('p', { text: manifest.window.recentStart + ' — ' + manifest.window.recentEnd })),
+        card('Объём', el('p', { class: 'stats-big', text: String(manifest.assets.length) + ' файлов' }))
+      ]),
+      technicalDetails(manifest, el('div', {}, [
+        simpleTableSection('Покрытие', ['Набор', 'Строк', 'Файлов'], Object.keys(manifest.counts).map(function (key) { return [key, manifest.counts[key], manifest.assets.filter(function (asset) { return asset.dataset === key; }).length || '—']; })),
+        simpleTableSection('Проверенные файлы', ['Набор', 'Путь', 'Строк', 'SHA-256'], manifest.assets.map(function (asset) { return [asset.dataset, asset.path, asset.count, asset.sha256.slice(0, 12) + '…']; }))
+      ]))
     ]);
-    return shell('Качество данных', 'Provenance / validation', body, 'Готово: ' + manifest.assets.length + ' assets проверяются по SHA-256');
+    return shell('Качество данных', 'Проверка снимка', body, 'Готово: целостность снимка проверена');
   }
 
   async function loadRoute(route) {
@@ -565,7 +496,7 @@
     }
     if (route.view === 'overview') return overviewView(data, state.manifest);
     if (route.view === 'team') return teamView(data, route, state.manifest);
-    if (route.view === 'player') return playerView(data, route);
+    if (route.view === 'player') return playerView(data, route, state.manifest);
     if (route.view === 'match') return matchView(data, route, state.manifest);
     if (route.view === 'maps') return mapsView(data.maps);
     if (route.view === 'weapons') return weaponsView(data.weapons);

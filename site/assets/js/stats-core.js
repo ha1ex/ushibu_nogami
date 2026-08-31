@@ -2,13 +2,7 @@
 (function (root) {
   'use strict';
 
-  var LEGACY = {
-    obzor: 'overview', trenirovki: 'training', taktiki: 'tactics',
-    soperniki: 'opponents', matchi: 'matches', reglament: 'regulations',
-    golosovanie: 'polls'
-  };
   var LIST_VIEWS = ['maps', 'weapons', 'trends', 'quality'];
-  var TASK_IDS = ['brief-read', 'veto-confirmed', 'anti-threat', 'matchday'];
   var TEAM_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
   var PLAYER_RE = /^\d{17}$/;
   var MATCH_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
@@ -38,8 +32,7 @@
   function parseHash(hash) {
     var raw = typeof hash === 'string' ? hash : '';
     var parts = raw.replace(/^#\/?/, '').split('/');
-    if (parts.length === 1 && LEGACY[parts[0]]) return { tab: LEGACY[parts[0]], path: '#/' + parts[0] };
-    if (parts[0] !== 'statistika') return { tab: 'overview', path: '#/obzor' };
+    if (parts[0] !== 'statistika') return { tab: 'statistics', view: 'invalid', path: '#/statistika', reason: 'Нет данных: неверный адрес раздела' };
     if (parts.length === 1) return { tab: 'statistics', view: 'overview', path: '#/statistika' };
     if (parts.length === 2 && LIST_VIEWS.indexOf(parts[1]) !== -1) {
       return { tab: 'statistics', view: parts[1], path: '#/statistika/' + parts[1] };
@@ -47,8 +40,8 @@
     if (parts.length !== 3) return invalid('неверный адрес раздела');
     var id = decode(parts[2]);
     if (!id) return invalid('неверный идентификатор');
-    if (parts[1] === 'sopernik' && TEAM_RE.test(id)) {
-      return { tab: 'statistics', view: 'team', teamId: id, path: '#/statistika/sopernik/' + encodeURIComponent(id) };
+    if (parts[1] === 'team' && TEAM_RE.test(id)) {
+      return { tab: 'statistics', view: 'team', teamId: id, path: '#/statistika/team/' + encodeURIComponent(id) };
     }
     if (parts[1] === 'igrok' && PLAYER_RE.test(id)) {
       return { tab: 'statistics', view: 'player', steamid: id, path: '#/statistika/igrok/' + id };
@@ -69,7 +62,7 @@
 
   function href(kind, id) {
     var value = assertId(kind, id);
-    if (kind === 'team') return '#/statistika/sopernik/' + encodeURIComponent(value);
+    if (kind === 'team') return '#/statistika/team/' + encodeURIComponent(value);
     if (kind === 'player') return '#/statistika/igrok/' + value;
     return '#/statistika/match/' + encodeURIComponent(value);
   }
@@ -145,36 +138,6 @@
     return manifest.assets.filter(function (asset) { return asset.dataset === dataset; });
   }
 
-  function recommendationEvidenceIds(rec) {
-    var ids = [];
-    ['mapEvidence', 'threatEvidence', 'weaknessEvidence'].forEach(function (key) {
-      if (Array.isArray(rec[key])) ids = ids.concat(rec[key]);
-    });
-    ['maps', 'threats', 'weaknesses'].forEach(function (key) {
-      (rec[key] || []).forEach(function (item) { if (item && item.id) ids.push(item.id); });
-    });
-    (rec.mapOverrides || []).forEach(function (item) {
-      if (item && Array.isArray(item.evidenceIds)) ids = ids.concat(item.evidenceIds);
-    });
-    (rec.caveats || []).forEach(function (item) { if (item && item.evidenceId) ids.push(item.evidenceId); });
-    return ids;
-  }
-
-  function validateRecommendation(rec, manifest, evidenceIds) {
-    if (!rec || rec.reviewed !== true) throw new Error('Recommendation reviewed !== true');
-    if (rec.snapshotRoot !== manifest.root) throw new Error('Recommendation root не совпадает');
-    if (rec.dataThrough !== manifest.window.recentEnd) throw new Error('Recommendation устарел');
-    var missing = recommendationEvidenceIds(rec).filter(function (id) { return !evidenceIds.has(id); });
-    if (missing.length) throw new Error('Recommendation ссылается на отсутствующий evidence: ' + missing[0]);
-    return rec;
-  }
-
-  function scoutKey(matchId, taskId) {
-    assertId('match', matchId);
-    if (TASK_IDS.indexOf(taskId) === -1) throw new Error('Неконтролируемый task ID');
-    return 'scout-v1-' + matchId + '-' + taskId;
-  }
-
   function sortRows(rows, key, direction) {
     var sign = direction === 'descending' ? -1 : 1;
     return rows.map(function (row, index) { return { row: row, index: index }; }).sort(function (a, b) {
@@ -184,19 +147,11 @@
     }).map(function (item) { return item.row; });
   }
 
-  function selectSchedulePlan(plans, today) {
-    var sorted = (plans || []).slice().sort(function (a, b) { return a.date.localeCompare(b.date); });
-    for (var i = 0; i < sorted.length; i++) {
-      if (sorted[i].date >= today) return { plan: sorted[i], completedFallback: false };
-    }
-    return { plan: sorted.length ? sorted[sorted.length - 1] : null, completedFallback: sorted.length > 0 };
-  }
-
   function datasetsForRoute(route) {
     var view = route && route.view;
-    if (view === 'overview' || view === 'team') return ['rosters', 'teamMetrics', 'mapEdges', 'recommendations', 'evidence'];
+    if (view === 'overview' || view === 'team') return ['rosters', 'teamMetrics', 'mapEdges'];
     if (view === 'player') return ['players', 'playerMetrics', 'rosters'];
-    if (view === 'match') return ['recommendations', 'evidence', 'rosters', 'matches'];
+    if (view === 'match') return ['matches'];
     if (view === 'maps') return ['maps'];
     if (view === 'weapons') return ['weapons'];
     if (view === 'trends') return ['trendPlayers'];
@@ -279,13 +234,8 @@
     validateManifest: validateManifest,
     verifyBytes: verifyBytes,
     assetsFor: assetsFor,
-    validateRecommendation: validateRecommendation,
-    recommendationEvidenceIds: recommendationEvidenceIds,
-    scoutKey: scoutKey,
     sortRows: sortRows,
-    selectSchedulePlan: selectSchedulePlan,
     datasetsForRoute: datasetsForRoute,
-    createClient: createClient,
-    taskIds: TASK_IDS.slice()
+    createClient: createClient
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

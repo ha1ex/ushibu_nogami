@@ -55,12 +55,11 @@ function fixture() {
   return { pointer, manifest };
 }
 
-test('parseHash preserves legacy routes and exact statistics drill-downs', () => {
+test('parseHash preserves exact neutral statistics drill-downs', () => {
   const plain = (value) => JSON.parse(JSON.stringify(value));
-  assert.deepEqual(plain(Core.parseHash('#/obzor')), { tab: 'overview', path: '#/obzor' });
   assert.deepEqual(plain(Core.parseHash('#/statistika')), { tab: 'statistics', view: 'overview', path: '#/statistika' });
-  assert.deepEqual(plain(Core.parseHash('#/statistika/sopernik/pocelui')), {
-    tab: 'statistics', view: 'team', teamId: 'pocelui', path: '#/statistika/sopernik/pocelui'
+  assert.deepEqual(plain(Core.parseHash('#/statistika/team/pocelui')), {
+    tab: 'statistics', view: 'team', teamId: 'pocelui', path: '#/statistika/team/pocelui'
   });
   assert.deepEqual(plain(Core.parseHash('#/statistika/igrok/76561198050158798')), {
     tab: 'statistics', view: 'player', steamid: '76561198050158798', path: '#/statistika/igrok/76561198050158798'
@@ -92,7 +91,7 @@ test('parseHash rejects encoded separators, malformed SteamIDs and unknown stati
 });
 
 test('href encodes only validated route identifiers and keeps SteamID a string', () => {
-  assert.equal(Core.href('team', 'pocelui'), '#/statistika/sopernik/pocelui');
+  assert.equal(Core.href('team', 'pocelui'), '#/statistika/team/pocelui');
   assert.equal(Core.href('player', '76561198050158798'), '#/statistika/igrok/76561198050158798');
   assert.equal(Core.href('match', 'auto-20231116-1908-de_anubis-Whoajor'), '#/statistika/match/auto-20231116-1908-de_anubis-Whoajor');
   assert.throws(() => Core.href('player', 76561198050158798), /строкой/i);
@@ -134,51 +133,16 @@ test('verifyBytes fails closed on an exact response SHA mismatch', async () => {
   await assert.rejects(() => Core.verifyBytes(bytes, sha('{"ok":true}'), null), /Web Crypto/i);
 });
 
-test('validateRecommendation requires reviewed root freshness and complete evidence closure', () => {
-  const { manifest } = fixture();
-  const evidence = new Set(['map-edge:pocelui:de_anubis', 'limitation:cohesion']);
-  const rec = {
-    matchId: 'm01', opponentTeamId: 'pocelui', reviewed: true,
-    snapshotRoot: manifest.root, dataThrough: manifest.window.recentEnd,
-    mapEvidence: ['map-edge:pocelui:de_anubis'], threatEvidence: [], weaknessEvidence: [],
-    caveats: [{ evidenceId: 'limitation:cohesion', text: 'Сыгранность не измерена.' }]
-  };
-  assert.equal(Core.validateRecommendation(rec, manifest, evidence), rec);
-  assert.throws(() => Core.validateRecommendation({ ...rec, reviewed: false }, manifest, evidence), /reviewed/i);
-  assert.throws(() => Core.validateRecommendation({ ...rec, snapshotRoot: 'f'.repeat(64) }, manifest, evidence), /root/i);
-  assert.throws(() => Core.validateRecommendation({ ...rec, dataThrough: '2026-08-26' }, manifest, evidence), /устарел/i);
-  assert.throws(() => Core.validateRecommendation({ ...rec, mapEvidence: ['missing'] }, manifest, evidence), /evidence/i);
-  assert.throws(() => Core.validateRecommendation({ ...rec, threats: [{ id: 'missing-embedded' }] }, manifest, evidence), /evidence/i);
-  assert.throws(() => Core.validateRecommendation({
-    ...rec,
-    mapOverrides: [{ action: 'ban', map: 'de_dust2', rationale: 'Manual override', evidenceIds: ['missing-override'] }]
-  }, manifest, evidence), /evidence/i);
-});
-
-test('dataset selection uses manifest entries and readiness keys are controlled', () => {
+test('dataset selection uses manifest entries', () => {
   const { manifest } = fixture();
   assert.deepEqual(Core.assetsFor(manifest, 'players'), [manifest.assets[0]]);
   assert.throws(() => Core.assetsFor(manifest, '../players'), /dataset/i);
-  assert.equal(Core.scoutKey('m01', 'brief-read'), 'scout-v1-m01-brief-read');
-  assert.throws(() => Core.scoutKey('m01', 'free-form-task'), /task/i);
 });
 
 test('sortRows is deterministic and does not mutate source rows', () => {
   const rows = [{ name: 'Zed', rating: 1 }, { name: 'Alpha', rating: 1 }, { name: 'Beta', rating: 2 }];
   assert.deepEqual(Core.sortRows(rows, 'rating', 'descending').map((row) => row.name), ['Beta', 'Zed', 'Alpha']);
   assert.deepEqual(rows.map((row) => row.name), ['Zed', 'Alpha', 'Beta']);
-});
-
-test('schedule selection chooses the first non-past plan and labels a most-recent fallback', () => {
-  const plans = [
-    { matchId: 'm09', date: '2026-10-21' },
-    { matchId: 'm01', date: '2026-09-30' },
-    { matchId: 'm10', date: '2026-10-22' },
-    { matchId: 'm02', date: '2026-10-01' }
-  ];
-  const plain = (value) => JSON.parse(JSON.stringify(value));
-  assert.deepEqual(plain(Core.selectSchedulePlan(plans, '2026-10-01')), { plan: plans[3], completedFallback: false });
-  assert.deepEqual(plain(Core.selectSchedulePlan(plans, '2026-10-23')), { plan: plans[2], completedFallback: true });
 });
 
 test('data client performs no request until explicitly opened', async () => {

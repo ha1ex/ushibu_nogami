@@ -5,8 +5,9 @@
   "type": "module",
   "description": "Штаб CS2 «Ушибу ногами» — статический сайт с пароль-гейтом на Routing Middleware",
   "scripts": {
-    "test": "npm run test:unit && npm run test:e2e",
-    "test:unit": "node --test test/stats-core.test.js test/stats-artifact.test.js test/auth-cache.test.js",
+    "test": "npm run validate:content && npm run test:unit && npm run test:e2e",
+    "validate:content": "node scripts/validate-content.mjs",
+    "test:unit": "node --test test/*.test.js",
     "test:e2e": "playwright test"
   },
   "dependencies": {
@@ -14,6 +15,7 @@
     "@vercel/functions": "^3.9.5"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.1"
+    "@playwright/test": "^1.62.1",
+    "ajv": "^8.20.0"
   }
 }

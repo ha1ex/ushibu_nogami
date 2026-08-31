@@ -15,9 +15,7 @@ window.UI = (function () {
         var v = props[k];
         if (v === null || v === undefined || v === false) return;
         if (k === 'class') node.className = v;
-        else if (k === 'html') node.innerHTML = v;          // только доверенные строки из data.*
         else if (k === 'text') node.textContent = v;
-        else if (k === 'style') node.setAttribute('style', v);
         else if (k.slice(0, 2) === 'on' && typeof v === 'function') node.addEventListener(k.slice(2), v);
         else if (v === true) node.setAttribute(k, '');
         else node.setAttribute(k, v);
@@ -115,18 +113,19 @@ window.UI = (function () {
     });
     return el('label', { class: 'check' + (className ? ' ' + className : '') }, [
       input,
-      el('span', { class: 'check__text', html: text })
+      el('span', { class: 'check__text', text: text })
     ]);
   }
 
   // Текстовое поле с автосохранением. Индикатор показывает не «мы записали
   // в localStorage», а что реально произошло с отправкой на сервер.
   function noteField(id, labelText, placeholder, tag) {
-    var saved = el('span', { class: 'field__saved' });
+    var saved = el('span', { class: 'field__saved', role: 'status', 'aria-live': 'polite' });
     var input = el(tag === 'input' ? 'input' : 'textarea', {
       'data-note': id,
       placeholder: placeholder || '',
-      type: tag === 'input' ? 'text' : null
+      type: tag === 'input' ? 'text' : null,
+      'aria-label': labelText || placeholder || 'Заметка'
     });
     input.value = window.Store.getNote(id);
 
