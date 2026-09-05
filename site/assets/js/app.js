@@ -115,19 +115,63 @@
     return null;
   }
 
+  function nextMatchBrief() {
+    return (window.MATCH_BRIEFS || []).filter(function (p) { return U.daysUntil(p.date) >= 0; }).sort(function (a, b) { return a.date.localeCompare(b.date); })[0];
+  }
+
+  function briefMap(id) {
+    var key = String(id || '').replace(/^de_/, '');
+    var map = PB.maps.filter(function (m) { return m.id === key; })[0];
+    return map ? map.name : key;
+  }
+
+  function openPreparation(tab, id) {
+    activate(tab, true);
+    var target = tab === 'training' ? document.getElementById('session-' + id) : document.querySelector('[data-map="' + id + '"]');
+    if (target) {
+      if (target.tagName === 'DETAILS') target.open = true;
+      target.setAttribute('tabindex', '-1');
+      target.focus({ preventScroll: true });
+      target.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
+  }
+
+  function renderMatchBrief(upcomingSession) {
+    var p = nextMatchBrief();
+    if (!p) return el('section', { class: 'module match-brief' }, [el('h2', { text: 'Матчи по расписанию завершены' }), el('p', { text: 'Откройте результаты и разборы матчей.' }), goLink('matches', 'Матчи и результаты')]);
+    var me = window.Store.me();
+    var task = (p.personalTasks || []).filter(function (t) { return me && t.draftName.toLowerCase() === String(me.nick).toLowerCase(); })[0];
+    var pending = S.sessions.filter(function (session) { return !session.done && U.daysUntil(session.date) < 0; });
+    var confidence = { high: 'высокая', medium: 'средняя', low: 'низкая' };
+    return el('section', { class: 'module match-brief', 'aria-label': 'Бриф ближайшего матча' }, [
+      el('p', { class: 'eyebrow', text: 'Ближайший матч · ' + U.fmtFull(p.date) }),
+      el('h2', { text: p.opponent }),
+      el('p', { class: 'card__body', text: 'Время и пятёрку подтвердить перед игрой. Данные до ' + U.fmtFull(p.dataThrough) + '.' }),
+      el('div', { class: 'brief-grid' }, [
+        el('div', {}, [el('h3', { text: 'План на матч' }), el('p', { class: 'brief-picks', text: 'Пик ' + briefMap(p.verdict.pick) + ' · бан ' + briefMap(p.verdict.ban) }), el('p', { text: 'Резерв: ' + (p.verdict.backup || []).map(briefMap).join(', ') + '. Уверенность модели: ' + (confidence[p.confidence] || 'не определена') + '.' }), p.noAdvantage ? el('p', { class: 'note__body', text: 'Лучший из доступных вариантов; преимущества по модели нет.' }) : null, el('a', { class: 'chip chip--accent', href: '#/statistika/match/' + p.matchId, text: 'Открыть полный план →' }), el('button', { type: 'button', class: 'chip', text: 'Плейбук ' + briefMap(p.verdict.pick), onclick: function () { openPreparation('tactics', p.verdict.pick.replace(/^de_/, '')); } })]),
+        el('div', {}, [el('h3', { text: 'Моя задача' }), el('p', { text: task ? task.draftName + ': ' + task.task : 'Выберите свою задачу в полном плане матча.' }), upcomingSession ? el('button', { type: 'button', class: 'chip chip--accent', text: 'Тренировка ' + upcomingSession.map + ' · ' + U.fmtShort(upcomingSession.date) + ' · ' + upcomingSession.slot, onclick: function () { openPreparation('training', upcomingSession.id); } }) : el('p', { text: 'Будущих обязательных тренировок в плане нет.' })])
+      ]),
+      el('details', { class: 'brief-questions', open: pending.length > 0 }, [el('summary', { text: 'Капитану подтвердить' }), el('ul', {}, [el('li', { text: 'Время матча и стартовую пятёрку — ответственный пока не назначен.' }), !p.orderConfirmed ? el('li', { text: 'Порядок вето лиги не подтверждён; уточнить до выбора карт.' }) : null].concat(pending.map(function (session) { return el('li', {}, [el('span', { text: session.map + ' · ' + U.fmtShort(session.date) + ' — результат не подтверждён' }), el('button', { type: 'button', class: 'chip', text: 'Открыть сессию', onclick: function () { openPreparation('training', session.id); } })]); }))) ]),
+      el('p', { class: 'label', text: 'Проекция индивидуальной статистики шести игроков. Сыгранность пятёрки не измерена. Голосование — комфорт, не приоритет подготовки к матчу.' })
+    ]);
+  }
+
   function renderOverview() {
     var days = U.daysUntil(S.firstMatch.date);
     var next = nextEvent();
     var maps = allMapsProgress();
     var rules = rulesProgress();
-    var upcomingSession = S.sessions.filter(function (s) { return !s.done && U.daysUntil(s.date) >= 0; })[0] || S.sessions[S.sessions.length - 1];
+    var upcomingSession = S.sessions.filter(function (s) { return !s.done && U.daysUntil(s.date) >= 0; })[0];
+    var completed = S.sessions.filter(function (s) { return s.done; }).length;
+    var unconfirmed = S.sessions.filter(function (s) { return !s.done && U.daysUntil(s.date) < 0; });
+    var future = S.sessions.filter(function (s) { return !s.done && U.daysUntil(s.date) >= 0; });
     var doneMaps = PB.maps.filter(function (m) { return m.order === 'done'; });
     var openMaps = PB.maps.filter(function (m) { return m.order !== 'done'; });
     var many = doneMaps.length > 1;
 
     var head = panelHeader(
       'Операция / первая игра',
-      el('h1', { html: days > 0 ? (days + ' ' + U.plural(days, 'день', 'дня', 'дней') + '.<br><em>Собрать маппул.</em>') : 'День игры.<br><em>Работаем.</em>' }),
+      el('h1', { html: days > 0 ? (days + ' ' + U.plural(days, 'день', 'дня', 'дней') + '.<br><em>Собрать маппул.</em>') : days === 0 ? 'День игры.<br><em>Работаем.</em>' : 'Сезон.<br><em>Играем по плану.</em>' }),
       el('div', { class: 'countdown' }, [
         el('span', { class: 'countdown__value', id: 'countdown-value', text: String(Math.max(0, days)) }),
         el('small', { class: 'countdown__label', id: 'countdown-label', text: days > 0 ? U.plural(days, 'день', 'дня', 'дней') + ' до матча' : 'день первой игры' })
@@ -155,7 +199,7 @@
           el('span', { class: 'stat__label', html: next ? (monthName(next.date) + '<br>' + weekdayFull(next.date)) : 'всё позади' })
         ]),
         el('h2', { class: 'card__title', text: next ? (next.title + ' · ' + (next.slot || '')) : 'Сезон отыгран' }),
-        el('p', { class: 'card__body', text: upcomingSession.focus }),
+        el('p', { class: 'card__body', text: upcomingSession ? upcomingSession.focus : 'Проверьте план ближайшего матча и итоги проведённых сессий.' }),
         el('div', { style: 'margin-top:var(--s5)' }, goLink('training', 'Открыть план тренировки'))
       ]),
 
@@ -177,18 +221,18 @@
 
       /* Ресурс */
       el('article', { class: 'module col-5' }, [
-        el('div', { class: 'card__head' }, [el('span', { text: 'Ресурс до старта' }), el('span', { text: U.fmtShort(S.meta.today) + ' → ' + U.fmtShort(S.firstMatch.date) })]),
+        el('div', { class: 'card__head' }, [el('span', { text: 'Ресурс до старта' }), el('span', { text: U.fmtShort(new Date().toISOString()) + ' → ' + U.fmtShort(S.firstMatch.date) })]),
         el('div', { class: 'stat-row', style: 'margin:var(--s5) 0' }, [
-          statBlock(String(S.sessions.length), 'основных<br>сессий'),
-          statBlock(String(S.optional.length), 'доп.<br>слота'),
-          statBlock(String(openMaps.length), 'карт<br>в работе')
+          statBlock(String(future.length), 'сессий<br>впереди'),
+          statBlock(String(completed), 'сессий<br>проведено'),
+          statBlock(String(unconfirmed.length), 'результатов<br>уточнить')
         ]),
-        el('p', { class: 'card__body', style: 'font-size:var(--fs-sm)', text: S.meta.resourceNote })
+        el('p', { class: 'card__body', style: 'font-size:var(--fs-sm)', text: upcomingSession ? 'Следующая обязательная — ' + upcomingSession.map + ', ' + U.fmtFull(upcomingSession.date) + '. Проведение сессии не подтверждает освоение карты.' : 'Будущих сессий в плане нет. Подтвердите результаты тренировок и изучите планы матчей.' })
       ]),
 
       /* Приоритет карт */
       el('article', { class: 'module col-7' }, [
-        el('div', { class: 'card__head' }, [el('span', { text: 'Приоритет карт' }), el('span', { text: 'по голосованию' })]),
+        el('div', { class: 'card__head' }, [el('span', { text: 'Комфорт по голосованию' }), el('span', { text: 'по голосованию' })]),
         el('div', { class: 'meter-list' }, openMaps.map(function (m) {
           return el('div', { class: 'meter meter--accent' }, [
             el('div', { class: 'meter__name' }, [
@@ -200,14 +244,14 @@
           ]);
         })),
         doneMaps.length ? el('div', { class: 'note note--plain', style: 'margin-top:var(--s4)' }, [
-          el('span', { class: 'note__title', text: doneMaps.map(function (m) { return m.name; }).join(' и ') + (many ? ' готовы' : ' готова') }),
-          el('p', { class: 'note__body', text: (many ? 'Отработаны' : 'Отработана') + ' раньше остальных. Возвращаемся к ' + (many ? 'ним' : 'ней') + ' на закреплении 20.09 и генеральной 27.09.' })
+          el('span', { class: 'note__title', text: 'Практиковали: ' + doneMaps.map(function (m) { return m.name; }).join(' и ') }),
+          el('p', { class: 'note__body', text: 'Тренировка проведена; освоение составом требует проверки на практике.' })
         ]) : null
       ]),
 
       /* Прогресс — новый блок, которого не было в исходниках */
       el('article', { class: 'module col-12' }, [
-        el('div', { class: 'card__head' }, [el('span', { text: 'Готовность' }), el('span', { text: 'считается по вашим отметкам' })]),
+        el('div', { class: 'card__head' }, [el('span', { text: 'Отмечено в чеклистах' }), el('span', { text: 'считается по вашим отметкам' })]),
         el('div', { class: 'grid grid--3', style: 'margin-top:var(--s4)' }, [
           progressRing('Карты', maps, 'Гранаты и чеклисты в разделе «Тактики»', function () { activate('tactics', true); }),
           progressRing('Тренировки', sessionsProgress(), 'Цели сессий в разделе «Тренировки»', function () { activate('training', true); }),
@@ -227,7 +271,7 @@
         return el('li', { class: 'timeline__step' + mod }, [
           el('time', { class: 'timeline__date', datetime: when, text: U.fmtShort(when) }),
           el('span', { class: 'timeline__map', text: s.final ? 'Репетиция' : s.map }),
-          el('small', { class: 'timeline__kind', text: s.done ? '✓ проведена' : (s.kind === 'генеральная' ? 'match day' : s.kind) })
+          el('small', { class: 'timeline__kind', text: s.done ? '✓ проведена' : U.daysUntil(s.date) < 0 ? 'результат не подтверждён' : (s.kind === 'генеральная' ? 'match day' : s.kind) })
         ]);
       }))
     ]);
@@ -237,7 +281,7 @@
       el('p', { class: 'note__body', text: S.principle })
     ]);
 
-    return [head, runway, dash, roadmap, principle];
+    return [renderMatchBrief(upcomingSession), head, runway, dash, roadmap, principle];
   }
 
   /* Полоса «мы против них»: доля пропорциональна рейтингам */
@@ -271,7 +315,7 @@
 
     return window.TeamProgress.card({
       className: 'col-12',
-      title: 'Готовность состава',
+      title: 'Личные отметки состава',
       hint: 'гранаты · правила · лестница',
       main: function (p) { return { done: p.nades + p.rules + p.ladder, total: totals.all }; },
       sub: function (p) {
@@ -313,11 +357,11 @@
 
   function sessionCard(s, optional) {
     var when = s.doneDate || s.date;
-    return el('article', { class: 'session' + (s.final ? ' session--final' : '') + (optional ? ' session--optional' : '') + (s.done ? ' session--done' : '') }, [
+    return el('article', { id: 'session-' + s.id, class: 'session' + (s.final ? ' session--final' : '') + (optional ? ' session--optional' : '') + (s.done ? ' session--done' : '') }, [
       el('div', { class: 'session__index', text: s.done ? '✓' : s.n }),
       el('div', { class: 'session__when' }, [
         el('time', { class: 'session__date', datetime: when, text: U.fmtShort(when) }),
-        el('span', { class: 'session__slot', text: s.done ? 'проведена' : s.slot })
+        el('span', { class: 'session__slot', text: s.done ? 'проведена' : U.daysUntil(s.date) < 0 ? 'результат не подтверждён' : s.slot })
       ]),
       el('div', { class: 'session__topic' }, [
         el('span', { class: 'label', text: optional ? 'Опционально' : (s.kind || 'Карта') }),
@@ -716,7 +760,7 @@
                 el('span', { class: 'meter__rank', text: r.rank }),
                 el('span', {}, [
                   el('strong', { class: 'meter__title', text: r.map }),
-                  r.done ? el('span', { class: 'chip chip--ok', style: 'margin-left:var(--s2)', text: 'готова' }) : null,
+                  r.done ? el('span', { class: 'chip chip--ok', style: 'margin-left:var(--s2)', text: 'практиковали' }) : null,
                   el('br'),
                   el('small', { class: 'label', text: r.votes + ' ' + U.plural(r.votes, 'голос', 'голоса', 'голосов') })
                 ])

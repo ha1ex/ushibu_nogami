@@ -257,11 +257,16 @@
     ]);
   }
 
-  function evidenceList(items, rosters) {
+  function evidenceList(items, rosters, teams) {
     return el('ul', { class: 'stats-evidence' }, (items || []).map(function (item) {
       var who = item.steamid ? playerName(rosters, item.steamid) + ' · ' : '';
       var sample = item.sampleRounds || item.samplePlayerRounds;
-      var meta = sample ? 'n=' + sample + ' раундов за окно' : '';
+      var meta = sample ? 'Объём истории: ' + sample + ' записей игрок × раунд за окно' : '';
+      var team = (teams || []).filter(function (t) { return t.teamId === item.teamId; })[0];
+      if (item.metric === 'clutchWinRate' && team && team.recent) {
+        var sums = team.recent.sums;
+        meta = sums.clutchWins + ' из ' + sums.clutchAttempts + ' клатчей · ' + meta;
+      }
       if (typeof item.delta === 'number') meta += (meta ? ' · ' : '') + 'отрыв от медианы лиги ' + signedNum(item.delta, 2);
       return el('li', { class: 'stats-fact' }, [
         el('span', { text: who + metricName(item.metric) + ' ' + metricValue(item.metric, item.value) }),
@@ -751,7 +756,7 @@
         el('thead', {}, el('tr', {}, [el('th', { text: 'Карта' }), helpTh('Решение', 'decision'), helpTh('Мы WR', 'roundWinRate'), helpTh('Они WR', 'roundWinRate'), helpTh('Edge', 'edge'), helpTh('Наш T → их CT', 'sideMatchup', { class: 'stats-col-opt' }), helpTh('Комфорт', 'comfort'), helpTh('Данные', 'confidence')])),
         el('tbody', {}, rows)
       ])),
-      el('p', { class: 'stats-legend', text: 'Сортировка — по score движка veto-1 (rating + winrate + матчап сторон, с поправкой на выборку). Edge — разница скорректированного Rating 2; |edge| < 0.03 — в пределах шума. WR — доля выигранных раундов за окно.' }),
+      el('p', { class: 'stats-legend', text: 'Сортировка — по score движка veto-1 (rating + winrate + матчап сторон, с поправкой на выборку). Edge — разница скорректированного Rating 2; |edge| < 0.03 — в пределах шума. Наблюдаемые WR и T → CT — исходные доли за окно. В карточках сверху — оценка модели с поправкой на размер выборки; поэтому числа могут отличаться.' }),
       el('details', { class: 'stats-proof stats-proof--block' }, [
         el('summary', { text: 'Пояснения движка по каждой карте' }),
         el('ul', { class: 'stats-list' }, advice.ranking.map(function (row) {
@@ -998,11 +1003,11 @@
         el('span', { class: 'stats-verdict__kicker', text: kicker }),
         el('strong', { class: 'stats-verdict__map', text: mapName(map) }),
         why ? el('p', { class: 'stats-verdict__why', text: why }) : null,
-        tech ? el('p', { class: 'stats-verdict__tech', text: tech }) : null
+        tech ? el('p', { class: 'stats-verdict__tech', text: 'Оценка модели: ' + tech }) : null
       ]);
     }
     return el('div', { class: 'stats-verdict' }, [
-      panel('Пикаем', verdict.pick, pickRow ? pickRow.headline : '', pickRow ? pickRow.rationale : '', 'pick'),
+      panel('Пикаем', verdict.pick, pickRow ? (pickRow.score <= 0 ? 'Лучший из доступных вариантов; преимущества по модели нет. ' : '') + pickRow.headline : '', pickRow ? pickRow.rationale : '', 'pick'),
       panel('Баним', verdict.ban, banRow ? 'Наш худший расклад из семи. ' + (banRow.headline || '') : '', banRow ? banRow.rationale : '', 'ban'),
       branch && branch.response.map ? panel('Если ' + mapName(verdict.pick) + ' банят', branch.response.map, 'Следующая по силе карта; полное дерево вето ниже.', null, 'branch') : null
     ]);
@@ -1068,7 +1073,7 @@
       el('section', { class: 'section' }, [
         el('h2', { text: 'Как играем: их слабости — наши действия' }),
         el('div', { class: 'stats-hero-grid' }, [
-          card('Их слабые места', evidenceList(plan.weaknesses, data.rosters)),
+          card('Их слабые места', evidenceList(plan.weaknesses, data.rosters, data.teamMetrics)),
           listCard('Делаем', plan.do),
           listCard('Не делаем', plan.dont)
         ])
@@ -1249,6 +1254,7 @@
   function qualityView(rows, manifest) {
     var quality = rows[0] || {};
     var body = el('div', { class: 'stats-stack' }, [
+      el('p', { class: 'lead', text: 'Целостность файлов и расчётов проверяется отдельно от надёжности игрового прогноза. Данные до ' + U.fmtFull(manifest.window.recentEnd) + '. Сыгранность пятёрки не измерена; размер выборки — записи игроков, а не независимые раунды команды.' }),
       el('div', { class: 'stats-hero-grid' }, [card('Integrity', el('div', {}, [chip(text(quality.integrity), quality.integrity === 'ok' ? 'ok' : 'signal'), el('p', { text: quality.foreignKeyViolations + ' FK violations · ' + quality.sourceDiscrepancies + ' discrepancies' })])), card('Root', el('p', { class: 'stats-mono', text: manifest.root })), card('Окно', el('p', { text: manifest.window.recentStart + ' — ' + manifest.window.recentEnd }))]),
       simpleTableSection('Покрытие', ['Dataset', 'Строк', 'Шардов'], Object.keys(manifest.counts).map(function (key) { return [key, manifest.counts[key], manifest.assets.filter(function (asset) { return asset.dataset === key; }).length || '—']; })),
       simpleTableSection('Проверенные assets', ['Dataset', 'Путь', 'Строк', 'SHA-256'], manifest.assets.map(function (asset) { return [asset.dataset, asset.path, asset.count, asset.sha256.slice(0, 12) + '…']; }))
