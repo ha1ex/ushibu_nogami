@@ -98,6 +98,173 @@
     }, text + ' →');
   }
 
+  var deckViewer = null;
+  var deckFrame = null;
+  var deckViewerTitle = null;
+  var deckViewerMeta = null;
+  var deckExternalLink = null;
+  var deckClose = null;
+  var deckReturnFocus = null;
+  var deckOutsideInertStates = [];
+  var deckFrameDocument = null;
+
+  function focusableElements(root) {
+    return Array.prototype.filter.call(root.querySelectorAll(
+      'a[href], button:not([disabled]), iframe, input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    ), function (node) {
+      return !node.hidden && !node.closest('[inert]') && node.getClientRects().length > 0;
+    });
+  }
+
+  function restoreOutsideInert() {
+    deckOutsideInertStates.forEach(function (state) { state.node.inert = state.inert; });
+    deckOutsideInertStates = [];
+  }
+
+  function makeOutsideInert() {
+    restoreOutsideInert();
+    deckOutsideInertStates = Array.prototype.filter.call(document.body.children, function (child) {
+      return child !== deckViewer;
+    }).map(function (child) {
+      var state = { node: child, inert: child.inert };
+      child.inert = true;
+      return state;
+    });
+  }
+
+  function handleDeckFrameKeydown(event) {
+    if (!deckViewer || deckViewer.hidden) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeDeckViewer();
+      return;
+    }
+    if (event.key !== 'Tab' || !deckFrameDocument) return;
+
+    var innerFocusable = focusableElements(deckFrameDocument);
+    var active = deckFrameDocument.activeElement;
+    if (event.shiftKey && (!innerFocusable.length || active === innerFocusable[0])) {
+      event.preventDefault();
+      deckClose.focus();
+    } else if (!event.shiftKey && (!innerFocusable.length || active === innerFocusable[innerFocusable.length - 1])) {
+      event.preventDefault();
+      deckExternalLink.focus();
+    }
+  }
+
+  function unbindDeckFrameDocument() {
+    if (!deckFrameDocument) return;
+    deckFrameDocument.removeEventListener('keydown', handleDeckFrameKeydown);
+    deckFrameDocument = null;
+  }
+
+  function bindDeckFrameDocument() {
+    unbindDeckFrameDocument();
+    if (!deckViewer || deckViewer.hidden) return;
+    try {
+      deckFrameDocument = deckFrame.contentDocument;
+      if (deckFrameDocument) deckFrameDocument.addEventListener('keydown', handleDeckFrameKeydown);
+    } catch (_) {
+      deckFrameDocument = null;
+    }
+  }
+
+  function handleDeckViewerKeydown(event) {
+    if (!deckViewer || deckViewer.hidden) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeDeckViewer();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+
+    var viewerFocusable = focusableElements(deckViewer);
+    if (!viewerFocusable.length) return;
+    var active = document.activeElement;
+    var first = viewerFocusable[0];
+    var last = viewerFocusable[viewerFocusable.length - 1];
+    if (event.shiftKey && (active === first || !deckViewer.contains(active))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (active === last || !deckViewer.contains(active))) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  function ensureDeckViewer() {
+    if (deckViewer) return;
+
+    deckViewerTitle = el('strong', { class: 'deck-viewer__title' });
+    deckViewerMeta = el('span', { class: 'deck-viewer__meta' });
+    deckExternalLink = el('a', {
+      class: 'deck-viewer__external',
+      target: '_blank',
+      rel: 'noopener noreferrer',
+      text: 'Открыть отдельно'
+    });
+    deckClose = el('button', {
+      type: 'button',
+      class: 'deck-viewer__close',
+      'aria-label': 'Закрыть презентацию',
+      text: 'Закрыть ×'
+    });
+    deckFrame = el('iframe', {
+      class: 'deck-viewer__frame',
+      title: 'Презентация по карте',
+      src: 'about:blank',
+      allowfullscreen: true
+    });
+    deckViewer = el('div', {
+      class: 'deck-viewer',
+      role: 'dialog',
+      'aria-modal': 'true',
+      'aria-labelledby': 'deck-viewer-title',
+      hidden: true
+    }, [
+      el('header', { class: 'deck-viewer__bar' }, [
+        el('div', { class: 'deck-viewer__identity' }, [
+          el('span', { class: 'deck-viewer__kicker', text: 'Материал команды' }),
+          el('span', { id: 'deck-viewer-title' }, deckViewerTitle)
+        ]),
+        deckViewerMeta,
+        el('div', { class: 'deck-viewer__actions' }, [deckExternalLink, deckClose])
+      ]),
+      deckFrame
+    ]);
+
+    deckClose.addEventListener('click', closeDeckViewer);
+    deckFrame.addEventListener('load', bindDeckFrameDocument);
+    document.body.appendChild(deckViewer);
+  }
+
+  function openDeckViewer(presentation, mapName, trigger) {
+    ensureDeckViewer();
+    deckReturnFocus = trigger || document.activeElement;
+    deckViewerTitle.textContent = 'Презентация · ' + mapName;
+    deckViewerMeta.textContent = presentation.note || '';
+    deckExternalLink.href = presentation.url;
+    deckFrame.title = 'Презентация по карте ' + mapName;
+    deckFrame.src = presentation.url;
+    deckViewer.hidden = false;
+    document.body.classList.add('has-deck-viewer');
+    makeOutsideInert();
+    deckClose.focus();
+  }
+
+  function closeDeckViewer() {
+    if (!deckViewer || deckViewer.hidden) return;
+    deckViewer.hidden = true;
+    unbindDeckFrameDocument();
+    deckFrame.src = 'about:blank';
+    document.body.classList.remove('has-deck-viewer');
+    restoreOutsideInert();
+    if (deckReturnFocus && typeof deckReturnFocus.focus === 'function') deckReturnFocus.focus();
+    deckReturnFocus = null;
+  }
+
+  document.addEventListener('keydown', handleDeckViewerKeydown);
+
   /* ---------------- 01 Обзор ---------------- */
 
   function nextEvent() {
@@ -436,6 +603,25 @@
     var body = [];
 
     body.push(el('p', { class: 'playbook__tagline', text: map.tagline }));
+
+    if (map.presentation) {
+      var presentationButton = el('button', {
+        type: 'button',
+        class: 'presentation-card__button',
+        text: map.presentation.label || ('Открыть презентацию ' + map.name)
+      });
+      presentationButton.addEventListener('click', function () {
+        openDeckViewer(map.presentation, map.name, presentationButton);
+      });
+      body.push(el('div', { class: 'presentation-card' }, [
+        el('div', {}, [
+          el('span', { class: 'presentation-card__kicker', text: 'Полный материал тренировки' }),
+          el('strong', { class: 'presentation-card__title', text: 'Интерактивная командная сессия' }),
+          el('span', { class: 'presentation-card__meta', text: map.presentation.note || '' })
+        ]),
+        presentationButton
+      ]));
+    }
 
     if (map.veto) {
       body.push(el('div', { class: 'pb-section' }, [

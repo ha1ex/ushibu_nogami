@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Полноэкранная командная тренировка по Cache для CS2: протоколы, роли и практика">
+  <link rel="icon" href="data:,">
+  <title>Cache · командная тренировка</title>
+  <!--
+    SOURCE LEDGER (reviewed 2026-09-07)
+    - Valve, Season 5 (2026-07-08): Cache added to Active Duty, replacing Overpass.
+      https://www.counter-strike.net/newsentry/701021228894257508
+    - Valve, live update (2026-08-03): latest Cache-specific patch; gaps/collision/assets fixed,
+      Outside A boost removed. https://steamcommunity.com/app/730/announcements
+    - CSNADES Cache (reviewed 2026-09-07): 38 current CS2 lineups. Its navigation still labelled
+      Cache "Reserve" during review, which conflicts with Valve and is not used for pool status.
+      https://csnades.gg/cache
+    - CSDB Cache callouts (reviewed 2026-09-07): game-file callout positions and 2-1-2 structure.
+      https://csdb.gg/maps/cache/
+    - BO3.gg CT guide (2026-08-03) + Playnews Cache guide (2026-08): current strategy cross-check.
+      https://bo3.gg/articles/how-to-play-ct-on-cache-site-setups-mid-control-and-rotations-in-cs2
+      https://www.playnews.gg/en/guides/counter-strike-2-the-cache-2026-guide-callouts-rework-and-changes-up-to-the-august-3-patch
+    - NartOutHere utility video (2026-07-04): current CS2 utility cross-check.
+      https://www.youtube.com/watch?v=5gbIC3igve8
+    - Local radar: assets/cache-radar.webp, downloaded from CSNADES CDN and credited on every use.
+      https://assets.csnades.gg/cache_game_radar_78bfffc917.webp
+    Lineups below were checked for direct-link availability and metadata. Since CS2 is unavailable
+    in this environment, physical landing after the 2026-08-03 patch remains a team server gate:
+    precise lineups need 5/5; running/loose throws need 3/3 from each owner and backup.
+  -->
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f5f1e7;
+      --muted: #aeb7b4;
+      --bg: #07100f;
+      --panel: #101b19;
+      --panel-2: #152421;
+      --line: rgba(238, 247, 241, .16);
+      --lime: #c6ff3d;
+      --ct: #61b9ff;
+      --t: #ff9a52;
+      --practice: #77e6a6;
+      --warn: #ffd65a;
+      --danger: #ff7373;
+      --accent: var(--lime);
+      --display: "Avenir Next Condensed", "PT Sans Narrow", sans-serif;
+      --body: "Avenir Next", "PT Sans", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body { min-width: 320px; background: var(--bg); color: var(--ink); font-family: var(--body); }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { color: inherit; font: inherit; }
+    a { color: var(--accent); text-underline-offset: .16em; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+    .deck { position: relative; width: 100vw; height: 100dvh; isolation: isolate; overflow: hidden; }
+    .deck::before {
+      content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(198,255,61,.04) 1px, transparent 1px),
+        linear-gradient(rgba(198,255,61,.035) 1px, transparent 1px),
+        radial-gradient(circle at 12% 18%, rgba(198,255,61,.09), transparent 28%), var(--bg);
+      background-size: 46px 46px, 46px 46px, auto, auto;
+    }
+    .deck::after {
+      content: "CACHE / LIVE OPS"; position: fixed; right: 2vw; top: 18vh; z-index: -1;
+      color: rgba(255,255,255,.025); font: 900 min(10vw, 9rem)/.8 var(--display);
+      letter-spacing: -.05em; writing-mode: vertical-rl; pointer-events: none;
+    }
+
+    .slide {
+      --accent: var(--lime);
+      position: absolute; inset: 0; display: none; grid-template-rows: auto minmax(0, 1fr);
+      gap: clamp(.7rem, 1.5vh, 1.15rem); padding: clamp(1.15rem, 2.7vh, 2.35rem)
+        clamp(2rem, 4.8vw, 5.5rem) clamp(4.6rem, 8vh, 5.7rem); overflow: hidden;
+    }
+    .slide.is-active { display: grid; animation: slide-in 260ms ease-out both; }
+    .slide.ct { --accent: var(--ct); }
+    .slide.attack { --accent: var(--t); }
+    .slide.practice { --accent: var(--practice); }
+    .slide::before {
+      content: ""; position: absolute; inset: 0 auto 0 0; width: clamp(.55rem, .75vw, .85rem);
+      background: var(--accent); box-shadow: 0 0 38px color-mix(in srgb, var(--accent) 28%, transparent);
+    }
+    @keyframes slide-in { from { opacity: 0; transform: translateY(9px); } }
+
+    .slide-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 2rem; border-bottom: 1px solid var(--line); padding-bottom: .7rem; }
+    .eyebrow { margin: 0 0 .24rem; color: var(--accent); font: 800 clamp(.72rem, 1vw, 1rem)/1 var(--display); letter-spacing: .15em; text-transform: uppercase; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1, h2, h3 { font-family: var(--display); letter-spacing: -.025em; text-transform: uppercase; }
+    h1 { max-width: 11ch; margin: 0 0 1rem; font-size: clamp(4rem, 8vw, 8.8rem); font-weight: 950; line-height: .83; }
+    h1 span { color: var(--lime); }
+    h2 { margin: 0; font-size: clamp(2rem, 3.5vw, 4.15rem); font-weight: 900; line-height: .9; }
+    h3 { margin: 0 0 .45rem; color: var(--accent); font-size: clamp(1.15rem, 1.6vw, 1.75rem); line-height: 1; }
+    p { margin-bottom: .65rem; }
+    .timing { flex: 0 0 auto; min-width: 7rem; border-left: 3px solid var(--accent); padding-left: .72rem; color: var(--muted); font: 760 clamp(.69rem, .78vw, .82rem)/1.25 var(--display); letter-spacing: .08em; text-transform: uppercase; }
+    .timing strong { display: block; color: var(--ink); font-size: 1.26em; }
+    .slide-body { min-height: 0; font-size: clamp(.9rem, 1.08vw, 1.2rem); line-height: 1.32; }
+    .lead { max-width: 52ch; color: var(--muted); font-size: clamp(1.15rem, 1.55vw, 1.7rem); line-height: 1.25; }
+    .micro { color: var(--muted); font-size: .76em; line-height: 1.35; }
+    .mono { font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; letter-spacing: .02em; }
+    .kicker { color: var(--accent); font-family: var(--display); font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+    .pill { display: inline-flex; align-items: center; gap: .42rem; border: 1px solid color-mix(in srgb, var(--accent) 52%, transparent); border-radius: 999px; padding: .28rem .62rem; color: var(--accent); font: 800 .75em/1 var(--display); letter-spacing: .08em; text-transform: uppercase; }
+    .pill::before { content: ""; width: .48rem; height: .48rem; border-radius: 50%; background: currentColor; box-shadow: 0 0 12px currentColor; }
+
+    .cover { grid-template-rows: 1fr; }
+    .cover .slide-body { display: grid; grid-template-columns: minmax(0, .9fr) minmax(26rem, 1.1fr); align-items: center; gap: 4vw; }
+    .cover .radar-frame { transform: rotate(1.5deg); box-shadow: 22px 28px 0 rgba(198,255,61,.055), 0 28px 80px rgba(0,0,0,.55); }
+    .cover-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; max-width: 47rem; border-top: 1px solid var(--line); padding-top: 1rem; color: var(--muted); }
+    .cover-meta strong { display: block; color: var(--ink); font: 900 1.25em/1 var(--display); }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(.8rem, 1.8vw, 1.6rem); min-height: 0; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(.7rem, 1.3vw, 1.15rem); min-height: 0; }
+    .card { border: 1px solid var(--line); background: linear-gradient(145deg, rgba(255,255,255,.035), transparent), var(--panel); padding: clamp(.72rem, 1.35vw, 1.25rem); min-width: 0; }
+    .card strong { color: var(--ink); }
+    .card .number { display: block; margin-bottom: .45rem; color: var(--accent); font: 950 clamp(1.8rem, 3vw, 3.6rem)/.8 var(--display); }
+    .callout-strip { display: flex; flex-wrap: wrap; gap: .38rem; }
+    .callout-chip { border: 1px solid var(--line); padding: .28rem .48rem; background: rgba(0,0,0,.18); font: 800 .72em/1 var(--display); letter-spacing: .06em; text-transform: uppercase; }
+
+    .visual-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(15rem, .74fr); gap: clamp(.9rem, 2vw, 1.8rem); height: 100%; min-height: 0; }
+    .radar-frame { position: relative; align-self: center; justify-self: center; width: min(100%, calc((100dvh - 10.4rem) * 1.2832)); aspect-ratio: 2048 / 1596; border: 1px solid rgba(198,255,61,.26); background: #030706; overflow: hidden; }
+    .radar-frame img { display: block; width: 100%; height: 100%; object-fit: contain; }
+    .radar-frame::after { content: "RADAR · CSNADES.GG"; position: absolute; right: .6rem; bottom: .4rem; color: rgba(255,255,255,.48); font: 700 .55rem/1 var(--display); letter-spacing: .12em; }
+    .radar-frame.compact { width: min(100%, calc((100dvh - 10.7rem) * 1.2832)); }
+    .visual-notes { display: grid; align-content: start; gap: .65rem; min-height: 0; }
+    .note { border-left: 3px solid var(--accent); background: rgba(255,255,255,.035); padding: .62rem .75rem; }
+    .note b { display: block; margin-bottom: .18rem; color: var(--accent); font: 850 .83em/1 var(--display); letter-spacing: .07em; text-transform: uppercase; }
+
+    .map-marker { --dx: 1.4rem; --dy: -1.45rem; --len: 1.55rem; --angle: -36deg; position: absolute; left: calc(var(--x) * 1%); top: calc(var(--y) * 1%); z-index: 4; width: 0; height: 0; color: var(--accent); }
+    .anchor-dot { position: absolute; left: -.37rem; top: -.37rem; width: .74rem; height: .74rem; border: .17rem solid #07100f; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 2px currentColor, 0 0 14px currentColor; }
+    .leader-line { position: absolute; left: .24rem; top: -.08rem; width: var(--len); height: 2px; background: currentColor; transform: rotate(var(--angle)); transform-origin: left center; opacity: .92; }
+    .marker-label { position: absolute; left: var(--dx); top: var(--dy); display: flex; align-items: center; gap: .28rem; width: max-content; max-width: 9rem; border: 1px solid color-mix(in srgb, currentColor 65%, transparent); background: rgba(4,11,10,.92); padding: .24rem .42rem; color: var(--ink); font: 850 clamp(.48rem, .6vw, .65rem)/1.05 var(--display); letter-spacing: .035em; text-transform: uppercase; white-space: normal; }
+    .marker-label b { display: inline-grid; flex: 0 0 auto; place-items: center; width: 1.05rem; height: 1.05rem; background: currentColor; color: #06100e; font-size: .78rem; }
+    .routes { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .routes polyline, .routes path { fill: none; stroke: var(--accent); stroke-width: 1.05; stroke-dasharray: 2.3 1.45; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 45%, transparent)); }
+    .routes .hold { stroke-dasharray: none; stroke-width: 1.3; }
+
+    .sequence { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .7rem; counter-reset: seq; }
+    .sequence .card { position: relative; padding-top: 2.25rem; }
+    .sequence .card::before { counter-increment: seq; content: "0" counter(seq); position: absolute; left: .75rem; top: .62rem; color: var(--accent); font: 950 1.35rem/1 var(--display); }
+    .sequence .card:not(:last-child)::after { content: "→"; position: absolute; z-index: 2; right: -.72rem; top: 42%; color: var(--accent); font: 900 1.4rem/1 var(--display); }
+    .protocol { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .go, .stop { min-height: 11rem; padding: 1.3rem; border: 1px solid var(--line); background: var(--panel); }
+    .go { --accent: var(--practice); box-shadow: inset 0 .38rem 0 var(--practice); }
+    .stop { --accent: var(--danger); box-shadow: inset 0 .38rem 0 var(--danger); }
+    .go h3, .stop h3 { font-size: clamp(2rem, 3.8vw, 4.2rem); }
+    ul { margin: .3rem 0 0; padding-left: 1.15rem; }
+    li { margin-bottom: .28rem; }
+
+    .matrix { display: grid; grid-template-columns: 1.1fr repeat(3, minmax(0, 1fr)); border: 1px solid var(--line); background: var(--panel); }
+    .matrix > * { min-width: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .54rem .68rem; }
+    .matrix > *:nth-child(4n) { border-right: 0; }
+    .matrix .head { background: color-mix(in srgb, var(--accent) 13%, var(--panel)); color: var(--accent); font: 850 .78em/1.1 var(--display); letter-spacing: .08em; text-transform: uppercase; }
+    .matrix .cue { color: var(--ink); font-weight: 800; }
+
+    .utility-list { display: grid; grid-template-rows: repeat(5, minmax(0, 1fr)); gap: .42rem; height: 100%; }
+    .utility-card { display: grid; grid-template-columns: 2.15rem 5.2rem minmax(8rem, 1.15fr) minmax(11rem, 1.2fr) minmax(10rem, 1fr) auto auto; align-items: center; gap: .65rem; border: 1px solid var(--line); background: var(--panel); padding: .45rem .6rem; min-width: 0; }
+    .utility-card .u-no { display: grid; place-items: center; width: 1.9rem; height: 1.9rem; background: var(--accent); color: #07100f; font: 950 1rem/1 var(--display); }
+    .lineup-frame { display: block; width: 5.2rem; height: 2.925rem; aspect-ratio: 16 / 9; border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line)); background: #08100e; object-fit: cover; }
+    .utility-card h3 { margin: 0; font-size: clamp(.9rem, 1.2vw, 1.25rem); }
+    .utility-card p { margin: 0; color: var(--muted); font-size: .72em; }
+    .utility-card a { font: 850 .72em/1.15 var(--display); letter-spacing: .04em; text-transform: uppercase; }
+    .pass { border: 1px solid currentColor; padding: .28rem .42rem; color: var(--practice); font: 900 .78em/1 var(--display); white-space: nowrap; }
+
+    .practice-lane { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; }
+    .practice-lane .card { min-height: 10rem; }
+    .practice-lane time { display: block; margin-bottom: .6rem; color: var(--accent); font: 950 clamp(1.5rem, 2.5vw, 2.7rem)/1 var(--display); }
+    .quiz-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: .4rem 1.2rem; }
+    .quiz-item { display: grid; grid-template-columns: 1.8rem 1fr; gap: .55rem; border-bottom: 1px solid var(--line); padding: .42rem 0; }
+    .quiz-item b { color: var(--accent); font: 950 1.2rem/1 var(--display); }
+    .quiz-answer { display: none; margin-top: .2rem; color: var(--practice); font-size: .82em; }
+    .show-answers .quiz-answer { display: block; }
+
+    .controls { position: fixed; left: clamp(1.2rem, 3vw, 3.8rem); right: clamp(1.2rem, 3vw, 3.8rem); bottom: .72rem; z-index: 20; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 1rem; border-top: 1px solid var(--line); padding-top: .55rem; }
+    .controls-left, .controls-center, .controls-right { display: flex; align-items: center; gap: .45rem; }
+    .controls-center { justify-content: center; }
+    .controls-right { justify-content: flex-end; }
+    .control-button { min-width: 2.55rem; min-height: 2.25rem; border: 1px solid var(--line); background: rgba(10,20,18,.9); padding: .38rem .62rem; cursor: pointer; font: 850 .72rem/1 var(--display); letter-spacing: .06em; text-transform: uppercase; }
+    .control-button:hover { border-color: var(--accent); color: var(--accent); }
+    .counter { font: 900 .8rem/1 var(--display); letter-spacing: .08em; }
+    .counter [data-current] { color: var(--accent); font-size: 1.35em; }
+    .timer { min-width: 4.8rem; color: var(--accent); font: 900 1.05rem/1 var(--display); text-align: center; }
+    .progress { position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; height: .22rem; background: rgba(255,255,255,.08); }
+    .progress-fill { width: 0; height: 100%; background: var(--accent); transition: width 180ms ease; }
+
+    @media (max-height: 780px) {
+      .slide { gap: .55rem; padding-top: 1rem; padding-bottom: 4.25rem; }
+      .slide-head { padding-bottom: .5rem; }
+      h2 { font-size: clamp(1.7rem, 3.1vw, 3.4rem); }
+      .slide-body { font-size: clamp(.78rem, .96vw, 1rem); }
+      .visual-notes { gap: .45rem; }
+      .note { padding: .48rem .58rem; }
+      .radar-frame, .radar-frame.compact { width: min(100%, calc((100dvh - 8.5rem) * 1.2832)); }
+      .utility-card { padding: .34rem .5rem; }
+      .practice-lane .card { min-height: 8rem; }
+    }
+    @media (max-width: 900px) {
+      .cover .slide-body, .visual-grid, .grid-3 { grid-template-columns: 1fr; }
+      .cover .radar-frame, .visual-grid .radar-frame { display: none; }
+      .grid-3 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .visual-notes { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .utility-card { grid-template-columns: 2rem 4.5rem 1fr; }
+      .utility-card > :nth-child(n+4) { display: none; }
+      [data-action="fullscreen"] { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <main class="deck" aria-label="Презентация командной тренировки по Cache">
+    <svg width="0" height="0" aria-hidden="true"><defs>
+      <marker id="arrow-t" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#ff9a52"/></marker>
+      <marker id="arrow-ct" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#61b9ff"/></marker>
+      <marker id="arrow-practice" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#77e6a6"/></marker>
+    </defs></svg>
+
+    <section class="slide cover is-active" data-index="01" data-minutes="1" aria-hidden="false">
+      <div class="slide-body">
+        <div>
+          <p class="eyebrow">L!S · командный брифинг / 07.09.2026</p>
+          <h1>Cache<span>.</span><br>Три линии.<br>Один колл.</h1>
+          <p class="lead">Не учим «раскид». Учим пятиголовое решение: занять Мид, назвать сигнал и войти двумя линиями.</p>
+          <p><span class="pill">Active Duty · версия 03.08.2026</span></p>
+          <div class="cover-meta">
+            <span><strong>58 мин</strong>брифинг</span>
+            <span><strong>25 мин</strong>сервер</span>
+            <span><strong>5 игроков</strong>без героев</span>
+          </div>
+        </div>
+        <figure class="radar-frame" aria-label="Радар карты Cache">
+          <img src="assets/cache-radar.webp" alt="Актуальный радар Cache для CS2" width="2048" height="1596">
+        </figure>
+      </div>
+    </section>
+
+    <section class="slide" data-index="02" data-minutes="2" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Версия карты · честный статус</p><h2>Работаем по актуальной Cache</h2></div><div class="timing"><strong>2 минуты</strong>версия до тактики</div></header>
+      <div class="slide-body grid-3" data-map-build="Последняя Cache-правка Valve: 03.08.2026">
+        <article class="card"><span class="number">08.07</span><h3>Active Duty</h3><p>Valve добавила Cache в действующую ротацию сезона 5 вместо Overpass. Это подтверждённый официальный статус, а не тег стороннего сайта.</p></article>
+        <article class="card"><span class="number">03.08</span><h3>Текущая геометрия</h3><p>Последняя отдельная правка Cache: коллизии, щели и объекты; удалён буст снаружи A. Старый буст снаружи A не тренируем.</p><span class="micro">Последняя Cache-правка Valve: 03.08.2026</span></article>
+        <article class="card"><span class="number">38</span><h3>Схемы CSNADES</h3><p>Каталог Cache существует. Его меню всё ещё показывало «Reserve» — это конфликт метаданных; статус берём только у Valve.</p><span class="pill">актуальная версия</span></article>
+      </div>
+    </section>
+
+    <section class="slide" data-index="03" data-minutes="2" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Контракт занятия</p><h2>Что должно пережить матч</h2></div><div class="timing"><strong>2 минуты</strong>цель + критерий</div></header>
+      <div class="slide-body grid-3">
+        <article class="card"><span class="number">01</span><h3>Назвать</h3><p>14 опорных коллаутов за 25 секунд. Формат: <span class="mono">число → зона → направление</span>.</p></article>
+        <article class="card"><span class="number">02</span><h3>Синхронизировать</h3><p>Выход стартует только после <b>«ГОТОВ»×5</b>; GO запускает волну, STOP возвращает в удержание.</p></article>
+        <article class="card"><span class="number">03</span><h3>Повторить</h3><p>Два сплита и быстрый B — по 3 чистых повтора. Точные позиции гранат — 5/5 у владельца и страховки.</p></article>
+      </div>
+    </section>
+
+    <section class="slide visual-slide" data-index="04" data-minutes="3" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Карта · общий язык</p><h2>14 слов, которые открывают раунд</h2></div><div class="timing"><strong>3 минуты</strong>ведущий указывает</div></header>
+      <div class="slide-body visual-grid">
+        <figure class="radar-frame" data-tactical-diagram="callouts" aria-label="Ключевые коллауты Cache">
+          <img src="assets/cache-radar.webp" alt="Радар Cache с точными метками ключевых коллаутов" width="2048" height="1596">
+          <span class="map-marker" data-callout="Мейн A" data-x="21" data-y="64" style="--x:21;--y:64;--dx:1.3rem;--dy:.5rem;--len:1.3rem;--angle:24deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Мейн A</span></span>
+          <span class="map-marker" data-callout="Скрип" data-x="31" data-y="56" style="--x:31;--y:56;--dx:1.5rem;--dy:-4.4rem;--len:1.4rem;--angle:-40deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Скрип</span></span>
+          <span class="map-marker" data-callout="Погрузчик" data-x="17" data-y="54" style="--x:17;--y:54;--dx:1.3rem;--dy:-1.7rem;--len:1.2rem;--angle:-38deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Погрузчик</span></span>
+          <span class="map-marker" data-callout="Квад" data-x="6" data-y="46" style="--x:6;--y:46;--dx:1.4rem;--dy:-1.6rem;--len:1.2rem;--angle:-35deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Квад</span></span>
+          <span class="map-marker" data-callout="Хайвей" data-x="33" data-y="41" style="--x:33;--y:41;--dx:1.3rem;--dy:-1.7rem;--len:1.3rem;--angle:-40deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Хайвей</span></span>
+          <span class="map-marker" data-callout="Мид" data-x="51" data-y="53" style="--x:51;--y:53;--dx:-4.2rem;--dy:1rem;--len:1.1rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>6</b>Мид</span></span>
+          <span class="map-marker" data-callout="Гараж" data-x="46" data-y="66" style="--x:46;--y:66;--dx:-4.5rem;--dy:.8rem;--len:1.2rem;--angle:150deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>7</b>Гараж</span></span>
+          <span class="map-marker" data-callout="Буст" data-x="40" data-y="55" style="--x:40;--y:55;--dx:-4.4rem;--dy:-1.7rem;--len:1.25rem;--angle:-145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>8</b>Буст</span></span>
+          <span class="map-marker" data-callout="Белый ящик" data-x="52" data-y="47" style="--x:52;--y:47;--dx:-4.8rem;--dy:.8rem;--len:1.4rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>9</b>Белый ящик</span></span>
+          <span class="map-marker" data-callout="Венты" data-x="61" data-y="48" style="--x:61;--y:48;--dx:1.4rem;--dy:-1.75rem;--len:1.2rem;--angle:-36deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>10</b>Венты</span></span>
+          <span class="map-marker" data-callout="Мейн B" data-x="75" data-y="66" style="--x:75;--y:66;--dx:-4.8rem;--dy:1rem;--len:1.3rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>11</b>Мейн B</span></span>
+          <span class="map-marker" data-callout="Шашки" data-x="67" data-y="55" style="--x:67;--y:55;--dx:1.5rem;--dy:-1.8rem;--len:1.4rem;--angle:-40deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>12</b>Шашки</span></span>
+          <span class="map-marker" data-callout="Хевен" data-x="86" data-y="59" style="--x:86;--y:59;--dx:1.5rem;--dy:-1.8rem;--len:1.4rem;--angle:-40deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>13</b>Хевен</span></span>
+          <span class="map-marker" data-callout="Санрум" data-x="68" data-y="75" style="--x:68;--y:75;--dx:1.4rem;--dy:.7rem;--len:1.2rem;--angle:32deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>14</b>Санрум</span></span>
+        </figure>
+        <aside class="visual-notes"><div class="note"><b>Три линии</b>Мейн A / Гараж→Мид / Мейн B.</div><div class="note"><b>Два шарнира</b>Хайвей открывает сплит A. Венты открывают сплит B.</div><div class="note"><b>Два звука</b>Скрип и Венты — называем действие, а не только шум.</div></aside>
+      </div>
+    </section>
+
+    <section class="slide visual-slide" data-index="05" data-minutes="2" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Коллауты · A</p><h2>Два входа, четыре кармана</h2></div><div class="timing"><strong>2 минуты</strong>путь прицела</div></header>
+      <div class="slide-body visual-grid">
+        <figure class="radar-frame compact" data-tactical-diagram="a-callouts" aria-label="Коллауты A сайта">
+          <img src="assets/cache-radar.webp" alt="Радар Cache с зонами Мейн A, Скрип, Погрузчик, Квад и Хайвей" width="2048" height="1596">
+          <span class="map-marker" data-x="21" data-y="64" style="--x:21;--y:64;--dx:1.4rem;--dy:.7rem;--angle:25deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Мейн A</span></span>
+          <span class="map-marker" data-x="31" data-y="56" style="--x:31;--y:56;--dx:1.5rem;--dy:-1.8rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Скрип</span></span>
+          <span class="map-marker" data-x="17" data-y="54" style="--x:17;--y:54;--dx:1.4rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Погрузчик</span></span>
+          <span class="map-marker" data-x="6" data-y="46" style="--x:6;--y:46;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Квад</span></span>
+          <span class="map-marker" data-x="33" data-y="41" style="--x:33;--y:41;--dx:1.5rem;--dy:-1.8rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Хайвей</span></span>
+        </figure>
+        <aside class="visual-notes"><div class="note"><b>Порядок Мейн A</b>Погрузчик → ближний сайт → Квад.</div><div class="note"><b>Порядок Скрипа</b>ближний угол → Погрузчик → сайт.</div><div class="note"><b>Хайвей</b>не «ещё один вход», а страховка сплита и ротаций.</div></aside>
+      </div>
+    </section>
+
+    <section class="slide visual-slide" data-index="06" data-minutes="2" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Коллауты · Мид</p><h2>Центр — это переключатель</h2></div><div class="timing"><strong>2 минуты</strong>что открывает Мид</div></header>
+      <div class="slide-body visual-grid">
+        <figure class="radar-frame compact" data-tactical-diagram="mid-callouts" aria-label="Коллауты Мида">
+          <img src="assets/cache-radar.webp" alt="Радар Cache с зонами Гараж, Буст, Белый ящик, Мид, Хайвей и Венты" width="2048" height="1596">
+          <span class="map-marker" data-x="46" data-y="66" style="--x:46;--y:66;--dx:-4.6rem;--dy:.8rem;--angle:150deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Гараж</span></span>
+          <span class="map-marker" data-x="40" data-y="55" style="--x:40;--y:55;--dx:-4.3rem;--dy:-1.8rem;--angle:-145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Буст</span></span>
+          <span class="map-marker" data-x="52" data-y="47" style="--x:52;--y:47;--dx:-4.8rem;--dy:.8rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Белый ящик</span></span>
+          <span class="map-marker" data-x="51" data-y="53" style="--x:51;--y:53;--dx:-4rem;--dy:1rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Мид</span></span>
+          <span class="map-marker" data-x="33" data-y="41" style="--x:33;--y:41;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Хайвей</span></span>
+          <span class="map-marker" data-x="61" data-y="48" style="--x:61;--y:48;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>6</b>Венты</span></span>
+        </figure>
+        <aside class="visual-notes"><div class="note"><b>Белый ящик занят</b>не значит, что Мид выигран.</div><div class="note"><b>Контроль есть</b>когда Хайвей и Венты нельзя занять бесплатно.</div><div class="note"><b>Колл</b><span class="mono">МИД НАШ / МИД ПОТЕРЯН / ВЕНТЫ ОТКРЫТЫ</span>.</div></aside>
+      </div>
+    </section>
+
+    <section class="slide visual-slide" data-index="07" data-minutes="2" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Коллауты · B</p><h2>Треугольник Мейн—Шашки—Хевен</h2></div><div class="timing"><strong>2 минуты</strong>углы и ротация</div></header>
+      <div class="slide-body visual-grid">
+        <figure class="radar-frame compact" data-tactical-diagram="b-callouts" aria-label="Коллауты B сайта">
+          <img src="assets/cache-radar.webp" alt="Радар Cache с зонами Мейн B, Санрум, Шашки, Венты и Хевен" width="2048" height="1596">
+          <span class="map-marker" data-x="75" data-y="66" style="--x:75;--y:66;--dx:-4.8rem;--dy:1rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Мейн B</span></span>
+          <span class="map-marker" data-x="68" data-y="75" style="--x:68;--y:75;--dx:1.4rem;--dy:.7rem;--angle:32deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Санрум</span></span>
+          <span class="map-marker" data-x="67" data-y="55" style="--x:67;--y:55;--dx:1.45rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Шашки</span></span>
+          <span class="map-marker" data-x="61" data-y="48" style="--x:61;--y:48;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Венты</span></span>
+          <span class="map-marker" data-x="86" data-y="59" style="--x:86;--y:59;--dx:1.45rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Хевен</span></span>
+        </figure>
+        <aside class="visual-notes"><div class="note"><b>Мейн + Венты</b>две противоположные задачи для B-защиты.</div><div class="note"><b>Шашки</b>не проходной двор: сначала право войти, потом выход.</div><div class="note"><b>Хевен жив</b>ретейк жив. Хевен потерян — не по одному.</div></aside>
+      </div>
+    </section>
+
+    <section class="slide visual-slide" data-index="08" data-minutes="2" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Роли · пятёрка</p><h2>У каждого зона и страховка</h2></div><div class="timing"><strong>2 минуты</strong>закрепить роли</div></header>
+      <div class="slide-body visual-grid">
+        <figure class="radar-frame compact" data-tactical-diagram="roles" aria-label="Роли пятёрки на Cache">
+          <img src="assets/cache-radar.webp" alt="Радар Cache с пятью стартовыми ролями команды" width="2048" height="1596">
+          <span class="map-marker" data-x="22" data-y="64" style="--x:22;--y:64;--dx:-5.7rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>D4ba · первый A</span></span>
+          <span class="map-marker" data-x="31" data-y="58" style="--x:31;--y:58;--dx:1.4rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>d0lfero · скрытый</span></span>
+          <span class="map-marker" data-x="47" data-y="66" style="--x:47;--y:66;--dx:-5rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>L!S · капитан / Мид</span></span>
+          <span class="map-marker" data-x="67" data-y="75" style="--x:67;--y:75;--dx:1.4rem;--dy:.75rem;--angle:31deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>middle · гранаты B</span></span>
+          <span class="map-marker" data-x="76" data-y="67" style="--x:76;--y:67;--dx:1.45rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Reconnecting · бомба</span></span>
+        </figure>
+        <aside class="visual-notes"><div class="note"><b>Владелец ≠ монополия</b>У каждой гранаты есть страховка.</div><div class="note"><b>Бомба</b>не первая в проходе и не последняя в другой части карты.</div><div class="note"><b>Капитан</b>называет только решение; локальные игроки называют факты.</div></aside>
+      </div>
+    </section>
+
+    <section class="slide attack visual-slide" data-index="09" data-minutes="3" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Атака · T-дефолт</p><h2>2–1–2 держит три двери</h2></div><div class="timing"><strong>3 минуты</strong>1:55 → 1:20</div></header>
+      <div class="slide-body visual-grid">
+        <figure class="radar-frame compact" data-tactical-diagram="t-default" aria-label="T-дефолт на Cache">
+          <img src="assets/cache-radar.webp" alt="T-дефолт: два A, один Мид и два B" width="2048" height="1596">
+          <svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="44,88 31,73 22,65" marker-end="url(#arrow-t)"/><polyline points="44,88 42,71 47,64" marker-end="url(#arrow-t)"/><polyline points="44,88 58,78 69,74" marker-end="url(#arrow-t)"/></svg>
+          <span class="map-marker" data-x="22" data-y="65" style="--x:22;--y:65;--dx:-4.9rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Мейн A</span></span>
+          <span class="map-marker" data-x="31" data-y="59" style="--x:31;--y:59;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Удержание Скрипа</span></span>
+          <span class="map-marker" data-x="47" data-y="64" style="--x:47;--y:64;--dx:-4.4rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Инфо из Гаража</span></span>
+          <span class="map-marker" data-x="68" data-y="74" style="--x:68;--y:74;--dx:-5.4rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Гранаты Санрума</span></span>
+          <span class="map-marker" data-x="76" data-y="67" style="--x:76;--y:67;--dx:1.45rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Контакт Мейн B</span></span>
+        </figure>
+        <aside class="visual-notes"><div class="note"><b>Первые 10 сек</b>не отдаём первого; ловим агрессию защиты.</div><div class="note"><b>К 1:30</b>один факт с каждой линии.</div><div class="note"><b>К 1:20</b>решение: сплит A / сплит B / сброс.</div></aside>
+      </div>
+    </section>
+
+    <section class="slide attack visual-slide" data-index="10" data-minutes="4" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Атака · Контроль Мида</p><h2>Не пик — пакет из четырёх действий</h2></div><div class="timing"><strong>4 минуты</strong>GO после двух дымов</div></header>
+      <div class="slide-body visual-grid">
+        <figure class="radar-frame compact" data-tactical-diagram="mid-control" aria-label="Протокол контроля Мида">
+          <img src="assets/cache-radar.webp" alt="Маршрут контроля Мида через Гараж и Буст" width="2048" height="1596">
+          <svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="46,67 47,58 51,52" marker-end="url(#arrow-t)"/><polyline points="40,58 45,54 51,52" marker-end="url(#arrow-t)"/><polyline points="51,52 58,49 61,48" marker-end="url(#arrow-t)"/><polyline points="51,52 42,45 33,41" marker-end="url(#arrow-t)"/></svg>
+          <span class="map-marker" data-x="46" data-y="66" style="--x:46;--y:66;--dx:-5.1rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Пара дымов</span></span>
+          <span class="map-marker" data-x="40" data-y="57" style="--x:40;--y:57;--dx:-5.2rem;--dy:-1.7rem;--angle:-145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Буст / флешка</span></span>
+          <span class="map-marker" data-x="51" data-y="52" style="--x:51;--y:52;--dx:-4.3rem;--dy:1rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Пара у Белого ящика</span></span>
+          <span class="map-marker" data-x="61" data-y="48" style="--x:61;--y:48;--dx:1.4rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Угроза Вентам</span></span>
+          <span class="map-marker" data-x="33" data-y="41" style="--x:33;--y:41;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Угроза Хайвею</span></span>
+        </figure>
+        <aside class="visual-notes"><div class="note"><b>1 · Закрыть</b>дым в Левый Мид + Правый Мид.</div><div class="note"><b>2 · Вытеснить</b>молотов в Белый ящик / Мешки.</div><div class="note"><b>3 · Войти парой</b>первый чистит, второй смотрит флешку.</div><div class="note"><b>4 · Зафиксировать</b>один смотрит Хайвей, один Венты.</div></aside>
+      </div>
+    </section>
+
+    <section class="slide attack" data-index="11" data-minutes="2" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Протокол · GO / STOP</p><h2>Слова, которые меняют состояние</h2></div><div class="timing"><strong>2 минуты</strong>без третьего режима</div></header>
+      <div class="slide-body protocol">
+        <article class="go"><h3>GO</h3><p class="lead">Входим сейчас. Граната уже летит.</p><ul><li>«ГОТОВ»×5 услышано;</li><li>владелец ключевой гранаты подтвердил;</li><li>первый видит сигнал флешки;</li><li>бомба идёт третьей.</li></ul></article>
+        <article class="stop"><h3>STOP</h3><p class="lead">Не выходим. Живём и возвращаем углы.</p><ul><li>ключевой дым или молотов не попал;</li><li>бомба или первый отрезаны;</li><li>нет второй линии;</li><li>неизвестная агрессия в спину.</li></ul></article>
+      </div>
+    </section>
+
+    <section class="slide attack visual-slide" data-index="12" data-minutes="3" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Выход A · Мейн A + Скрип</p><h2>Два входа — одна секунда</h2></div><div class="timing"><strong>3 минуты</strong>GO по флешке</div></header>
+      <div class="slide-body visual-grid">
+        <figure class="radar-frame compact" data-tactical-diagram="a-execute" aria-label="Выход A через Мейн A и Скрип">
+          <img src="assets/cache-radar.webp" alt="Синхронный выход на A через Мейн A и Скрип" width="2048" height="1596">
+          <svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="22,65 18,59 15,54" marker-end="url(#arrow-t)"/><polyline points="31,59 26,56 20,53" marker-end="url(#arrow-t)"/></svg>
+          <span class="map-marker" data-x="22" data-y="65" style="--x:22;--y:65;--dx:-5.2rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Первый + размен</span></span>
+          <span class="map-marker" data-x="31" data-y="59" style="--x:31;--y:59;--dx:1.4rem;--dy:.7rem;--angle:32deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Скрытый в Скрипе</span></span>
+          <span class="map-marker" data-x="17" data-y="54" style="--x:17;--y:54;--dx:1.4rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Молотов в Погрузчик</span></span>
+          <span class="map-marker" data-x="6" data-y="46" style="--x:6;--y:46;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Проверка Квада</span></span>
+          <span class="map-marker" data-x="33" data-y="41" style="--x:33;--y:41;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Отрезать Хайвей</span></span>
+        </figure>
+        <aside class="visual-notes"><div class="note"><b>До GO</b>молотов в Погрузчик + дым в дальний сайт; Скрип закрыт.</div><div class="note"><b>На GO</b>флешка; пара Мейн A выходит, Скрип открывается под звук.</div><div class="note"><b>После входа</b>1 Погрузчик, 2 Квад, 3 сайт, 4 Хайвей, 5 установка/размен.</div></aside>
+      </div>
+    </section>
+
+    <section class="slide attack" data-index="13" data-minutes="2" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Выход A · роли</p><h2>Порядок входа важнее позиции</h2></div><div class="timing"><strong>2 минуты</strong>повторить вслух</div></header>
+      <div class="slide-body sequence">
+        <article class="card"><h3>Гранаты</h3><p>Дым в дальний сайт, молотов в Погрузчик, флешка. Говорит «готов» последним.</p></article>
+        <article class="card"><h3>Первый</h3><p>Не ищет все киллы: очищает Погрузчик и создаёт путь.</p></article>
+        <article class="card"><h3>Размен + бомба</h3><p>Дистанция одного корпуса. Бомба не блокирует дверь.</p></article>
+        <article class="card"><h3>Скрип</h3><p>Открывает на GO, не раньше. Режет внимание, затем Хайвей.</p></article>
+      </div>
+    </section>
+
+    <section class="slide attack visual-slide" data-index="14" data-minutes="3" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Выход B · Мейн B + Венты</p><h2>Зажать Шашки с двух сторон</h2></div><div class="timing"><strong>3 минуты</strong>Венты на +1 секунде</div></header>
+      <div class="slide-body visual-grid">
+        <figure class="radar-frame compact" data-tactical-diagram="b-split" aria-label="Сплит B через Мейн B и Венты">
+          <img src="assets/cache-radar.webp" alt="Сплит B: три игрока в Мейн B и два через Венты" width="2048" height="1596">
+          <svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="69,75 75,67 80,64" marker-end="url(#arrow-t)"/><polyline points="51,52 61,48 68,55" marker-end="url(#arrow-t)"/></svg>
+          <span class="map-marker" data-x="69" data-y="75" style="--x:69;--y:75;--dx:-5rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Гранаты / бомба</span></span>
+          <span class="map-marker" data-x="76" data-y="67" style="--x:76;--y:67;--dx:1.45rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Пара Мейн B</span></span>
+          <span class="map-marker" data-x="61" data-y="48" style="--x:61;--y:48;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Пара Венты</span></span>
+          <span class="map-marker" data-x="67" data-y="55" style="--x:67;--y:55;--dx:1.45rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Клещи в Шашках</span></span>
+          <span class="map-marker" data-x="86" data-y="59" style="--x:86;--y:59;--dx:.4rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Закрыть Хевен</span></span>
+        </figure>
+        <aside class="visual-notes"><div class="note"><b>Мейн B: 3</b>дым КТ, молотов в Хедшот, флешка; первый + бомба/размен.</div><div class="note"><b>Венты: 2</b>контроль Мида до сплита; первый ломает, второй не падает в спину.</div><div class="note"><b>Синхрон</b>Мейн B показывает давление; Венты выходят через 1 секунду, не через 5.</div></aside>
+      </div>
+    </section>
+
+    <section class="slide attack" data-index="15" data-minutes="2" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Сплит B · таймлайн</p><h2>Контакт → шум → клещи</h2></div><div class="timing"><strong>2 минуты</strong>один голос</div></header>
+      <div class="slide-body sequence">
+        <article class="card"><h3>ГОТОВ</h3><p>Трое в Мейн B у Санрума. Двое у Вентов со стороны Белого ящика. Все называют готовность.</p></article>
+        <article class="card"><h3>Гранаты</h3><p>Дым КТ + молотов в Хедшот. Флешка объявлена: <span class="mono">флешка через 2</span>.</p></article>
+        <article class="card"><h3>GO</h3><p>Мейн B делает контакт. Венты ломаются сразу под звук гранат.</p></article>
+        <article class="card"><h3>Установка</h3><p>Бомба — стандарт. Один Мейн B, один Шашки, один отрезает Хевен/КТ.</p></article>
+      </div>
+    </section>
+
+    <section class="slide attack visual-slide" data-index="16" data-minutes="3" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Быстрый B · наказание</p><h2>Пять тел — не пять дуэлей</h2></div><div class="timing"><strong>3 минуты</strong>0:00 → установка</div></header>
+      <div class="slide-body visual-grid">
+        <figure class="radar-frame compact" data-tactical-diagram="fast-b" aria-label="Маршрут быстрого B">
+          <img src="assets/cache-radar.webp" alt="Быстрый выход B через Санрум и Мейн B" width="2048" height="1596">
+          <svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="44,88 61,79 68,75 76,67 85,65" marker-end="url(#arrow-t)"/></svg>
+          <span class="map-marker" data-x="68" data-y="75" style="--x:68;--y:75;--dx:-5.4rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Дым КТ</span></span>
+          <span class="map-marker" data-x="75" data-y="68" style="--x:75;--y:68;--dx:-5.4rem;--dy:-1.8rem;--angle:-145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Первый контакт</span></span>
+          <span class="map-marker" data-x="80" data-y="64" style="--x:80;--y:64;--dx:1.4rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Размен / Хедшот</span></span>
+          <span class="map-marker" data-x="86" data-y="59" style="--x:86;--y:59;--dx:-6rem;--dy:-3.2rem;--angle:-145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Флешка в Хевен</span></span>
+          <span class="map-marker" data-x="90" data-y="66" style="--x:90;--y:66;--dx:-5rem;--dy:1rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Бомба третья</span></span>
+        </figure>
+        <aside class="visual-notes"><div class="note"><b>Триггер</b>защита показала троих в Миде / слабые гранаты B / плохой респ B.</div><div class="note"><b>Минимум</b>дым КТ, молотов в Хедшот, 2 флешки. Без набора — STOP.</div><div class="note"><b>Первый</b>смотрит Шашки. Второй — Хедшот. Третий — Хевен.</div></aside>
+      </div>
+    </section>
+
+    <section class="slide ct visual-slide" data-index="17" data-minutes="3" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Защита · КТ-дефолт</p><h2>Пять зон, схема 2–1–2</h2></div><div class="timing"><strong>3 минуты</strong>зона + отход</div></header>
+      <div class="slide-body visual-grid">
+        <figure class="radar-frame compact" data-tactical-diagram="ct-default" aria-label="КТ-дефолт 2-1-2">
+          <img src="assets/cache-radar.webp" alt="КТ-дефолт: два A, один Мид, два B" width="2048" height="1596">
+          <span class="map-marker" data-x="7" data-y="47" style="--x:7;--y:47;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Опорник A · Квад</span></span>
+          <span class="map-marker" data-x="28" data-y="45" style="--x:28;--y:45;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Помощь A · Хайвей</span></span>
+          <span class="map-marker" data-x="54" data-y="45" style="--x:54;--y:45;--dx:-4rem;--dy:-1.8rem;--angle:-145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Мид · Мешки</span></span>
+          <span class="map-marker" data-x="68" data-y="55" style="--x:68;--y:55;--dx:1.45rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Помощник B · Шашки</span></span>
+          <span class="map-marker" data-x="88" data-y="64" style="--x:88;--y:64;--dx:-5.1rem;--dy:1rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Опорник B · сайт</span></span>
+        </figure>
+        <aside class="visual-notes"><div class="note"><b>Опорник A</b>контакт → задержка → Квад; не умирает в Мейн A.</div><div class="note"><b>Мид</b>информация важнее дуэли; отход в Коннектор.</div><div class="note"><b>Пара B</b>один видит Мейн B, один контролирует Шашки/Венты.</div></aside>
+      </div>
+    </section>
+
+    <section class="slide ct" data-index="18" data-minutes="3" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Защита · реакции КТ</p><h2>Доказательство раньше ротации</h2></div><div class="timing"><strong>3 минуты</strong>матрица сигналов</div></header>
+      <div class="slide-body matrix" role="table" aria-label="Матрица реакций КТ">
+        <div class="head">Сигнал</div><div class="head">Первые 2 секунды</div><div class="head">Ротация</div><div class="head">Стоп-сигнал</div>
+        <div class="cue">Дым×2 в Мид</div><div>Мид отходит к Коннектору, помощник A смотрит Хайвей.</div><div>Помощник B держит Венты; опорники не уходят.</div><div>Нет тела у Белого ящика / нет Вентов.</div>
+        <div class="cue">Дверь Скрипа</div><div>Опорник A меняет угол; помощник A готовит флешку.</div><div>Только после гранат Мейн A + тела.</div><div>Один звук двери без гранат.</div>
+        <div class="cue">Гранаты×3 в Мейн B</div><div>Дым/молотов B задерживают; Шашки не пушат.</div><div>Мид → Хевен; помощник A → КТ после GO.</div><div>Венты тихие и бомба не видна.</div>
+        <div class="cue">Венты сломаны</div><div>Помощник B называет направление, не угадывает.</div><div>Мид следует только за телом/бомбой.</div><div>Венты пусты после флешки.</div>
+      </div>
+    </section>
+
+    <section class="slide ct visual-slide" data-index="19" data-minutes="2" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Защита · маршруты помощи</p><h2>Не бросаем сайт ради шума</h2></div><div class="timing"><strong>2 минуты</strong>GO защиты = бомба</div></header>
+      <div class="slide-body visual-grid">
+        <figure class="radar-frame compact" data-tactical-diagram="ct-reactions" aria-label="Маршруты реакции КТ">
+          <img src="assets/cache-radar.webp" alt="Ротации КТ при выходе на A и B" width="2048" height="1596">
+          <svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="54,44 42,39 29,44 20,50" marker-end="url(#arrow-ct)"/><polyline points="54,44 63,47 69,54 84,62" marker-end="url(#arrow-ct)"/><polyline points="43,14 58,27 70,45 84,59" marker-end="url(#arrow-ct)"/></svg>
+          <span class="map-marker" data-x="54" data-y="44" style="--x:54;--y:44;--dx:-5rem;--dy:-1.8rem;--angle:-145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Мид отходит</span></span>
+          <span class="map-marker" data-x="29" data-y="44" style="--x:29;--y:44;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Задержка A</span></span>
+          <span class="map-marker" data-x="69" data-y="54" style="--x:69;--y:54;--dx:1.45rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Удержание Шашек</span></span>
+          <span class="map-marker" data-x="84" data-y="59" style="--x:84;--y:59;--dx:1.45rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Сбор в Хевене</span></span>
+          <span class="map-marker" data-x="43" data-y="14" style="--x:43;--y:14;--dx:-5rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Безопасный маршрут КТ</span></span>
+        </figure>
+        <aside class="visual-notes"><div class="note"><b>Одно доказательство</b>тела + бомба или три гранаты + вход.</div><div class="note"><b>Первый помощник</b>даёт гранату, не сухую дуэль.</div><div class="note"><b>Ретейк</b>собираемся втроём, считаем наборы и флешки.</div></aside>
+      </div>
+    </section>
+
+    <section class="slide practice" data-index="20" data-minutes="2" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Гранаты · правило допуска</p><h2>Ссылка не равна проверке</h2></div><div class="timing"><strong>2 минуты</strong>стандарт команды</div></header>
+      <div class="slide-body grid-3">
+        <article class="card"><span class="number">5/5</span><h3>Точная</h3><p>С места или в прыжке: пять посадок подряд у владельца и страховки.</p></article>
+        <article class="card"><span class="number">3/3</span><h3>Динамическая</h3><p>С разбега или в движении: три результата подряд в игровом темпе, без зазора.</p></article>
+        <article class="card"><span class="number">STOP</span><h3>Не прошла</h3><p>Не «почти». Удаляем из выхода до повторной проверки на текущей версии.</p><p class="micro">Все 10 ссылок актуальны; посадка после патча 03.08 — серверный допуск.</p></article>
+      </div>
+    </section>
+
+    <section class="slide practice" data-index="21" data-minutes="2" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Гранаты · 01–05</p><h2>Мид + комплект A</h2></div><div class="timing"><strong>2 минуты</strong>владельцы + страховка</div></header>
+      <div class="slide-body utility-list">
+        <article class="utility-card" data-lineup><span class="u-no">01</span><img class="lineup-frame" src="assets/lineup-connector-from-t-spawn.webp" data-source-page="https://csnades.gg/cache/smokes/connector-from-t-spawn" alt="Кадр линейки дыма в Коннектор" width="1280" height="720"><div><h3>Дым в Коннектор</h3><p>Респ T → Коннектор</p></div><p><span data-owner>Владелец: L!S</span> · <span data-backup>запасной: middle</span></p><p data-throw>с разбега в прыжке + ЛКМ · точная</p><a href="https://csnades.gg/cache/smokes/connector-from-t-spawn" target="_blank" rel="noreferrer">схема ↗</a><span class="pass" data-pass>3/3</span></article>
+        <article class="utility-card" data-lineup><span class="u-no">02</span><img class="lineup-frame" src="assets/lineup-left-mid-from-garage.webp" data-source-page="https://csnades.gg/cache/smokes/left-mid-from-garage" alt="Кадр линейки дыма в Левый Мид" width="1280" height="720"><div><h3>Дым в Левый Мид</h3><p>Гараж → Левый Мид</p></div><p><span data-owner>Владелец: middle</span> · <span data-backup>запасной: L!S</span></p><p data-throw>с места ЛКМ · точная</p><a href="https://csnades.gg/cache/smokes/left-mid-from-garage" target="_blank" rel="noreferrer">схема ↗</a><span class="pass" data-pass>5/5</span></article>
+        <article class="utility-card" data-lineup><span class="u-no">03</span><img class="lineup-frame" src="assets/lineup-right-mid-from-garage.webp" data-source-page="https://csnades.gg/cache/smokes/right-mid-from-garage" alt="Кадр линейки дыма в Правый Мид" width="1280" height="720"><div><h3>Дым в Правый Мид</h3><p>Гараж → Правый Мид</p></div><p><span data-owner>Владелец: d0lfero</span> · <span data-backup>запасной: D4ba</span></p><p data-throw>с места ЛКМ · точная</p><a href="https://csnades.gg/cache/smokes/right-mid-from-garage" target="_blank" rel="noreferrer">схема ↗</a><span class="pass" data-pass>5/5</span></article>
+        <article class="utility-card" data-lineup><span class="u-no">04</span><img class="lineup-frame" src="assets/lineup-sandbags-from-garage.webp" data-source-page="https://csnades.gg/cache/molotovs/sandbags-from-garage" alt="Кадр линейки молотова в Мешки" width="1280" height="720"><div><h3>Молотов в Мешки</h3><p>Гараж → Мешки</p></div><p><span data-owner>Владелец: d0lfero</span> · <span data-backup>запасной: L!S</span></p><p data-throw>с места ЛКМ · точная</p><a href="https://csnades.gg/cache/molotovs/sandbags-from-garage" target="_blank" rel="noreferrer">схема ↗</a><span class="pass" data-pass>5/5</span></article>
+        <article class="utility-card" data-lineup><span class="u-no">05</span><img class="lineup-frame" src="assets/lineup-forklift-from-a-main.webp" data-source-page="https://csnades.gg/cache/molotovs/forklift-from-a-main" alt="Кадр линейки молотова в Погрузчик" width="1280" height="720"><div><h3>Молотов в Погрузчик</h3><p>Мейн A → Погрузчик</p></div><p><span data-owner>Владелец: D4ba</span> · <span data-backup>запасной: d0lfero</span></p><p data-throw>с разбега ЛКМ · точная</p><a href="https://csnades.gg/cache/molotovs/forklift-from-a-main" target="_blank" rel="noreferrer">схема ↗</a><span class="pass" data-pass>3/3</span></article>
+      </div>
+    </section>
+
+    <section class="slide practice" data-index="22" data-minutes="2" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Гранаты · 06–10</p><h2>Закрытие A + комплект B</h2></div><div class="timing"><strong>2 минуты</strong>владельцы + страховка</div></header>
+      <div class="slide-body utility-list">
+        <article class="utility-card" data-lineup><span class="u-no">06</span><img class="lineup-frame" src="assets/lineup-forklift-from-outside-squeaky.webp" data-source-page="https://csnades.gg/cache/smokes/forklift-from-outside-squeaky" alt="Кадр линейки дыма в Погрузчик" width="1280" height="720"><div><h3>Дым в Погрузчик</h3><p>Перед Скрипом → Погрузчик</p></div><p><span data-owner>Владелец: d0lfero</span> · <span data-backup>запасной: D4ba</span></p><p data-throw>с места ЛКМ · точная</p><a href="https://csnades.gg/cache/smokes/forklift-from-outside-squeaky" target="_blank" rel="noreferrer">схема ↗</a><span class="pass" data-pass>5/5</span></article>
+        <article class="utility-card" data-lineup><span class="u-no">07</span><img class="lineup-frame" src="assets/lineup-back-a-site-from-outside-squeaky.webp" data-source-page="https://csnades.gg/cache/smokes/back-a-site-from-outside-squeaky" alt="Кадр линейки дыма за плент A" width="1280" height="720"><div><h3>Дым за A</h3><p>Перед Скрипом → дальний A</p></div><p><span data-owner>Владелец: d0lfero</span> · <span data-backup>запасной: L!S</span></p><p data-throw>с места ЛКМ · связка</p><a href="https://csnades.gg/cache/smokes/back-a-site-from-outside-squeaky" target="_blank" rel="noreferrer">схема ↗</a><span class="pass" data-pass>5/5</span></article>
+        <article class="utility-card" data-lineup><span class="u-no">08</span><img class="lineup-frame" src="assets/lineup-ct-from-sun-room.webp" data-source-page="https://csnades.gg/cache/smokes/ct-from-sun-room" alt="Кадр линейки дыма КТ" width="1280" height="720"><div><h3>Дым КТ</h3><p>Санрум → КТ</p></div><p><span data-owner>Владелец: Reconnecting</span> · <span data-backup>запасной: middle</span></p><p data-throw>с места в прыжке + ЛКМ+ПКМ · точная</p><a href="https://csnades.gg/cache/smokes/ct-from-sun-room" target="_blank" rel="noreferrer">схема ↗</a><span class="pass" data-pass>5/5</span></article>
+        <article class="utility-card" data-lineup><span class="u-no">09</span><img class="lineup-frame" src="assets/lineup-heaven-from-garbage.webp" data-source-page="https://csnades.gg/cache/smokes/heaven-from-garbage" alt="Кадр линейки дыма в Хевен" width="1280" height="720"><div><h3>Дым в Хевен</h3><p>Мусор → Хевен</p></div><p><span data-owner>Владелец: D4ba</span> · <span data-backup>запасной: Reconnecting</span></p><p data-throw>с места в прыжке + ЛКМ · особо точная</p><a href="https://csnades.gg/cache/smokes/heaven-from-garbage" target="_blank" rel="noreferrer">схема ↗</a><span class="pass" data-pass>5/5</span></article>
+        <article class="utility-card" data-lineup><span class="u-no">10</span><img class="lineup-frame" src="assets/lineup-headshot-from-sun-room.webp" data-source-page="https://csnades.gg/cache/molotovs/headshot-from-sun-room" alt="Кадр линейки молотова в Хедшот" width="1280" height="720"><div><h3>Молотов в Хедшот</h3><p>Санрум → Хедшот</p></div><p><span data-owner>Владелец: Reconnecting</span> · <span data-backup>запасной: D4ba</span></p><p data-throw>с места в прыжке + ЛКМ · точная</p><a href="https://csnades.gg/cache/molotovs/headshot-from-sun-room" target="_blank" rel="noreferrer">схема ↗</a><span class="pass" data-pass>5/5</span></article>
+      </div>
+    </section>
+
+    <section class="slide practice" data-index="23" data-minutes="0" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Сервер · до 25 минут практики</p><h2>Четыре станции, одна таблица</h2></div><div class="timing"><strong>25 минут</strong>после брифинга</div></header>
+      <div class="slide-body practice-lane">
+        <article class="card"><time>06:00</time><h3>Коллауты</h3><p>Ведущий кликает радар. Игрок: зона + соседний путь. Ошибка = круг заново.</p></article>
+        <article class="card"><time>07:00</time><h3>Допуск гранат</h3><p>10 позиций: владелец + страховка. Записать 5/5 или 3/3; провал не переносится в выход.</p></article>
+        <article class="card"><time>08:00</time><h3>Выходы</h3><p>Мейн A + Скрип, Мейн B + Венты, быстрый B. По 3 повтора; судим только синхрон GO.</p></article>
+        <article class="card"><time>04:00</time><h3>Реакции КТ</h3><p>Ведущий даёт 6 ложных/реальных сигналов. Защита двигается только по протоколу.</p></article>
+      </div>
+    </section>
+
+    <section class="slide practice" data-index="24" data-minutes="1" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Домашка · до следующей карты</p><h2>Принести доказательство, не обещание</h2></div><div class="timing"><strong>1 минута</strong>кто / что / когда</div></header>
+      <div class="slide-body grid-3">
+        <article class="card"><span class="number">СВОИ</span><h3>Свои 2 позиции</h3><p>Клип 5/5 или 3/3 на актуальной Cache. Имя файла: <span class="mono">cache_role_nade_date</span>.</p></article>
+        <article class="card"><span class="number">ЗАП</span><h3>Две страховки</h3><p>Повторить гранаты соседа. На созвоне смена владельца без подготовки.</p></article>
+        <article class="card"><span class="number">3R</span><h3>Три демки</h3><p>Отметить по одному GO, STOP и поздней ротации КТ. Только timestamp + факт.</p></article>
+      </div>
+    </section>
+
+    <section class="slide practice" data-index="25" data-minutes="5" aria-hidden="true">
+      <header class="slide-head"><div><p class="eyebrow">Финальный тест · 8 вопросов</p><h2>Ответ — короче пяти секунд</h2></div><div class="timing"><strong>5 минут</strong>кнопка показывает ответы</div></header>
+      <div class="slide-body">
+        <div class="quiz-grid">
+          <article class="quiz-item" data-quiz-question><b>1</b><div>Какой официальный статус Cache?<p class="quiz-answer">Active Duty с 08.07.2026; последняя Cache-правка 03.08.2026.</p></div></article>
+          <article class="quiz-item" data-quiz-question><b>2</b><div>Когда Мид действительно наш?<p class="quiz-answer">Белый ящик занят, а Хайвей и Венты не отдаются бесплатно.</p></div></article>
+          <article class="quiz-item" data-quiz-question><b>3</b><div>Что запускает Мейн A + Скрип?<p class="quiz-answer">«ГОТОВ»×5, ключевая граната летит, GO по флешке.</p></div></article>
+          <article class="quiz-item" data-quiz-question><b>4</b><div>На сколько позже выходят Венты в сплите B?<p class="quiz-answer">Примерно на одну секунду после контакта Мейн B.</p></div></article>
+          <article class="quiz-item" data-quiz-question><b>5</b><div>Назови два безусловных STOP-сигнала.<p class="quiz-answer">Не попала ключевая граната; нет второй линии / бомба отрезана.</p></div></article>
+          <article class="quiz-item" data-quiz-question><b>6</b><div>Кто первый ротирует на выход B?<p class="quiz-answer">Мид через Хевен; помощник A только после доказательства входа.</p></div></article>
+          <article class="quiz-item" data-quiz-question><b>7</b><div>Критерий точной позиции?<p class="quiz-answer">5/5 у владельца и страховки на текущей версии.</p></div></article>
+          <article class="quiz-item" data-quiz-question><b>8</b><div>Что удалено 03.08 и не тренируется?<p class="quiz-answer">Точка буста вне A.</p></div></article>
+        </div>
+        <button class="control-button" type="button" data-action="answers" aria-pressed="false">Показать ответы</button>
+      </div>
+    </section>
+
+    <nav class="controls" aria-label="Управление презентацией">
+      <div class="controls-left"><button class="control-button" type="button" data-action="prev" aria-label="Предыдущий слайд">←</button><button class="control-button" type="button" data-action="next" aria-label="Следующий слайд">→</button><span class="counter" aria-live="polite"><span data-current>01</span> / <span data-total>25</span></span></div>
+      <div class="controls-center"><button class="control-button" type="button" data-action="timer" aria-label="Запустить таймер тренировки">Старт таймера</button><output class="timer" aria-label="Таймер">00:00</output><button class="control-button" type="button" data-action="reset" aria-label="Сбросить секундомер">Сброс</button></div>
+      <div class="controls-right"><span class="micro">← → · Home End · F</span><button class="control-button" type="button" data-action="fullscreen" aria-label="Переключить полноэкранный режим">Полноэкранно</button></div>
+    </nav>
+    <div class="progress" aria-hidden="true"><div class="progress-fill"></div></div>
+  </main>
+
+  <script>
+    (() => {
+      const deck = document.querySelector('.deck');
+      const slides = [...document.querySelectorAll('.slide')];
+      const currentOutput = document.querySelector('[data-current]');
+      const totalOutput = document.querySelector('[data-total]');
+      const progress = document.querySelector('.progress-fill');
+      const timerOutput = document.querySelector('.timer');
+      const timerButton = document.querySelector('[data-action="timer"]');
+      const fullscreenButton = document.querySelector('[data-action="fullscreen"]');
+      let current = 0;
+      let elapsed = 0;
+      let startedAt = 0;
+      let timerFrame = 0;
+      let running = false;
+
+      const pad = (value) => String(value).padStart(2, '0');
+      const format = (milliseconds) => {
+        const seconds = Math.floor(milliseconds / 1000);
+        return `${pad(Math.floor(seconds / 60))}:${pad(seconds % 60)}`;
+      };
+      const updateTimer = () => {
+        if (!running) return;
+        timerOutput.textContent = format(elapsed + performance.now() - startedAt);
+        timerOutput.value = timerOutput.textContent;
+        timerFrame = requestAnimationFrame(updateTimer);
+      };
+      const toggleTimer = () => {
+        if (running) {
+          elapsed += performance.now() - startedAt;
+          running = false;
+          cancelAnimationFrame(timerFrame);
+          timerButton.textContent = 'Старт таймера';
+        } else {
+          startedAt = performance.now();
+          running = true;
+          timerButton.textContent = 'Пауза';
+          updateTimer();
+        }
+      };
+      const resetTimer = () => {
+        running = false; elapsed = 0; cancelAnimationFrame(timerFrame);
+        timerOutput.textContent = '00:00'; timerOutput.value = '00:00';
+        timerButton.textContent = 'Старт таймера';
+      };
+      const goTo = (index) => {
+        current = Math.max(0, Math.min(slides.length - 1, Number(index) || 0));
+        slides.forEach((slide, slideIndex) => {
+          const active = slideIndex === current;
+          slide.classList.toggle('is-active', active);
+          slide.setAttribute('aria-hidden', String(!active));
+          slide.inert = !active;
+        });
+        const accent = getComputedStyle(slides[current]).getPropertyValue('--accent').trim();
+        currentOutput.textContent = pad(current + 1);
+        progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+        progress.style.background = accent;
+        document.documentElement.style.setProperty('--accent', accent);
+        history.replaceState(null, '', `#${pad(current + 1)}`);
+      };
+      const toggleFullscreen = async () => {
+        try {
+          if (document.fullscreenElement) await document.exitFullscreen();
+          else await deck.requestFullscreen();
+        } catch (_) { /* Fullscreen can be denied in embedded/headless contexts. */ }
+      };
+
+      totalOutput.textContent = pad(slides.length);
+      document.addEventListener('click', (event) => {
+        const control = event.target.closest('[data-action]');
+        if (!control) return;
+        const action = control.dataset.action;
+        if (action === 'prev') goTo(current - 1);
+        if (action === 'next') goTo(current + 1);
+        if (action === 'timer') toggleTimer();
+        if (action === 'reset') resetTimer();
+        if (action === 'fullscreen') toggleFullscreen();
+        if (action === 'answers') {
+          const slide = control.closest('.slide');
+          const showing = slide.classList.toggle('show-answers');
+          control.setAttribute('aria-pressed', String(showing));
+          control.textContent = showing ? 'Скрыть ответы' : 'Показать ответы';
+        }
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.target.matches('input, textarea, select, [contenteditable="true"]')) return;
+        if (['ArrowRight', 'PageDown'].includes(event.key)) { event.preventDefault(); goTo(current + 1); }
+        if (['ArrowLeft', 'PageUp'].includes(event.key)) { event.preventDefault(); goTo(current - 1); }
+        if (event.key === 'Home') { event.preventDefault(); goTo(0); }
+        if (event.key === 'End') { event.preventDefault(); goTo(slides.length - 1); }
+        if (event.key.toLowerCase() === 'f') { event.preventDefault(); toggleFullscreen(); }
+      });
+      document.addEventListener('fullscreenchange', () => { fullscreenButton.textContent = document.fullscreenElement ? 'В окно' : 'Полноэкранно'; });
+      const hashIndex = Number(location.hash.slice(1)) - 1;
+      window.cacheDeck = { goTo, next: () => goTo(current + 1), prev: () => goTo(current - 1), resetTimer };
+      goTo(Number.isInteger(hashIndex) && hashIndex >= 0 ? hashIndex : 0);
+    })();
+  </script>
+</body>
+</html>

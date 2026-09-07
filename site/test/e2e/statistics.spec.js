@@ -161,6 +161,7 @@ test('every metric column exposes a Russian tooltip explanation', async ({ page 
   expect(await leagueButtons.count()).toBeGreaterThanOrEqual(10);
   await page.goto('/#/statistika/match/m01');
   const matrixHelp = page.getByRole('table', { name: 'Вето-матрица' }).locator('th.stats-help');
+  await expect(matrixHelp.first()).toBeVisible();
   expect(await matrixHelp.count()).toBeGreaterThanOrEqual(5);
 });
 

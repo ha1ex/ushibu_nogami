@@ -426,6 +426,40 @@ table.data tr.is-ours td.when { color: var(--accent); font-weight: 700; }
 .playbook__body { padding: 0 var(--s5) var(--s5); border-top: 1px solid var(--line); }
 .playbook__tagline { max-width: 90ch; margin: var(--s4) 0 0; color: var(--text-dim); font-size: var(--fs-lead); }
 
+.presentation-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s5);
+  margin-top: var(--s4);
+  padding: var(--s4);
+  background: var(--surface-2);
+  border: 1px solid var(--accent-line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+}
+.presentation-card__kicker,
+.presentation-card__meta { display: block; font-family: var(--font-mono); font-size: var(--fs-micro); text-transform: uppercase; }
+.presentation-card__kicker { margin-bottom: 5px; color: var(--accent); letter-spacing: var(--tr-label); }
+.presentation-card__title { display: block; font-family: var(--font-display); font-size: 22px; text-transform: uppercase; }
+.presentation-card__meta { margin-top: 5px; color: var(--text-mute); }
+.presentation-card__button {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 9px var(--s3);
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: background var(--dur) var(--ease);
+}
+.presentation-card__button:hover { background: color-mix(in srgb, var(--accent) 86%, white); }
+
 .pb-section { margin-top: var(--s5); }
 .pb-section__title {
   display: flex;
@@ -461,6 +495,50 @@ table.data tr.is-ours td.when { color: var(--accent); font-weight: 700; }
 .nade__name { color: var(--text); font-weight: 650; font-size: var(--fs-sm); }
 .nade__desc { color: var(--text-dim); font-size: var(--fs-sm); }
 .nade:has(input:checked) .nade__name { color: var(--text-mute); text-decoration: line-through; }
+
+/* ---------- Полноэкранная презентация ---------- */
+body.has-deck-viewer { overflow: hidden; }
+.deck-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-skip) + 10);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-width: 320px;
+  min-height: 100dvh;
+  background: var(--bg-deep);
+}
+.deck-viewer__bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--s4);
+  min-height: 64px;
+  padding: var(--s2) var(--s4);
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--line-strong);
+}
+.deck-viewer__identity { display: flex; min-width: 0; flex-direction: column; }
+.deck-viewer__kicker { color: var(--accent); font-family: var(--font-mono); font-size: 10px; letter-spacing: var(--tr-label); text-transform: uppercase; }
+.deck-viewer__title { overflow: hidden; font-family: var(--font-display); font-size: 20px; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.deck-viewer__meta { color: var(--text-mute); font-family: var(--font-mono); font-size: var(--fs-micro); text-transform: uppercase; }
+.deck-viewer__actions { display: flex; align-items: center; gap: var(--s2); }
+.deck-viewer__external,
+.deck-viewer__close {
+  min-height: 38px;
+  padding: 8px var(--s3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  text-decoration: none;
+  text-transform: uppercase;
+}
+.deck-viewer__external:hover,
+.deck-viewer__close:hover { color: var(--text); background: var(--line-soft); border-color: var(--accent-line); }
+.deck-viewer__close { color: var(--accent); }
+.deck-viewer__frame { width: 100%; height: 100%; min-height: 0; background: #05020a; border: 0; }
 
 /* ---------- Команды ---------- */
 .team { background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
@@ -758,6 +836,8 @@ table.data tr.is-ours td.when { color: var(--accent); font-weight: 700; }
   .playbook__meta { grid-column: 2 / -1; grid-row: 2; }
   .playbook__body { padding: 0 var(--s4) var(--s4); }
   .playbook__name { font-size: 25px; }
+  .presentation-card { align-items: stretch; flex-direction: column; gap: var(--s3); }
+  .presentation-card__button { width: 100%; }
   .poslist li { grid-template-columns: 1fr; gap: 4px; }
   .nade { grid-template-columns: auto auto; }
   .nade__desc { grid-column: 1 / -1; }
@@ -784,6 +864,9 @@ table.data tr.is-ours td.when { color: var(--accent); font-weight: 700; }
   .essay__title { font-size: 18px; }
   .essay__body { padding: var(--s3) var(--s4) var(--s4); }
   .toast { right: var(--s3); left: var(--s3); bottom: var(--s3); max-width: none; }
+  .deck-viewer__bar { grid-template-columns: minmax(0, 1fr) auto; gap: var(--s2); min-height: 58px; padding: var(--s2); }
+  .deck-viewer__meta, .deck-viewer__external { display: none; }
+  .deck-viewer__close { padding-inline: var(--s2); }
 }
 
 /* Переносы внутри примеров «до/после» приходят из данных как \n */

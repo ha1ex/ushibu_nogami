@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Интерактивная командная тренировка CS2 по Anubis для команды Ушибу ногами.">
+  <title>Anubis · командная тренировка — Ушибу ногами</title>
+  <style>
+    @font-face { font-family: 'Anubis Display'; src: url('../../assets/fonts/oswald-cyrillic.woff2') format('woff2'); font-display: swap; }
+    @font-face { font-family: 'Anubis Text'; src: url('../../assets/fonts/inter-cyrillic.woff2') format('woff2'); font-display: swap; }
+    @font-face { font-family: 'Anubis Mono'; src: url('../../assets/fonts/jbmono-cyrillic.woff2') format('woff2'); font-display: swap; }
+
+    :root {
+      color-scheme: dark;
+      --ink: #f5eee5;
+      --muted: #b8ad9e;
+      --quiet: #80766c;
+      --night: #0c1111;
+      --night-2: #111a19;
+      --stone: #1a2521;
+      --line: rgba(232, 211, 168, .20);
+      --line-strong: rgba(232, 211, 168, .46);
+      --sand: #e8d3a8;
+      --sun: #f7b94e;
+      --t: #ffae45;
+      --ct: #55b9ed;
+      --signal: #ff5c7c;
+      --success: #63d6a1;
+      --focus: #f7d36b;
+      --display: 'Anubis Display', Impact, sans-serif;
+      --text: 'Anubis Text', Arial, sans-serif;
+      --mono: 'Anubis Mono', ui-monospace, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { min-width: 320px; overflow-x: clip; background: var(--night); }
+    body {
+      min-width: 320px;
+      min-height: 100dvh;
+      margin: 0;
+      overflow-x: clip;
+      color: var(--ink);
+      background:
+        radial-gradient(900px 480px at 90% -12%, rgba(77, 146, 135, .19), transparent 62%),
+        radial-gradient(700px 500px at -8% 110%, rgba(220, 160, 68, .13), transparent 65%),
+        linear-gradient(125deg, rgba(232, 211, 168, .025) 0 1px, transparent 1px 20px),
+        linear-gradient(35deg, rgba(232, 211, 168, .018) 0 1px, transparent 1px 24px),
+        var(--night);
+      font-family: var(--text);
+    }
+    button, select { font: inherit; }
+    button, a, select { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, a:focus-visible, select:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+    a { color: var(--sand); }
+    .skip-link { position: fixed; z-index: 10; top: 8px; left: 8px; padding: 8px 12px; transform: translateY(-160%); background: var(--sand); color: var(--night); font-weight: 700; }
+    .skip-link:focus { transform: translateY(0); }
+
+    .deck {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      height: 100dvh;
+      min-height: 0;
+      isolation: isolate;
+    }
+    .deck-header, .deck-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: clamp(10px, 2vw, 24px);
+      padding: 10px clamp(14px, 3vw, 42px);
+      border-color: var(--line);
+      background: rgba(12, 17, 17, .92);
+      backdrop-filter: blur(12px);
+    }
+    .deck-header { position: sticky; top: 0; z-index: 3; border-bottom: 1px solid var(--line); }
+    .deck-footer { z-index: 3; border-top: 1px solid var(--line); }
+    .identity { display: flex; min-width: 0; align-items: center; gap: 12px; }
+    .cartouche { display: grid; width: 36px; height: 36px; flex: 0 0 auto; place-items: center; border: 1px solid var(--sand); color: var(--sand); font-family: var(--display); font-size: 21px; line-height: 1; }
+    .eyebrow { margin: 0 0 3px; color: var(--sand); font-family: var(--mono); font-size: clamp(9px, 1vw, 11px); letter-spacing: .11em; text-transform: uppercase; }
+    .identity strong { display: block; overflow: hidden; font-family: var(--display); font-size: clamp(20px, 2.3vw, 30px); font-weight: 500; line-height: .9; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+    .header-actions, .footer-actions { display: flex; align-items: center; gap: 8px; }
+    .timer-readout { min-width: 66px; color: var(--sand); font-family: var(--mono); font-size: clamp(13px, 1.7vw, 18px); text-align: right; font-variant-numeric: tabular-nums; }
+    .ui-button, .jump-select {
+      min-height: 36px;
+      border: 1px solid var(--line-strong);
+      color: var(--ink);
+      background: rgba(26, 37, 33, .9);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .ui-button { padding: 8px 11px; cursor: pointer; }
+    .ui-button:hover:not(:disabled) { border-color: var(--sand); color: var(--sand); background: rgba(232, 211, 168, .11); }
+    .ui-button:disabled { cursor: not-allowed; opacity: .42; }
+    .ui-button--timer { min-width: 62px; border-color: rgba(247, 185, 78, .72); color: var(--sun); }
+    .ui-button--next { border-color: var(--sand); color: var(--night); background: var(--sand); font-weight: 700; }
+    .ui-button--next:hover:not(:disabled) { color: var(--night); background: #fff0cf; }
+    .jump-select { max-width: min(42vw, 260px); padding: 0 8px; cursor: pointer; }
+
+    .deck-main { min-height: 0; overflow: auto; }
+    .slide {
+      width: min(1440px, 100%);
+      min-height: 100%;
+      margin: 0 auto;
+      padding: clamp(22px, 4vw, 58px) clamp(16px, 4vw, 68px) clamp(26px, 4vw, 52px);
+    }
+    .slide__meta { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: clamp(12px, 2vw, 24px); color: var(--quiet); font-family: var(--mono); font-size: 11px; letter-spacing: .09em; text-transform: uppercase; }
+    .slide__tag { display: inline-flex; align-items: center; gap: 7px; color: var(--sand); }
+    .slide__tag::before { width: 7px; height: 7px; content: ''; background: currentColor; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+    .slide__time { color: var(--quiet); white-space: nowrap; }
+    .slide h1, .slide h2, .slide h3, .slide p { max-width: 100%; }
+    .slide h1, .slide h2 { margin: 0; font-family: var(--display); font-weight: 500; letter-spacing: .01em; text-transform: uppercase; }
+    .slide h1 { max-width: 18ch; font-size: clamp(42px, 8.4vw, 112px); line-height: .86; }
+    .slide h2 { max-width: 21ch; font-size: clamp(34px, 4vw, 68px); line-height: .91; }
+    .slide h3 { margin: 0; font-family: var(--display); font-size: clamp(20px, 2.5vw, 31px); font-weight: 500; line-height: 1; text-transform: uppercase; }
+    .lead { max-width: 71ch; margin: clamp(14px, 2vw, 24px) 0 0; color: var(--muted); font-size: clamp(16px, 1.6vw, 21px); line-height: 1.48; }
+    .lead strong { color: var(--ink); }
+    .rule { width: min(100%, 920px); height: 1px; margin: clamp(19px, 3vw, 32px) 0; background: linear-gradient(90deg, var(--sand), transparent); }
+    .columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, .95fr); gap: clamp(22px, 4vw, 65px); align-items: start; }
+    .columns--visual { align-items: center; }
+    .columns--wide { grid-template-columns: minmax(0, .78fr) minmax(420px, 1.22fr); }
+    .stack { display: grid; gap: 12px; }
+    .panel {
+      min-width: 0;
+      padding: clamp(14px, 2vw, 22px);
+      border: 1px solid var(--line);
+      background: linear-gradient(135deg, rgba(232, 211, 168, .055), rgba(17, 26, 25, .72));
+    }
+    .panel--t { border-left: 3px solid var(--t); }
+    .panel--ct { border-left: 3px solid var(--ct); }
+    .panel--signal { border-left: 3px solid var(--signal); }
+    .panel__kicker { margin: 0 0 7px; color: var(--quiet); font-family: var(--mono); font-size: 10px; letter-spacing: .09em; text-transform: uppercase; }
+    .panel p { margin: 0; color: var(--muted); font-size: clamp(13px, 1.35vw, 17px); line-height: 1.42; }
+    .panel p + p { margin-top: 9px; }
+    .panel strong { color: var(--ink); }
+    .fact-note { margin-top: 13px; padding: 10px 12px; border-left: 2px solid var(--ct); color: var(--muted); background: rgba(85, 185, 237, .07); font-family: var(--mono); font-size: 11px; line-height: 1.45; }
+    .coach-note { margin-top: 13px; padding: 10px 12px; border-left: 2px solid var(--sun); color: var(--muted); background: rgba(247, 185, 78, .07); font-family: var(--mono); font-size: 11px; line-height: 1.45; }
+    .coach-note b, .fact-note b { color: var(--sand); }
+    .number-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin-top: clamp(18px, 3vw, 35px); background: var(--line); border: 1px solid var(--line); }
+    .number-card { min-width: 0; padding: clamp(14px, 2vw, 24px); background: var(--night-2); }
+    .number-card b { display: block; color: var(--sand); font-family: var(--display); font-size: clamp(36px, 5vw, 60px); font-weight: 500; line-height: .86; }
+    .number-card span { display: block; margin-top: 7px; color: var(--muted); font-size: 13px; line-height: 1.35; }
+    .number-card em { display: block; margin-top: 5px; color: var(--quiet); font-family: var(--mono); font-size: 10px; font-style: normal; line-height: 1.35; text-transform: uppercase; }
+    .role-list, .check-list, .source-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .role-list li, .check-list li, .source-list li { position: relative; padding-left: 22px; color: var(--muted); font-size: clamp(13px, 1.35vw, 17px); line-height: 1.4; }
+    .role-list li::before, .check-list li::before, .source-list li::before { position: absolute; left: 0; color: var(--sand); font-family: var(--mono); content: '→'; }
+    .role-list b, .check-list b, .source-list b { color: var(--ink); }
+    .call { color: var(--sand); font-family: var(--mono); font-size: .86em; }
+    .call--signal { color: var(--signal); }
+    .call--success { color: var(--success); }
+    .call--t { color: var(--t); }
+    .call--ct { color: var(--ct); }
+    .mini-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .mini-grid--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .mini-card { min-width: 0; padding: 13px; border: 1px solid var(--line); background: rgba(17, 26, 25, .77); }
+    .mini-card b { display: block; color: var(--sand); font-family: var(--mono); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+    .mini-card span { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; line-height: 1.35; }
+    .flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin-top: 22px; background: var(--line); border: 1px solid var(--line); }
+    .flow__step { min-width: 0; min-height: 115px; padding: 15px; background: var(--night-2); }
+    .flow__step b { display: block; color: var(--sand); font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+    .flow__step p { margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.35; }
+    .flow__step--stop b { color: var(--signal); }
+    .flow__step--success b { color: var(--success); }
+
+    .visual { display: grid; gap: 8px; min-width: 0; }
+    .visual-frame { position: relative; width: min(100%, 780px); margin-inline: auto; overflow: hidden; border: 1px solid var(--line-strong); background: #050808; }
+    .visual-frame--radar { width: min(100%, 62dvh); aspect-ratio: 1; }
+    .visual-frame--photo { width: min(100%, 88dvh); aspect-ratio: 16 / 9; }
+    .columns--wide .visual-frame--radar { width: min(100%, 70dvh); }
+    .visual-frame img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center; }
+    .visual-frame svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+    .visual-caption { display: flex; justify-content: space-between; gap: 12px; color: var(--quiet); font-family: var(--mono); font-size: 10px; line-height: 1.35; }
+    .visual-caption span:last-child { text-align: right; }
+    .map-line { fill: none; stroke: rgba(245, 238, 229, .96); stroke-width: 2.8; vector-effect: non-scaling-stroke; }
+    .map-line--t { stroke: var(--t); }
+    .map-line--ct { stroke: var(--ct); }
+    .map-line--signal { stroke: var(--signal); }
+    .map-anchor { stroke: var(--night); stroke-width: 3; vector-effect: non-scaling-stroke; }
+    .map-anchor--neutral { fill: var(--sand); }
+    .map-anchor--t { fill: var(--t); }
+    .map-anchor--ct { fill: var(--ct); }
+    .map-anchor--signal { fill: var(--signal); }
+    .map-plaque { stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+    .map-plaque--neutral { fill: rgba(12, 17, 17, .91); stroke: var(--sand); }
+    .map-plaque--t { fill: rgba(32, 21, 8, .95); stroke: var(--t); }
+    .map-plaque--ct { fill: rgba(7, 29, 40, .95); stroke: var(--ct); }
+    .map-plaque--signal { fill: rgba(47, 12, 20, .96); stroke: var(--signal); }
+    .map-text { fill: var(--ink); font-family: var(--mono); font-size: 17px; font-weight: 800; letter-spacing: .015em; }
+    .map-pin { stroke: var(--night); stroke-width: 2.5; vector-effect: non-scaling-stroke; }
+    .map-pin--t { fill: var(--t); }
+    .map-pin--ct { fill: var(--ct); }
+    .map-pin__text { fill: var(--night); font-family: var(--mono); font-size: 13px; font-weight: 800; text-anchor: middle; dominant-baseline: central; }
+    .map-pin__label { fill: var(--ink); paint-order: stroke; stroke: rgba(5, 8, 8, .95); stroke-width: 4px; stroke-linejoin: round; font-family: var(--mono); font-size: 14px; font-weight: 800; text-anchor: middle; }
+    .map-pin__leader { fill: none; stroke: rgba(245, 238, 229, .8); stroke-width: 1.75; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; }
+    .map-pin__plaque { fill: rgba(5, 8, 8, .9); stroke: rgba(232, 211, 168, .6); stroke-width: 1; vector-effect: non-scaling-stroke; }
+    .radar-legend { display: flex; flex-wrap: wrap; gap: 7px 14px; margin-top: 8px; color: var(--quiet); font-family: var(--mono); font-size: 10px; text-transform: uppercase; }
+    .radar-legend i { display: inline-block; width: 8px; height: 8px; margin-right: 5px; vertical-align: -1px; background: var(--sand); }
+    .radar-legend .legend--t i { background: var(--t); }
+    .radar-legend .legend--ct i { background: var(--ct); }
+    .radar-legend .legend--signal i { background: var(--signal); }
+
+    .cover { display: grid; grid-template-columns: minmax(0, 1.06fr) minmax(300px, .94fr); gap: clamp(25px, 6vw, 86px); align-items: end; min-height: min(710px, calc(100dvh - 125px)); }
+    .cover__code { display: flex; flex-wrap: wrap; gap: 8px; margin-top: clamp(19px, 3vw, 30px); }
+    .token { padding: 5px 7px; border: 1px solid var(--line); color: var(--muted); background: rgba(17, 26, 25, .7); font-family: var(--mono); font-size: 10px; text-transform: uppercase; }
+    .cover__right { display: grid; gap: 12px; align-content: end; }
+    .cover-map { position: relative; overflow: hidden; aspect-ratio: 1; border: 1px solid var(--line-strong); background: radial-gradient(circle at 53% 52%, rgba(232, 211, 168, .18), transparent 52%), #070a0a; }
+    .cover-map img { display: block; width: 100%; height: 100%; object-fit: contain; filter: saturate(.76) contrast(1.1); opacity: .83; }
+    .cover-map::after { position: absolute; inset: 0; content: ''; background: linear-gradient(135deg, rgba(247, 185, 78, .15), transparent 38%, rgba(85, 185, 237, .13)); mix-blend-mode: screen; pointer-events: none; }
+    .cover-signal { padding: 14px 16px; border-left: 3px solid var(--signal); color: var(--muted); background: rgba(255, 92, 124, .08); font-size: 14px; line-height: 1.4; }
+    .cover-signal b { color: var(--ink); }
+    .big-quote { margin: 0; color: var(--sand); font-family: var(--display); font-size: clamp(29px, 4.2vw, 58px); line-height: .95; text-transform: uppercase; }
+
+    .nade-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: clamp(18px, 3vw, 30px); }
+    .nade-card { min-width: 0; padding: 14px; border: 1px solid var(--line); background: linear-gradient(135deg, rgba(232, 211, 168, .055), rgba(17, 26, 25, .85)); }
+    .nade-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .nade-card h3 { max-width: 24ch; font-size: clamp(18px, 2.1vw, 26px); }
+    .side { flex: 0 0 auto; padding: 4px 5px; border: 1px solid currentColor; font-family: var(--mono); font-size: 10px; font-weight: 800; }
+    .side--t { color: var(--t); }
+    .side--ct { color: var(--ct); }
+    .status { display: inline-block; margin-top: 8px; color: var(--signal); font-family: var(--mono); font-size: 10px; letter-spacing: .04em; text-transform: uppercase; }
+    .nade-card__use { margin: 8px 0; color: var(--muted); font-size: 13px; line-height: 1.35; }
+    .nade-frames { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin: 10px 0; }
+    .nade-frame { min-width: 0; margin: 0; border: 1px solid rgba(232, 211, 168, .22); background: #050808; }
+    .nade-frame img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #050808; }
+    .nade-frame figcaption { padding: 5px 6px; border-top: 1px solid rgba(232, 211, 168, .16); color: var(--quiet); font-family: var(--mono); font-size: 9px; letter-spacing: .03em; text-transform: uppercase; }
+    .nade-data { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 11px; margin: 0; }
+    .nade-data div { min-width: 0; padding-top: 5px; border-top: 1px solid rgba(232, 211, 168, .12); }
+    .nade-data dt { color: var(--quiet); font-family: var(--mono); font-size: 9px; letter-spacing: .05em; text-transform: uppercase; }
+    .nade-data dd { margin: 3px 0 0; color: var(--muted); font-size: 11px; line-height: 1.3; }
+    .nade-data dd strong { color: var(--ink); }
+    .nade-link { display: inline-block; margin-top: 10px; color: var(--sand); font-family: var(--mono); font-size: 11px; }
+    .candidate-warning { margin-top: 11px; padding: 9px 11px; border: 1px solid rgba(255, 92, 124, .37); color: var(--muted); background: rgba(255, 92, 124, .07); font-family: var(--mono); font-size: 10px; line-height: 1.42; }
+    .candidate-warning b { color: var(--signal); }
+
+    .timeline { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: clamp(18px, 3vw, 30px); background: var(--line); border: 1px solid var(--line); }
+    .timeline__item { min-width: 0; padding: 15px; background: var(--night-2); }
+    .timeline__item b { display: block; color: var(--sand); font-family: var(--display); font-size: 28px; font-weight: 500; line-height: .9; }
+    .timeline__item span { display: block; margin-top: 7px; color: var(--muted); font-size: 12px; line-height: 1.35; }
+    .timeline__item small { display: block; margin-top: 6px; color: var(--quiet); font-family: var(--mono); font-size: 10px; }
+    .source-panel { margin-top: clamp(18px, 3vw, 32px); padding: clamp(16px, 2vw, 24px); border: 1px solid var(--line-strong); background: rgba(17, 26, 25, .82); }
+    .source-panel h3 { color: var(--sand); }
+    .source-panel p { margin: 10px 0 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+    .source-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .source-links a { padding: 7px 8px; border: 1px solid var(--line); background: var(--night); color: var(--sand); font-family: var(--mono); font-size: 10px; text-decoration: none; text-transform: uppercase; }
+    .source-links a:hover { border-color: var(--sand); }
+    .footer-progress { display: flex; min-width: 0; align-items: center; gap: 10px; }
+    .progress-text { min-width: 48px; color: var(--sand); font-family: var(--mono); font-size: 11px; white-space: nowrap; }
+    .progress-bar { width: min(20vw, 220px); height: 4px; overflow: hidden; background: rgba(232, 211, 168, .16); }
+    .progress-bar i { display: block; width: var(--progress, 0%); height: 100%; background: linear-gradient(90deg, var(--sun), var(--sand)); transition: width .2s ease; }
+    .keyboard-hint { color: var(--quiet); font-family: var(--mono); font-size: 10px; white-space: nowrap; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 900px) {
+      .columns, .columns--wide, .cover { grid-template-columns: 1fr; }
+      .cover { min-height: 0; }
+      .cover__right { max-width: 680px; }
+      .columns--visual > .visual { order: -1; }
+      .timeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .number-grid { grid-template-columns: 1fr; }
+      .number-card { display: grid; grid-template-columns: 90px minmax(0, 1fr); column-gap: 14px; align-items: center; }
+      .number-card b { grid-row: span 2; }
+      .number-card span, .number-card em { margin-top: 0; }
+    }
+    @media (max-width: 680px) {
+      .deck-header { align-items: flex-start; }
+      .header-actions .ui-button:not(.ui-button--timer) { display: none; }
+      .deck-footer { flex-wrap: wrap; }
+      .footer-actions { margin-left: auto; }
+      .jump-select { width: min(52vw, 230px); }
+      .nade-grid, .nade-frames, .mini-grid, .mini-grid--three, .flow { grid-template-columns: 1fr; }
+      .nade-data { grid-template-columns: 1fr; }
+      .visual-caption { display: block; }
+      .visual-caption span { display: block; }
+      .visual-caption span + span { margin-top: 3px; text-align: left !important; }
+      .keyboard-hint { display: none; }
+      .slide h1 { font-size: clamp(43px, 15vw, 74px); }
+      .slide h2 { font-size: clamp(35px, 10vw, 56px); }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#slide-content">Перейти к слайду</a>
+  <div class="deck">
+    <header class="deck-header">
+      <div class="identity">
+        <span class="cartouche" aria-hidden="true">𓂀</span>
+        <div>
+          <p class="eyebrow">Ушибу ногами · CS2 / тактики</p>
+          <strong role="heading" aria-level="1">Anubis · командная тренировка</strong>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span class="timer-readout" id="timer-readout" aria-live="off">00:00</span>
+        <button class="ui-button ui-button--timer" id="timer-button" type="button" aria-label="Запустить или остановить таймер">Старт</button>
+        <button class="ui-button" id="fullscreen-button" type="button" aria-label="Открыть или закрыть полноэкранный режим">Полный экран</button>
+      </div>
+    </header>
+
+    <main class="deck-main" id="slide-content" tabindex="-1">
+      <div id="slide-root"></div>
+    </main>
+
+    <footer class="deck-footer">
+      <div class="footer-progress" aria-label="Прогресс презентации">
+        <span class="progress-text" id="progress-text">01 / 22</span>
+        <span class="progress-bar" id="progress-bar" aria-hidden="true"><i></i></span>
+      </div>
+      <span class="keyboard-hint">← → листать · Home / End · F — экран</span>
+      <div class="footer-actions">
+        <select class="jump-select" id="jump-select" aria-label="Перейти к слайду"></select>
+        <button class="ui-button" id="previous-button" type="button" aria-label="Предыдущий слайд">Назад</button>
+        <button class="ui-button ui-button--next" id="next-button" type="button" aria-label="Следующий слайд">Вперёд</button>
+      </div>
+    </footer>
+  </div>
+
+  <script src="assets/anubis-scenes.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      var scenes = window.ANUBIS_SCENES;
+      var slideRoot = document.getElementById('slide-root');
+      var previousButton = document.getElementById('previous-button');
+      var nextButton = document.getElementById('next-button');
+      var jumpSelect = document.getElementById('jump-select');
+      var progressText = document.getElementById('progress-text');
+      var progressBar = document.getElementById('progress-bar');
+      var timerButton = document.getElementById('timer-button');
+      var timerReadout = document.getElementById('timer-readout');
+      var fullscreenButton = document.getElementById('fullscreen-button');
+      var deckMain = document.querySelector('.deck-main');
+      var activeIndex = 0;
+      var timerStartedAt = 0;
+      var timerOffset = 0;
+      var timerInterval = null;
+
+      var nades = [
+        {
+          id: 'N-01', side: 'T', name: 'Смок хевена с воды B',
+          use: 'Для синхронного выхода A из воды; бросать только в момент общей команды «ВХОД».',
+          owner: 'L!S', backup: 'middle',
+          start: 'Кадр позиции CSNADES; нужен live-прогон', aim: 'Ориентир прицела/результата CSNADES; нужен live-прогон',
+          throw: 'Стоя · прыжок + ЛКМ', criterion: '5/5 в live-прогоне: хевен закрыт без зазора к входу',
+          verified: 'Не проверено в текущем билде · 07.09.2026',
+          url: 'https://csnades.gg/anubis/smokes/heaven-from-water-b',
+          positionFrame: 'assets/nades/n01-lineup.webp', aimFrame: 'assets/nades/n01-thumbnail.webp'
+        },
+        {
+          id: 'N-02', side: 'T', name: 'Смок платформы с воды',
+          use: 'Вторая граната с воды для синхронизации A; не заменяет проверку хевена.',
+          owner: 'middle', backup: 'L!S',
+          start: 'Кадр позиции CSNADES; нужен live-прогон', aim: 'Ориентир прицела/результата CSNADES; нужен live-прогон',
+          throw: 'Стоя · прыжок + ЛКМ', criterion: '3/3 в live-прогоне: платформа закрыта до входа',
+          verified: 'Не проверено в текущем билде · 07.09.2026',
+          url: 'https://csnades.gg/anubis/smokes/platform-from-water',
+          positionFrame: 'assets/nades/n02-lineup.webp', aimFrame: 'assets/nades/n02-thumbnail.webp'
+        },
+        {
+          id: 'N-03', side: 'T', name: 'Смок верха мида с респауна T',
+          use: 'Открывает безопасный первый сбор инфо на Mid; решение по ветке — после инфо.',
+          owner: 'd0lfero', backup: 'middle',
+          start: 'Кадр позиции CSNADES; нужен live-прогон', aim: 'Ориентир прицела/результата CSNADES; нужен live-прогон',
+          throw: 'Стоя · прыжок + ЛКМ', criterion: '5/5 в live-прогоне: верх мида закрыт до контакта',
+          verified: 'Не проверено в текущем билде · 07.09.2026',
+          url: 'https://csnades.gg/anubis/smokes/top-mid-from-t-spawn-b',
+          positionFrame: 'assets/nades/n03-lineup.webp', aimFrame: 'assets/nades/n03-thumbnail.webp'
+        },
+        {
+          id: 'N-04', side: 'T', name: 'Смок Е-бокса с руин',
+          use: 'Ветка B: закрыть Е-бокс до соединения пары канала с мейном B.',
+          owner: 'Reconnecting', backup: 'middle',
+          start: 'Кадр позиции CSNADES; нужен live-прогон', aim: 'Ориентир прицела/результата CSNADES; нужен live-прогон',
+          throw: 'Стоя · ЛКМ', criterion: '3/3 в live-прогоне: Е-бокс не даёт прострел или пик',
+          verified: 'Локально не проверено в текущем билде · статус на 07.09.2026',
+          url: 'https://csnades.gg/anubis/smokes/ebox-from-ruins-b',
+          positionFrame: 'assets/nades/n04-lineup.webp', aimFrame: 'assets/nades/n04-thumbnail.webp'
+        },
+        {
+          id: 'N-05', side: 'T', name: 'Смок дальнего B с руин',
+          use: 'Выход B: отсечь дальний B, когда энтри уже готов к контакту.',
+          owner: 'middle', backup: 'Reconnecting',
+          start: 'Кадр позиции CSNADES; нужен live-прогон', aim: 'Ориентир прицела/результата CSNADES; нужен live-прогон',
+          throw: 'Стоя · прыжок + ЛКМ', criterion: '3/3 в live-прогоне: дальний B отрезан к входу',
+          verified: 'Не проверено в текущем билде · 07.09.2026',
+          url: 'https://csnades.gg/anubis/smokes/back-site-from-ruins-b',
+          positionFrame: 'assets/nades/n05-lineup.webp', aimFrame: 'assets/nades/n05-thumbnail.webp'
+        },
+        {
+          id: 'N-06', side: 'T', name: 'Молотов колонны B с руин',
+          use: 'Выход B: выжечь колонну перед первой парой, не бросать после её контакта.',
+          owner: 'D4ba', backup: 'L!S',
+          start: 'Кадр позиции CSNADES; нужен live-прогон', aim: 'Ориентир прицела/результата CSNADES; нужен live-прогон',
+          throw: 'Стоя · прыжок + ЛКМ', criterion: '3/3 в live-прогоне: колонну нельзя занять без урона',
+          verified: 'Не проверено в текущем билде · 07.09.2026',
+          url: 'https://csnades.gg/anubis/molotovs/b-pillar-from-ruins-b',
+          positionFrame: 'assets/nades/n06-lineup.webp', aimFrame: 'assets/nades/n06-thumbnail.webp'
+        },
+        {
+          id: 'N-07', side: 'T', name: 'Молотов дальнего B с Е-бокса',
+          use: 'Выжечь дальний B после контроля Е-бокса; не путать со смоком дальнего B.',
+          owner: 'D4ba', backup: 'Reconnecting',
+          start: 'Кадр позиции CSNADES; нужен live-прогон', aim: 'Ориентир прицела/результата CSNADES; нужен live-прогон',
+          throw: 'Стоя · прыжок + ЛКМ', criterion: '3/3 в live-прогоне: дальний B горит до плента',
+          verified: 'Страница обновлена 12.07.2026; локально не проверено в текущем билде · статус на 07.09.2026',
+          url: 'https://csnades.gg/anubis/molotovs/backsite-from-ebox-b',
+          positionFrame: 'assets/nades/n07-lineup.webp', aimFrame: 'assets/nades/n07-thumbnail.webp'
+        },
+        {
+          id: 'N-08', side: 'CT', name: 'Флеш воды с хевена',
+          use: 'Ретейк A за CT: дать партнёру флеш перед совместным выходом в воду.',
+          owner: 'middle', backup: 'D4ba',
+          start: 'Кадр позиции CSNADES; нужен live-прогон', aim: 'Ориентир прицела/результата CSNADES; нужен live-прогон',
+          throw: 'Стоя · ЛКМ', criterion: '3/3 в live-прогоне: партнёр выходит после вспышки',
+          verified: 'Не проверено в текущем билде · 07.09.2026',
+          url: 'https://csnades.gg/anubis/flashbangs/water-from-heaven',
+          positionFrame: 'assets/nades/n08-lineup.webp', aimFrame: 'assets/nades/n08-thumbnail.webp'
+        },
+        {
+          id: 'N-09', side: 'CT', name: 'Смок мейна B с респауна CT',
+          use: 'Ответ CT на быстрый мейн B: опорник B замедляет вход, пока мид/Е-бокс сообщает и команда решает ротацию.',
+          owner: 'Reconnecting', backup: 'd0lfero',
+          start: 'Кадр позиции CSNADES; нужен live-прогон', aim: 'Ориентир прицела/результата CSNADES; нужен live-прогон',
+          throw: 'Стоя · прыжок + ЛКМ', criterion: '5/5 в live-прогоне: мейн B закрыт до сбора CT',
+          verified: 'Не проверено в текущем билде · 07.09.2026',
+          url: 'https://csnades.gg/anubis/smokes/b-main-from-ct-spawn',
+          positionFrame: 'assets/nades/n09-lineup.webp', aimFrame: 'assets/nades/n09-thumbnail.webp'
+        },
+        {
+          id: 'N-10', side: 'CT', name: 'Смок моста с респауна CT',
+          use: 'CT-ответ на давление мида: перекрыть мост и дать игроку мида время отойти или принять помощь.',
+          owner: 'middle', backup: 'd0lfero',
+          start: 'Кадр позиции CSNADES; нужен live-прогон', aim: 'Ориентир прицела/результата CSNADES; нужен live-прогон',
+          throw: 'Стоя · прыжок + ЛКМ', criterion: '5/5 в live-прогоне: мост закрыт без щели со стороны воды',
+          verified: 'Не проверено в текущем билде · 07.09.2026',
+          url: 'https://csnades.gg/anubis/smokes/bridge-from-ct-spawn',
+          positionFrame: 'assets/nades/n10-lineup.webp', aimFrame: 'assets/nades/n10-thumbnail.webp'
+        }
+      ];
+
+      function esc(value) {
+        return String(value).replace(/[&<>"']/g, function (character) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character];
+        });
+      }
+
+      function scaled(value, height) { return Math.round(Number(value) * (height || 1000)); }
+
+      function plaqueWidth(label) {
+        return Math.min(400, Math.max(108, 26 + String(label).length * 11));
+      }
+
+      function visualLabel(label, height) {
+        var x = scaled(label.u);
+        var y = scaled(label.v, height);
+        var tx = scaled(label.tx);
+        var ty = scaled(label.ty, height);
+        var width = plaqueWidth(label.label);
+        var px = Math.max(6, Math.min(994 - width, tx - width / 2));
+        var py = Math.max(24, Math.min(height - 44, ty - 19));
+        var tone = esc(label.tone || 'neutral');
+        return '' +
+          '<g class="map-label" data-plaque-center="' + Math.round(tx) + '">' +
+            '<path class="map-line map-line--label map-line--' + tone + '" d="M ' + x + ' ' + y + ' L ' + tx + ' ' + ty + '"></path>' +
+            '<circle class="map-anchor map-anchor--' + tone + '" cx="' + x + '" cy="' + y + '" r="8"></circle>' +
+            '<rect class="map-plaque map-plaque--' + tone + '" data-min-width="' + width + '" x="' + Math.round(px) + '" y="' + Math.round(py) + '" width="' + width + '" height="38"></rect>' +
+            '<text class="map-text" x="' + Math.round(px + 12) + '" y="' + Math.round(py + 25) + '">' + esc(label.label) + '</text>' +
+          '</g>';
+      }
+
+      function visualRoute(item, height) {
+        if (!item.points || item.points.length < 2) return '';
+        var coords = item.points.map(function (p) { return scaled(p[0]) + ',' + scaled(p[1], height); }).join(' ');
+        var tone = esc(item.tone || 't');
+        return '<polyline class="map-line map-route map-line--' + tone + '" marker-end="url(#arrow-' + tone + ')" points="' + coords + '"></polyline>';
+      }
+
+      function fitMapLabels() {
+        Array.prototype.forEach.call(slideRoot.querySelectorAll('.map-label'), function (group) {
+          var plaque = group.querySelector('.map-plaque');
+          var text = group.querySelector('.map-text');
+          if (!plaque || !text) return;
+          var textWidth = 0;
+          try { textWidth = text.getComputedTextLength(); } catch (error) { textWidth = 0; }
+          var width = Math.min(988, Math.max(Number(plaque.getAttribute('data-min-width')) || 0, Math.ceil(textWidth + 24)));
+          var center = Number(group.getAttribute('data-plaque-center'));
+          var left = Math.max(6, Math.min(994 - width, center - width / 2));
+          plaque.setAttribute('x', String(Math.round(left)));
+          plaque.setAttribute('width', String(Math.round(width)));
+          text.setAttribute('x', String(Math.round(left + 12)));
+        });
+      }
+
+      function visualPin(pin, index, tone, height) {
+        var x = scaled(pin.u);
+        var y = scaled(pin.v, height);
+        var labelX = pin.lu == null ? x : scaled(pin.lu);
+        var labelY = pin.lv == null ? y + 33 : scaled(pin.lv, height);
+        var labelAnchor = /^(start|middle|end)$/.test(pin.anchor || '') ? pin.anchor : 'middle';
+        var labelWidth = Math.max(72, String(pin.label || '').length * 10 + 18);
+        var labelLeft = labelAnchor === 'start' ? labelX - 8 : labelAnchor === 'end' ? labelX - labelWidth + 8 : labelX - labelWidth / 2;
+        var n = esc(pin.n || String(index + 1));
+        return '' +
+          (pin.lu == null ? '' : '<path class="map-pin__leader" d="M ' + x + ' ' + y + ' L ' + labelX + ' ' + labelY + '"></path>') +
+          '<circle class="map-pin map-pin--' + esc(tone || 't') + '" cx="' + x + '" cy="' + y + '" r="17"></circle>' +
+          '<text class="map-pin__text" x="' + x + '" y="' + y + '">' + n + '</text>' +
+          (pin.lu == null ? '' : '<rect class="map-pin__plaque" x="' + labelLeft + '" y="' + (labelY - 19) + '" width="' + labelWidth + '" height="27"></rect>') +
+          '<text class="map-pin__label" x="' + labelX + '" y="' + labelY + '" style="text-anchor:' + labelAnchor + '">' + esc(pin.label || '') + '</text>';
+      }
+
+      function defs() {
+        return '<defs>' +
+          '<marker id="arrow-t" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path fill="#ffae45" d="M0,0 L8,4 L0,8 z"></path></marker>' +
+          '<marker id="arrow-ct" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path fill="#55b9ed" d="M0,0 L8,4 L0,8 z"></path></marker>' +
+          '<marker id="arrow-signal" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path fill="#ff5c7c" d="M0,0 L8,4 L0,8 z"></path></marker>' +
+          '</defs>';
+      }
+
+      function renderScene(scene) {
+        var image = scene.image || scenes.radar.image;
+        var alt = scene.alt || scenes.radar.alt;
+        var kind = scene.kind || 'radar';
+        var viewHeight = kind === 'photo' ? 562.5 : 1000;
+        var labels = (scene.labels || []).map(function (label) { return visualLabel(label, viewHeight); }).join('');
+        var routes = (scene.routes || []).map(function (item) { return visualRoute(item, viewHeight); }).join('');
+        var pins = (scene.pins || []).map(function (pin, index) { return visualPin(pin, index, scene.pinTone || 't', viewHeight); }).join('');
+        var source = scene.source || scenes.radar.source;
+        return '' +
+          '<figure class="visual" aria-describedby="visual-caption">' +
+            '<div class="visual-frame visual-frame--' + (kind === 'photo' ? 'photo' : 'radar') + '">' +
+              '<img src="' + esc(image) + '" alt="' + esc(alt) + '">' +
+              '<svg viewBox="0 0 1000 ' + viewHeight + '" preserveAspectRatio="xMidYMid meet" aria-hidden="true">' + defs() + routes + labels + pins + '</svg>' +
+            '</div>' +
+            '<figcaption class="visual-caption" id="visual-caption"><span>' + esc(source) + '</span><span>' + esc(scene.coordinateSystem || scenes.radar.coordinateSystem) + '</span></figcaption>' +
+          '</figure>';
+      }
+
+      function nadeCards(from, to) {
+        return '<div class="nade-grid">' + nades.slice(from, to).map(function (nade) {
+          var tone = nade.side === 'CT' ? 'ct' : 't';
+          var frames = '' +
+            '<div class="nade-frames" aria-label="Кадры источника для ' + esc(nade.id) + '">' +
+              '<figure class="nade-frame"><img src="' + esc(nade.positionFrame) + '" alt="' + esc(nade.id + ': кадр позиции из CSNADES; не подтверждён в текущем CS2-билде') + '" loading="lazy"><figcaption>Позиция · источник</figcaption></figure>' +
+              '<figure class="nade-frame"><img src="' + esc(nade.aimFrame) + '" alt="' + esc(nade.id + ': ориентир прицела или результата из CSNADES; не подтверждён в текущем CS2-билде') + '" loading="lazy"><figcaption>Прицел / результат · источник</figcaption></figure>' +
+            '</div>';
+          return '' +
+            '<article class="nade-card">' +
+              '<div class="nade-card__head"><h3>' + esc(nade.name) + '</h3><span class="side side--' + tone + '">' + esc(nade.side) + '</span></div>' +
+              '<span class="status">Кандидат для live-прогона</span>' +
+              '<p class="nade-card__use">' + esc(nade.use) + '</p>' +
+              frames +
+              '<dl class="nade-data">' +
+                '<div><dt>Владелец / резерв</dt><dd><strong>' + esc(nade.owner) + '</strong> / ' + esc(nade.backup) + '</dd></div>' +
+                '<div><dt>Бросок</dt><dd>' + esc(nade.throw) + '</dd></div>' +
+                '<div><dt>Стартовый кадр</dt><dd>' + esc(nade.start) + '</dd></div>' +
+                '<div><dt>Крупный прицел</dt><dd>' + esc(nade.aim) + '</dd></div>' +
+                '<div><dt>Критерий</dt><dd>' + esc(nade.criterion) + '</dd></div>' +
+                '<div><dt>Проверка</dt><dd>' + esc(nade.verified) + '</dd></div>' +
+              '</dl>' +
+              '<a class="nade-link" href="' + esc(nade.url) + '" target="_blank" rel="noopener noreferrer">Открыть раскидку ' + esc(nade.id) + ' ↗</a>' +
+            '</article>';
+        }).join('') + '</div>';
+      }
+
+      function slideMarkup(slide) {
+        return '' +
+          '<article class="slide" data-slide-index="' + (activeIndex + 1) + '" aria-labelledby="slide-title-' + (activeIndex + 1) + '">' +
+            '<div class="slide__meta"><span class="slide__tag">' + esc(slide.kicker) + '</span><span class="slide__time">' + esc(slide.minutes) + '</span></div>' +
+            slide.render() +
+          '</article>';
+      }
+
+      var slides = [
+        {
+          short: 'Старт', kicker: '01 · рамка', minutes: '01 мин',
+          render: function () {
+            return '' +
+              '<section class="cover">' +
+                '<div>' +
+                  '<h1 id="slide-title-1">Anubis<br>без шума.<br><span style="color:var(--sand)">С планом.</span></h1>' +
+                  '<p class="lead">Командная тренировка для «Ушибу ногами»: короткие коллы, единый темп и две рабочие ветки вместо пяти одиночных дуэлей.</p>' +
+                  '<div class="cover__code"><span class="token">22 слайда</span><span class="token">55 мин теории</span><span class="token">27 мин личной практики</span><span class="token">CS2 / Anubis</span></div>' +
+                  '<div class="rule"></div>' +
+                  '<p class="big-quote">«Сначала инфо.<br>Потом один ВХОД.»</p>' +
+                '</div>' +
+                '<div class="cover__right">' +
+                  '<div class="cover-map"><img src="assets/anubis-radar-csnades-2026.webp" alt="радар Anubis как обложка тренировки"></div>' +
+                  '<div class="cover-signal"><b>Статус гранат:</b> библиотека найдена, но локального текущего CS2-билда для завершающего броска нет. Все раскидки ниже — кандидаты, не обязательная память.</div>' +
+                '</div>' +
+              '</section>';
+          }
+        },
+        {
+          short: 'Словарь', kicker: '02 · язык команды', minutes: '02 мин',
+          render: function () {
+            return '' +
+              '<div class="columns">' +
+                '<div><h2 id="slide-title-2">Единый словарь: не спорим о названии</h2><p class="lead">Один короткий колл должен дать направление, глубину и действие. Никаких «там, справа, коннектор» — на Anubis это двусмысленно.</p></div>' +
+                '<div class="stack">' +
+                  '<article class="panel"><p class="panel__kicker">Формула</p><h3>Точка → факт → действие</h3><p><span class="call">«Вода, один, отхожу»</span> лучше, чем «они возле воды».</p></article>' +
+                  '<article class="panel panel--signal"><p class="panel__kicker">Запрет</p><p><strong>Не говорим просто «коннектор».</strong> Только <span class="call">коннектор A</span>, <span class="call">коннектор B</span> или <span class="call">Е-бокс</span>.</p></article>' +
+                  '<button class="ui-button ui-button--next" type="button" data-next-visual>К следующему визуалу</button>' +
+                '</div>' +
+              '</div>' +
+              '<div class="fact-note"><b>Справочный факт:</b> названия сверены по CSDB, Gamertag Mythras и SkinKings; внутренняя форма коллов — договорённость команды. Полный реестр — в конце.</div>';
+          }
+        },
+        {
+          short: 'Радар / коллы', kicker: '03 · единый радар', minutes: '03 мин',
+          render: function () {
+            return '' +
+              '<div class="columns columns--wide columns--visual">' +
+                '<div><h2 id="slide-title-3">Радар: говорим об одном и том же</h2><p class="lead">Линия всегда приходит в конкретную точку. Плашка вынесена в свободное место, но якорь не сдвигается ради красоты.</p><div class="radar-legend"><span><i></i> нейтральный колл</span><span class="legend--t"><i></i>T-направление</span><span class="legend--ct"><i></i>CT-точка</span><span class="legend--signal"><i></i>изменение / риск</span></div><div class="coach-note"><b>В команде:</b> «Спуск · 2026» — новый выход рядом с дверями мида. Перед следующей тренировкой снова сверяем изменения Valve.</div></div>' +
+                renderScene(scenes.callouts) +
+              '</div>';
+          }
+        },
+        {
+          short: 'Патчи', kicker: '04 · текущая геометрия', minutes: '02 мин',
+          render: function () {
+            return '' +
+              '<div class="columns columns--visual">' +
+                '<div><h2 id="slide-title-4">2026: карта сдвинулась — старый повтор не доказательство</h2><p class="lead">Valve изменила спуск и двери мида, отверстие Е-бокс ↔ дальний B, часть ящиков A и коллизии вокруг новых связок. Поэтому старый ролик — только кандидат, пока не пройдёт на текущем клиенте.</p><div class="fact-note"><b>Подтверждённый факт:</b> изменения описаны Valve в анонсах 21.01 и 04.02.2026. Это не мета-совет, а причина проверять геометрию и траектории заново.</div></div>' +
+                renderScene(scenes.photos.doors) +
+              '</div>';
+          }
+        },
+        {
+          short: 'Цель', kicker: '05 · результат', minutes: '02 мин',
+          render: function () {
+            return '' +
+              '<h2 id="slide-title-5">Конец сессии — не «посмотрели», а умеем назвать и сделать</h2>' +
+              '<div class="number-grid">' +
+                '<article class="number-card"><b>5</b><span>CT-зон названо без подсказки</span><em>каждый игрок</em></article>' +
+                '<article class="number-card"><b>2</b><span>T-ветки вызываются одной фразой</span><em>мейн A + вода · мейн B + канал</em></article>' +
+                '<article class="number-card"><b>0</b><span>«Обязательных» гранат без live-проверки</span><em>кандидаты ≠ принятые раскидки</em></article>' +
+              '</div>' +
+              '<div class="flow"><div class="flow__step"><b>Инфо</b><p>Один игрок даёт точку, число и своё действие.</p></div><div class="flow__step"><b>ВХОД</b><p>Капитан называет одну ветку и счёт входа.</p></div><div class="flow__step flow__step--success"><b>УСПЕХ</b><p>Фиксируем, что взяли, и не превращаем успех в охоту.</p></div></div>';
+          }
+        },
+        {
+          short: 'Дефолт CT', kicker: '06 · CT', minutes: '03 мин',
+          render: function () {
+            return '' +
+              '<div class="columns columns--wide columns--visual">' +
+                '<div><h2 id="slide-title-6">Дефолт CT: 2 / 1 / 2, но связь важнее схемы</h2><p class="lead">Пять зон — не пять дуэлей. Мид/вода — игрок информации; по сайтам всегда остаётся опорник, пока выход не подтверждён.</p><div class="coach-note"><b>Тренерское решение:</b> 2 A / 1 мид / 2 B. Это стартовая дисциплина для нашей пятёрки, а не универсальная «мета».</div><ul class="role-list"><li><b>Хевен A + опорник A:</b> перекрёстный огонь, затем жизнь для ретейка.</li><li><b>Мид:</b> первый колл по смокам / спуску / воде и первый кандидат на ротацию.</li><li><b>Опорник B + Е-бокс:</b> тормозят, не догуливают в одиночку.</li></ul></div>' +
+                renderScene(scenes.ctDefault) +
+              '</div>';
+          }
+        },
+        {
+          short: 'CT инфо', kicker: '07 · CT', minutes: '02 мин',
+          render: function () {
+            return '' +
+              '<div class="columns">' +
+                '<div><h2 id="slide-title-7">CT: один короткий колл экономит две ротации</h2><p class="lead">Колл не должен требовать вопроса «где именно?». Сначала точка, потом количество, потом свой план.</p><div class="flow"><div class="flow__step"><b>«Двери мида, два»</b><p>Факт: количество и точка.</p></div><div class="flow__step"><b>«Я жив, падаю CT»</b><p>План: не обещаем фраг.</p></div><div class="flow__step"><b>«A держит опорник»</b><p>Команда не перетягивает всех.</p></div></div></div>' +
+                '<div class="stack"><article class="panel panel--ct"><p class="panel__kicker">Первое правило</p><h3>Не купить инфо своей смертью</h3><p>Если контакт невыгоден — отход и совместный ретейк. Живой игрок мида ценнее «почти добил».</p></article><article class="panel panel--signal"><p class="panel__kicker">СТОП</p><p><span class="call call--signal">«Один шум ≠ пятеро».</span> Ротация идёт после подтверждения: массовый контакт, гранаты или плент.</p></article></div>' +
+              '</div>';
+          }
+        },
+        {
+          short: 'Дефолт T', kicker: '08 · T', minutes: '03 мин',
+          render: function () {
+            return '' +
+              '<div class="columns columns--wide columns--visual">' +
+                '<div><h2 id="slide-title-8">Дефолт T: 2 / 2 / 1 для инфо, не для лотереи</h2><p class="lead">Пара мейна A создаёт давление без раннего пуша. Пара мид/вода добывает решение. Мейн B держит фланг и слушает. До команды <span class="call call--t">ВХОД</span> никто не «проверяет» сайт в одиночку.</p><div class="coach-note"><b>Тренерское решение:</b> к 1:20–1:10 капитан выбирает ветку по инфо. Если инфо нет — сохраняем зоны и не тратим все гранаты.</div></div>' +
+                renderScene(scenes.tDefault) +
+              '</div>';
+          }
+        },
+        {
+          short: 'T решение', kicker: '09 · T', minutes: '02 мин',
+          render: function () {
+            return '' +
+              '<h2 id="slide-title-9">Две точки решения: не пять голосов</h2><p class="lead">Капитан не обязан угадывать. Ему нужны два коротких окна, в которых команда заранее знает, что именно считать успехом и стоп-сигналом.</p>' +
+              '<div class="flow"><div class="flow__step"><b>1 · около 1:25</b><p><strong>Есть инфо мид/вода?</strong> Да — проверяем реакцию CT. Нет — не отдаём игрока, возвращаемся в безопасный дефолт.</p></div><div class="flow__step"><b>2 · около 1:10</b><p><strong>CT отдал A или B?</strong> Вызываем одну подготовленную ветку, а не «попробуем оба».</p></div><div class="flow__step flow__step--stop"><b>СТОП</b><p>Нет синхрона, бомба далеко или гранаты не готовы — не запускаем неполный выход.</p></div></div>' +
+              '<div class="mini-grid" style="margin-top:12px"><div class="mini-card"><b>Колл A</b><span><span class="call call--t">«A: мейн + вода. Гранаты готовы. ВХОД на три.»</span></span></div><div class="mini-card"><b>Колл B</b><span><span class="call call--t">«B: канал + мейн. Е-бокс закрываем. ВХОД на три.»</span></span></div></div>';
+          }
+        },
+        {
+          short: 'Мид / вода', kicker: '10 · T', minutes: '03 мин',
+          render: function () {
+            return '' +
+              '<div class="columns columns--wide columns--visual">' +
+                '<div><h2 id="slide-title-10">Мид → мост → вода: берём решение, а не территорию ради территории</h2><p class="lead">Первое инфо у дверей мида. Затем мост — точка решения: уйти в воду для A или соединиться с B через Е-бокс. Называем ветку до движения.</p><div class="mini-grid"><div class="mini-card"><b>Ветка A</b><span>Вода готова → подтянуть мейн → один ВХОД.</span></div><div class="mini-card"><b>Ветка B</b><span>Е-бокс закрыт / проверен → соединить канал и мейн B.</span></div></div><div class="coach-note"><b>Граница:</b> польза мида/воды подтверждается внешними гайдами; числа игроков, таймеры и критерии здесь — рабочий протокол команды.</div></div>' +
+                renderScene(scenes.midWater) +
+              '</div>';
+          }
+        },
+        {
+          short: 'Вода / ориентиры', kicker: '11 · ориентир', minutes: '02 мин',
+          render: function () {
+            return '' +
+              '<div class="columns columns--visual">' +
+                '<div><h2 id="slide-title-11">На виду: вода, мост, арки</h2><p class="lead">Перед тем как спорить о темпе, команда называет объект, который реально видит. Кадр показан целиком — без обрезки и «угадывания» по краю.</p><ul class="role-list"><li><b>Инфо:</b> «Вода чисто / один вода».</li><li><b>Гранаты:</b> говорит «готова», только когда может бросить, а не когда почти дошёл.</li><li><b>Капитан:</b> отвечает веткой: <span class="call">«Держим воду»</span> или <span class="call">«Падаем, играем B»</span>.</li></ul></div>' +
+                renderScene(scenes.photos.water) +
+              '</div>';
+          }
+        },
+        {
+          short: 'A роли', kicker: '12 · T / A', minutes: '03 мин',
+          render: function () {
+            return '' +
+              '<div class="columns">' +
+                '<div><h2 id="slide-title-12">A: роли до входа, а не после первого фрага</h2><p class="lead">Три игрока идут из мейна A, двое синхронизируют воду / коннектор A. Бомба идёт третьей: она не должна останавливаться в первой дымовой.</p><div class="mini-grid"><div class="mini-card"><b>1 · Энтри</b><span>Первый угол и точка контакта.</span></div><div class="mini-card"><b>2 · Размен</b><span>Смотрит вход энтри, не занят другой дуэлью.</span></div><div class="mini-card"><b>3 · Бомба</b><span>Плент после команды и очищенной точки.</span></div><div class="mini-card"><b>4 · Гранаты</b><span>Подтверждает готовность до входа.</span></div><div class="mini-card"><b>5 · Фланг / инфо</b><span>Держит воду и даёт реакцию CT.</span></div><div class="mini-card"><b>Капитан</b><span>Единственный голос ВХОД / СТОП / УСПЕХ.</span></div></div></div>' +
+                renderScene(scenes.photos.a) +
+              '</div>';
+          }
+        },
+        {
+          short: 'Выход A', kicker: '13 · T / A', minutes: '02 мин',
+          render: function () {
+            return '' +
+              '<div class="columns columns--wide columns--visual">' +
+                '<div><h2 id="slide-title-13">Выход A: мейн + вода, счёт один для всех</h2><p class="lead">Перед входом называем роли и готовность гранат. На <span class="call call--t">«три»</span> мейн и вода не должны ждать, кто первым увидит CT.</p><div class="flow"><div class="flow__step"><b>ВХОД</b><p>Мейн и вода входят синхронно; гранаты уже выпущены.</p></div><div class="flow__step flow__step--stop"><b>СТОП</b><p>Вода не занята, бомба отстала или ключевая граната не готова.</p></div><div class="flow__step flow__step--success"><b>УСПЕХ</b><p>Сайт + отрезанный CT: ставим и распределяем позиции после плента.</p></div></div></div>' +
+                renderScene(scenes.aExecute) +
+              '</div>';
+          }
+        },
+        {
+          short: 'A после входа', kicker: '14 · T / A', minutes: '02 мин',
+          render: function () {
+            return '' +
+              '<div class="columns">' +
+                '<div><h2 id="slide-title-14">A после входа: результат — плент и живые углы</h2><p class="lead">Успех не означает «догнать CT». После плента команда занимает простые линии и слушает фланг.</p><ul class="check-list"><li><b>Бомба:</b> ставит только после слов <span class="call call--success">«сайт наш»</span>.</li><li><b>Энтри / размен:</b> не уходят оба искать фраг; один сохраняет угол для ретейка.</li><li><b>Вода:</b> сообщает фланг и не молчит после первого контакта.</li><li><b>Капитан:</b> фиксирует позиции: <span class="call">«двое CT, двое мейн, вода слушает»</span>.</li></ul></div>' +
+                '<div class="stack"><article class="panel panel--signal"><p class="panel__kicker">СТОП</p><h3>Нет сайта — нет плента</h3><p>Если точка не очищена, бомба остаётся живой, а команда откатывается к понятному углу.</p></article><article class="panel panel--ct"><p class="panel__kicker">Ответ CT</p><p>Ожидаем ретейк через CT / хевен. Не называем победу до проверки всех доступов.</p></article></div>' +
+              '</div>';
+          }
+        },
+        {
+          short: 'B роли', kicker: '15 · T / B', minutes: '03 мин',
+          render: function () {
+            return '' +
+              '<div class="columns">' +
+                '<div><h2 id="slide-title-15">B: канал + мейн B, а не «все в одну дверь»</h2><p class="lead">Трое в мейне B создают темп, двое в канале / Е-боксе создают второй угол. Если Е-бокс не готов — быстрое B не начинается.</p><div class="coach-note"><b>Тренерское решение:</b> 2 канал + 3 мейн B. Выбрано ради понятного размена и не выдано за обязательную мету.</div><ul class="role-list"><li><b>Энтри / размен / бомба:</b> мейн B — строгий порядок.</li><li><b>Гранаты:</b> Е-бокс, дальний B и колонна — только по результату live-прогона.</li><li><b>Фланг / инфо:</b> канал, затем связь с мейном B и проверка реакции CT.</li><li><b>Капитан:</b> единственный голос для ВХОД / СТОП / УСПЕХ.</li></ul></div>' +
+                renderScene(scenes.photos.b) +
+              '</div>';
+          }
+        },
+        {
+          short: 'Выход B', kicker: '16 · T / B', minutes: '02 мин',
+          render: function () {
+            return '' +
+              '<div class="columns columns--wide columns--visual">' +
+                '<div><h2 id="slide-title-16">Выход B: канал + мейн, гранаты до контакта</h2><p class="lead">Пара канала приходит не «когда сможет», а к общему счёту. Мейн не открывает B, пока не понятны Е-бокс и ключевой угол.</p><div class="flow"><div class="flow__step"><b>ВХОД</b><p>Пара направлений в одном темпе, энтри знает первый угол.</p></div><div class="flow__step flow__step--stop"><b>СТОП</b><p>Е-бокс не закрыт, канал задержался или граната не прошла.</p></div><div class="flow__step flow__step--success"><b>УСПЕХ</b><p>Сайт и дальний B под контролем: плент и простые линии.</p></div></div></div>' +
+                renderScene(scenes.bExecute) +
+              '</div>';
+          }
+        },
+        {
+          short: 'B после входа', kicker: '17 · T / B', minutes: '03 мин',
+          render: function () {
+            return '' +
+              '<div class="columns">' +
+                '<div><h2 id="slide-title-17">B: колонна — конкретный угол</h2><p class="lead">На кадре линия приходит к видимой центральной колонне. В раунде колл <span class="call">«колонна»</span> не означает весь сайт и не заменяет число соперников.</p><div class="fact-note"><b>Проверка формулировки:</b> каждый называет «сайт B», «колонна», «дальний B» отдельно. Если нужна другая точка — называем её целиком, не сокращаем до «там B».</div></div>' +
+                renderScene(scenes.photos.b) +
+              '</div>';
+          }
+        },
+        {
+          short: 'CT реакция', kicker: '18 · CT', minutes: '03 мин',
+          render: function () {
+            return '' +
+              '<div class="columns columns--wide columns--visual">' +
+                '<div><h2 id="slide-title-18">CT: три триггера, один язык</h2><p class="lead">Мид/вода, мейн A и мейн B не требуют трёх разных паник. Везде сначала точка + число + действие, затем только подтверждённая ротация.</p><div class="flow"><div class="flow__step"><b>Мид / вода</b><p><span class="call">«Мид, два, падаю CT»</span>. Опорник A держит, ретейк — только втроём и с гранатами.</p></div><div class="flow__step"><b>Мейн A</b><p><span class="call">«Мейн A, два, хевен держит»</span>. Мид подключается лишь на гранаты/полный вход; B остаётся с опорником.</p></div><div class="flow__step"><b>Мейн B</b><p><span class="call">«Мейн B, два+, опорник жив»</span>. Мид/Е-бокс тормозит, A не бросает сайт; CT-смок N-09 пока кандидат.</p></div></div><div class="coach-note"><b>СТОП:</b> одиночный шум не вызывает полную ротацию. <b>УСПЕХ:</b> ретейк начинается только с людьми, гранатами и общим входом.</div></div>' +
+                renderScene(scenes.ctReaction) +
+              '</div>';
+          }
+        },
+        {
+          short: 'CT ретейк', kicker: '19 · CT', minutes: '03 мин',
+          render: function () {
+            return '' +
+              '<h2 id="slide-title-19">CT ретейк: один флеш — один шаг</h2><p class="lead">В ретейке не «проверяем» по очереди. Первый называет выход, второй даёт флеш, третий входит на её счёт. Если смока / флешки нет — команда это говорит, а не притворяется готовой.</p>' +
+              '<div class="mini-grid mini-grid--three" style="margin-top:22px"><div class="mini-card"><b>Капитан</b><span><span class="call call--ct">«Трое живы. Хевен + CT. Флеш через два.»</span></span></div><div class="mini-card"><b>Гранаты</b><span><span class="call call--ct">«Флеш готова. Бросаю.»</span></span></div><div class="mini-card"><b>Вход</b><span><span class="call call--success">«Пошли после вспышки.»</span></span></div></div>' +
+              '<div class="candidate-warning"><b>Граната N-08:</b> флеш воды с хевена показана ниже как прямой кандидат CSNADES. Она не принята в обязательные, пока команда не сохранит текущий старт, прицел и результат броска.</div>';
+          }
+        },
+        {
+          short: 'Гранаты 1–4', kicker: '20 · гранаты', minutes: '03 мин',
+          render: function () {
+            return '' +
+              '<h2 id="slide-title-20">Раскидки 1–4: источник есть, принятого броска пока нет</h2><p class="lead">У каждой карточки есть назначение, владелец, резерв, опубликованный способ броска, локальные кадры позиции и прицела из источника и прямая ссылка. Эти кадры — ориентир, а не подтверждение текущего клиента.</p>' +
+              nadeCards(0, 4) +
+              '<div class="candidate-warning"><b>Как принять гранату:</b> открыть ссылку → бросить в текущем билде → сопоставить с локальными кадрами и записать дату/билд, стартовый объект, close-up прицела и наблюдаемый результат. До этого карточка остаётся кандидатом.</div>';
+          }
+        },
+        {
+          short: 'Гранаты 5–10', kicker: '21 · гранаты', minutes: '04 мин',
+          render: function () {
+            return '' +
+              '<div class="columns columns--wide columns--visual">' +
+              '<div><h2 id="slide-title-21">Раскидки 5–10: B и ответ CT</h2><p class="lead">Особенно осторожно с Е-боксом и дальним B: Valve меняла близкую геометрию и коллизии. N-09 тормозит быстрый мейн B, N-10 перекрывает мост; свежая дата страницы всё равно не заменяет бросок на нашем сервере.</p><div class="candidate-warning"><b>Нельзя называть обязательными:</b> ни одна из десяти раскидок не прошла локальную проверку текущего билда в рамках этой работы.</div></div>' +
+                renderScene(scenes.nadeBoard) +
+              '</div>' +
+              nadeCards(4, 10);
+          }
+        },
+        {
+          short: 'Домашняя работа', kicker: '22 · закрепление', minutes: '02 мин',
+          render: function () {
+            return '' +
+              '<h2 id="slide-title-22">27 минут личной практики, потом — только подтверждённые ответы</h2><p class="lead">Это потолок индивидуального блока. Цель — не выучить картинку, а вернуть команде проверяемую запись: что бросил, откуда, как целился и что получилось.</p>' +
+              '<div class="timeline"><div class="timeline__item"><b>06 мин</b><span>Пройти коллы: вода, мост, двери мида, спуск, мейны A/B, Е-бокс, дальний B, колонна.</span><small>голосом</small></div><div class="timeline__item"><b>09 мин</b><span>Выбрать 2 карточки гранат и повторить до стабильного результата.</span><small>без статуса «обязательная»</small></div><div class="timeline__item"><b>07 мин</b><span>Сделать короткий ролик / скрин старта и крупного прицела для каждой удачной.</span><small>только текущий билд</small></div><div class="timeline__item"><b>05 мин</b><span>Написать капитану: роль, резерв, момент, критерий успеха или причину брака.</span><small>одна строка на гранату</small></div></div>' +
+              '<section aria-labelledby="final-test-title"><h3 id="final-test-title" style="margin-top:18px">Финальный тест · 8 вопросов</h3><div class="mini-grid" style="margin-top:12px"><div class="mini-card"><b>Вопрос 1</b><span>Назови пять зон дефолта CT и правило начала ротации.</span></div><div class="mini-card"><b>Вопрос 2</b><span>Почему нельзя говорить просто «коннектор»? Какие уточнения допустимы?</span></div><div class="mini-card"><b>Вопрос 3</b><span>Где первая и вторая точки решения дефолта T?</span></div><div class="mini-card"><b>Вопрос 4</b><span>Дай короткий колл и первое действие для мида/воды, мейна A или мейна B.</span></div><div class="mini-card"><b>Вопрос 5</b><span>Кто на A — энтри, размен, бомба, гранаты и фланг? Кто говорит «ВХОД»?</span></div><div class="mini-card"><b>Вопрос 6</b><span>Назови условия «СТОП» для выхода A через мейн + воду.</span></div><div class="mini-card"><b>Вопрос 7</b><span>Что должно быть готово, прежде чем мейн B начинает вход?</span></div><div class="mini-card"><b>Вопрос 8</b><span>Когда раскидку-кандидат можно сделать обязательной и что нужно записать?</span></div></div></section>' +
+              '<section class="source-panel"><h3>Где заканчивается факт</h3><p>Реестр разделяет Valve-изменения, справочные коллы, внешние тактические материалы и тренерские решения. В нём же — полный список прямых ссылок, локальных кадров и статусов гранат.</p><div class="source-links"><a href="SOURCE_LEDGER.md" target="_blank">Открыть реестр источников</a><a href="LABEL_AUDIT.md" target="_blank">Открыть аудит подписей</a><a href="NADES_SOURCE_ASSETS.md" target="_blank">Открыть кадры гранат</a><a href="https://steamcommunity.com/app/730/announcements" target="_blank" rel="noopener noreferrer">Valve announcements ↗</a><a href="https://csdb.gg/maps/anubis/" target="_blank" rel="noopener noreferrer">CSDB callouts ↗</a></div></section>';
+          }
+        }
+      ];
+
+      function currentSlideFromQuery() {
+        var value = Number(new URLSearchParams(window.location.search).get('slide'));
+        return value >= 1 && value <= slides.length ? value - 1 : 0;
+      }
+
+      function render(index, moveFocus) {
+        activeIndex = Math.max(0, Math.min(slides.length - 1, index));
+        var slide = slides[activeIndex];
+        slideRoot.innerHTML = slideMarkup(slide);
+        fitMapLabels();
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitMapLabels);
+        previousButton.disabled = activeIndex === 0;
+        nextButton.disabled = activeIndex === slides.length - 1;
+        progressText.textContent = String(activeIndex + 1).padStart(2, '0') + ' / ' + String(slides.length).padStart(2, '0');
+        progressBar.style.setProperty('--progress', ((activeIndex + 1) / slides.length * 100) + '%');
+        jumpSelect.value = String(activeIndex);
+        document.title = (activeIndex + 1) + '. ' + slide.short + ' · Anubis — Ушибу ногами';
+        try {
+          var nextUrl = new URL(window.location.href);
+          nextUrl.searchParams.set('slide', String(activeIndex + 1));
+          window.history.replaceState({ slide: activeIndex + 1 }, '', nextUrl);
+        } catch (error) {
+          /* file:// preview may deny history replacement; navigation still works. */
+        }
+        deckMain.scrollTop = 0;
+        if (moveFocus) document.getElementById('slide-content').focus({ preventScroll: true });
+        var nextVisual = slideRoot.querySelector('[data-next-visual]');
+        if (nextVisual) nextVisual.addEventListener('click', function () { render(activeIndex + 1, true); });
+      }
+
+      function go(delta) { render(activeIndex + delta, true); }
+
+      function formatTimer(milliseconds) {
+        var seconds = Math.floor(milliseconds / 1000);
+        var minutes = Math.floor(seconds / 60);
+        return String(minutes).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0');
+      }
+
+      function drawTimer() {
+        var elapsed = timerOffset + (timerStartedAt ? Date.now() - timerStartedAt : 0);
+        timerReadout.textContent = formatTimer(elapsed);
+      }
+
+      function toggleTimer() {
+        if (timerStartedAt) {
+          timerOffset += Date.now() - timerStartedAt;
+          timerStartedAt = 0;
+          clearInterval(timerInterval);
+          timerInterval = null;
+          timerButton.textContent = 'Старт';
+          timerButton.setAttribute('aria-pressed', 'false');
+          drawTimer();
+          return;
+        }
+        timerStartedAt = Date.now();
+        timerInterval = window.setInterval(drawTimer, 250);
+        timerButton.textContent = 'Пауза';
+        timerButton.setAttribute('aria-pressed', 'true');
+        drawTimer();
+      }
+
+      function updateFullscreenButton() {
+        fullscreenButton.textContent = document.fullscreenElement ? 'Обычный режим' : 'Полный экран';
+      }
+
+      function toggleFullscreen() {
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        } else if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen();
+        }
+      }
+
+      slides.forEach(function (slide, index) {
+        var option = document.createElement('option');
+        option.value = String(index);
+        option.textContent = String(index + 1).padStart(2, '0') + ' · ' + slide.short;
+        jumpSelect.appendChild(option);
+      });
+
+      previousButton.addEventListener('click', function () { go(-1); });
+      nextButton.addEventListener('click', function () { go(1); });
+      jumpSelect.addEventListener('change', function () { render(Number(jumpSelect.value), true); });
+      timerButton.addEventListener('click', toggleTimer);
+      fullscreenButton.addEventListener('click', toggleFullscreen);
+      document.addEventListener('fullscreenchange', updateFullscreenButton);
+      document.addEventListener('keydown', function (event) {
+        var target = event.target;
+        var isFormControl = target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName);
+        if (event.key === 'Escape' && document.fullscreenElement) {
+          event.preventDefault();
+          document.exitFullscreen();
+          return;
+        }
+        if (isFormControl) return;
+        if (event.key === 'ArrowRight' || event.key === 'PageDown') { event.preventDefault(); go(1); }
+        else if (event.key === 'ArrowLeft' || event.key === 'PageUp') { event.preventDefault(); go(-1); }
+        else if (event.key === 'Home') { event.preventDefault(); render(0, true); }
+        else if (event.key === 'End') { event.preventDefault(); render(slides.length - 1, true); }
+        else if (event.key.toLowerCase() === 'f') { event.preventDefault(); toggleFullscreen(); }
+      });
+
+      window.addEventListener('popstate', function () { render(currentSlideFromQuery(), false); });
+
+      render(currentSlideFromQuery(), false);
+      drawTimer();
+      updateFullscreenButton();
+    })();
+  </script>
+</body>
+</html>

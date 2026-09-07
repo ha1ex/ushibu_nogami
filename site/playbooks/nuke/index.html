@@ -1,0 +1,2519 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Визуальная версия 45-минутной командной тренировки по карте Нюк от L!S">
+  <link rel="icon" href="data:,">
+  <title>Нюк: визуальная командная тренировка L!S</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090d10;
+      --surface: #11181d;
+      --surface-2: #182128;
+      --ink: #f2f0e8;
+      --muted: #a8b0b3;
+      --line: rgba(255, 255, 255, 0.16);
+      --yellow: #f4c542;
+      --ct: #56a9ff;
+      --attack: #ff914d;
+      --practice: #82d6a2;
+      --danger: #ff6868;
+      --accent: var(--yellow);
+      --display: "Avenir Next Condensed", "PT Sans", sans-serif;
+      --body: "Avenir Next", "PT Sans", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--body);
+    }
+
+    body {
+      min-width: 320px;
+      text-rendering: optimizeLegibility;
+    }
+
+    button,
+    a { -webkit-tap-highlight-color: transparent; }
+
+    button { font: inherit; }
+
+    a {
+      color: inherit;
+      text-decoration-color: color-mix(in srgb, var(--accent) 72%, transparent);
+      text-decoration-thickness: 2px;
+      text-underline-offset: 0.18em;
+    }
+
+    a:hover,
+    a:focus-visible {
+      color: var(--accent);
+      text-decoration-color: currentColor;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 4px;
+    }
+
+    .deck {
+      position: relative;
+      width: 100vw;
+      height: 100dvh;
+      isolation: isolate;
+      background:
+        linear-gradient(115deg, rgba(244, 197, 66, 0.045), transparent 34%),
+        var(--bg);
+    }
+
+    .slide {
+      --accent: var(--yellow);
+      position: absolute;
+      inset: 0;
+      display: none;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: clamp(1.25rem, 2.4vh, 2rem);
+      padding: clamp(2rem, 5.2vw, 6rem) clamp(2rem, 6.2vw, 7.5rem) 6.6rem;
+      overflow: auto;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+        radial-gradient(circle at 78% 18%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 34%),
+        var(--bg);
+      background-size: 72px 72px, 72px 72px, auto, auto;
+    }
+
+    .slide::before {
+      content: "";
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: clamp(0.65rem, 1vw, 1.1rem);
+      background: var(--accent);
+      box-shadow: 0 0 52px color-mix(in srgb, var(--accent) 25%, transparent);
+    }
+
+    .slide::after {
+      content: attr(data-index);
+      position: fixed;
+      right: clamp(1rem, 4vw, 4rem);
+      bottom: 3.8rem;
+      z-index: -1;
+      color: rgba(255, 255, 255, 0.035);
+      font-family: var(--display);
+      font-size: min(28vw, 28rem);
+      font-weight: 900;
+      line-height: 0.72;
+      letter-spacing: -0.08em;
+      pointer-events: none;
+    }
+
+    .slide.is-active {
+      display: grid;
+      animation: reveal 260ms ease-out both;
+    }
+
+    .slide.ct { --accent: var(--ct); }
+    .slide.attack { --accent: var(--attack); }
+    .slide.practice { --accent: var(--practice); }
+
+    @keyframes reveal {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .slide-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 2rem;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 1rem;
+    }
+
+    .eyebrow {
+      margin: 0 0 0.4rem;
+      color: var(--accent);
+      font-family: var(--display);
+      font-size: clamp(0.9rem, 1.15vw, 1.2rem);
+      font-weight: 800;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p { margin-top: 0; }
+
+    h1,
+    h2,
+    h3 {
+      font-family: var(--display);
+      letter-spacing: -0.025em;
+    }
+
+    h1 {
+      max-width: 15ch;
+      margin-bottom: 1.2rem;
+      font-size: clamp(3.4rem, 7vw, 8.5rem);
+      font-weight: 900;
+      line-height: 0.88;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(2.4rem, 4.2vw, 5.1rem);
+      font-weight: 850;
+      line-height: 0.96;
+      text-transform: uppercase;
+    }
+
+    h3 {
+      margin-bottom: 0.75rem;
+      color: var(--accent);
+      font-size: clamp(1.45rem, 2.1vw, 2.35rem);
+      font-weight: 800;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .timing {
+      flex: 0 0 auto;
+      min-width: 8.5rem;
+      border-left: 4px solid var(--accent);
+      padding-left: 0.85rem;
+      color: var(--muted);
+      font-family: var(--display);
+      font-size: clamp(0.9rem, 1.05vw, 1.1rem);
+      font-weight: 700;
+      line-height: 1.35;
+      text-align: left;
+      text-transform: uppercase;
+    }
+
+    .timing strong {
+      display: block;
+      color: var(--ink);
+      font-size: 1.22em;
+    }
+
+    .slide-body {
+      min-height: 0;
+      font-size: clamp(1.2rem, 1.55vw, 1.82rem);
+      line-height: 1.34;
+    }
+
+    .lead {
+      max-width: 46ch;
+      margin-bottom: 1.5rem;
+      color: var(--muted);
+      font-size: clamp(1.45rem, 2vw, 2.2rem);
+      line-height: 1.32;
+    }
+
+    .cover {
+      grid-template-rows: 1fr;
+      align-items: center;
+    }
+
+    .cover .slide-body {
+      display: grid;
+      align-content: center;
+      min-height: 72vh;
+    }
+
+    .cover h1 span { color: var(--yellow); }
+
+    .cover-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 2.5rem;
+      max-width: 64rem;
+      border-top: 1px solid var(--line);
+      padding-top: 1.25rem;
+      color: var(--muted);
+      font-size: clamp(1.1rem, 1.35vw, 1.5rem);
+    }
+
+    .cover-meta strong { color: var(--ink); }
+
+    .split {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(2rem, 5vw, 6rem);
+    }
+
+    .split > * + * {
+      border-left: 1px solid var(--line);
+      padding-left: clamp(2rem, 5vw, 6rem);
+    }
+
+    .utility-banner {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 1.35rem;
+      border-top: 5px solid var(--accent);
+      border-bottom: 1px solid var(--line);
+      padding: 0.9rem 0 1rem;
+    }
+
+    .utility-banner strong {
+      color: var(--accent);
+      font-family: var(--display);
+      font-size: clamp(1.45rem, 2vw, 2.35rem);
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .utility-banner span {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .commandments {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.55rem clamp(1.25rem, 3vw, 3rem);
+    }
+
+    .commandment {
+      display: grid;
+      grid-template-columns: 1.45rem minmax(0, 1fr);
+      gap: 0.75rem;
+      align-items: start;
+      border-top: 1px solid var(--line);
+      padding-top: 0.55rem;
+      cursor: pointer;
+    }
+
+    .commandment input {
+      width: 1.25rem;
+      height: 1.25rem;
+      margin: 0.18rem 0 0;
+      accent-color: var(--accent);
+    }
+
+    .commandment strong {
+      display: block;
+      margin-bottom: 0.1rem;
+      color: var(--ink);
+      font-family: var(--display);
+      font-size: clamp(1rem, 1.25vw, 1.38rem);
+      line-height: 1.08;
+      text-transform: uppercase;
+    }
+
+    .commandment span {
+      display: block;
+      color: var(--muted);
+      font-size: clamp(0.88rem, 1.02vw, 1.12rem);
+      line-height: 1.22;
+    }
+
+    .protocol {
+      display: grid;
+      grid-template-columns: minmax(15rem, 0.34fr) minmax(0, 0.66fr);
+      gap: clamp(2rem, 5vw, 6rem);
+    }
+
+    .protocol-summary {
+      border-top: 5px solid var(--accent);
+      padding-top: 1rem;
+    }
+
+    .protocol-summary p {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--display);
+      font-size: clamp(1.75rem, 2.8vw, 3.25rem);
+      font-weight: 900;
+      line-height: 1.05;
+      text-transform: uppercase;
+    }
+
+    .protocol-summary span { color: var(--accent); }
+
+    .source-note {
+      margin: 0.75rem 0 0;
+      color: var(--muted);
+      font-size: clamp(0.82rem, 0.95vw, 1.05rem);
+      line-height: 1.25;
+    }
+
+    .source-note a { color: var(--ink); font-weight: 750; }
+
+    .balance-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .balance-list li {
+      margin-bottom: 0.75rem;
+      border-top: 1px solid var(--line);
+      padding-top: 0.55rem;
+    }
+
+    .balance-list strong { color: var(--ink); }
+
+    .glossary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(1.5rem, 4vw, 5rem);
+    }
+
+    .glossary {
+      margin: 0;
+      border-top: 5px solid var(--accent);
+      padding-top: 0.65rem;
+    }
+
+    .glossary div {
+      display: grid;
+      grid-template-columns: minmax(7rem, 0.28fr) minmax(0, 0.72fr);
+      gap: 0.85rem;
+      border-bottom: 1px solid var(--line);
+      padding: 0.42rem 0;
+    }
+
+    .glossary dt {
+      color: var(--accent);
+      font-family: var(--display);
+      font-size: clamp(0.95rem, 1.12vw, 1.25rem);
+      font-weight: 850;
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+
+    .glossary dd {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(0.9rem, 1.08vw, 1.2rem);
+      line-height: 1.2;
+    }
+
+    .rule-list,
+    .steps,
+    .check-list,
+    .quiz-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .rule-list li,
+    .check-list li {
+      position: relative;
+      margin-bottom: 1rem;
+      padding-left: 1.5rem;
+    }
+
+    .rule-list li::before,
+    .check-list li::before {
+      content: "";
+      position: absolute;
+      top: 0.58em;
+      left: 0;
+      width: 0.55rem;
+      height: 0.55rem;
+      background: var(--accent);
+      transform: rotate(45deg);
+    }
+
+    .verdict {
+      margin-top: 1.7rem;
+      border-top: 3px solid var(--accent);
+      padding: 1rem 0 0;
+      color: var(--ink);
+      font-size: clamp(1.3rem, 1.75vw, 2rem);
+      font-weight: 750;
+      line-height: 1.28;
+    }
+
+    .formula {
+      margin: 0 0 1.5rem;
+      color: var(--ink);
+      font-family: var(--display);
+      font-size: clamp(2rem, 3.4vw, 4.2rem);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .formula span { color: var(--accent); }
+
+    .examples {
+      display: grid;
+      gap: 0.8rem;
+      margin-bottom: 1.4rem;
+    }
+
+    .example {
+      border-left: 3px solid var(--line);
+      padding-left: 1rem;
+      color: var(--muted);
+    }
+
+    .example strong { color: var(--ink); }
+
+    .zones {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(1.5rem, 4vw, 5rem);
+      align-items: start;
+    }
+
+    .zone {
+      border-top: 5px solid var(--accent);
+      padding-top: 1rem;
+    }
+
+    .zone p {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(1.2rem, 1.7vw, 2rem);
+      line-height: 1.45;
+    }
+
+    .table-wrap {
+      max-width: 100%;
+      max-height: 100%;
+      overflow: auto;
+      border-top: 4px solid var(--accent);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: clamp(0.55rem, 1.05vh, 0.95rem) clamp(0.55rem, 1vw, 1rem);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--accent);
+      font-family: var(--display);
+      font-size: clamp(0.88rem, 1.05vw, 1.15rem);
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    td {
+      color: var(--muted);
+      font-size: clamp(1rem, 1.18vw, 1.35rem);
+      line-height: 1.27;
+    }
+
+    td strong { color: var(--ink); }
+
+    td a {
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .source-table th:nth-child(1) { width: 15%; }
+    .source-table th:nth-child(2) { width: 18%; }
+    .source-table th:nth-child(3) { width: 10%; }
+    .source-table th:nth-child(4) { width: 27%; }
+    .source-table th:nth-child(5) { width: 30%; }
+
+    .roles-table th:nth-child(1) { width: 22%; }
+    .roles-table th:nth-child(2) { width: 23%; }
+    .roles-table th:nth-child(3) { width: 55%; }
+
+    .grenades-table th:nth-child(1) { width: 23%; }
+    .grenades-table th:nth-child(2) { width: 18%; }
+    .grenades-table th:nth-child(3) { width: 29%; }
+    .grenades-table th:nth-child(4) { width: 30%; }
+
+    .nade-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: clamp(0.6rem, 1.2vw, 1.1rem);
+      min-height: 0;
+    }
+
+    .nade-drill {
+      min-width: 0;
+      overflow: hidden;
+      border-top: 4px solid var(--accent);
+      background: color-mix(in srgb, var(--surface) 92%, var(--accent));
+    }
+
+    .nade-drill img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nade-copy { padding: 0.62rem 0.7rem 0.7rem; }
+
+    .nade-copy h3 {
+      min-height: 2em;
+      margin: 0 0 0.42rem;
+      color: var(--ink);
+      font-size: clamp(0.9rem, 1.08vw, 1.16rem);
+      line-height: 1;
+    }
+
+    .nade-copy p {
+      margin: 0 0 0.28rem;
+      color: var(--muted);
+      font-size: clamp(0.76rem, 0.84vw, 0.92rem);
+      line-height: 1.17;
+    }
+
+    .nade-copy strong { color: var(--ink); }
+
+    .nade-copy .nade-pass {
+      margin-top: 0.48rem;
+      border-top: 1px solid var(--line);
+      padding-top: 0.42rem;
+      color: var(--accent);
+      font-family: var(--display);
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .nade-copy a {
+      display: inline-block;
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .table-note {
+      margin: 0.8rem 0 0;
+      color: var(--muted);
+      font-size: clamp(0.95rem, 1.05vw, 1.15rem);
+    }
+
+    .tactic-layout {
+      display: grid;
+      grid-template-columns: minmax(15rem, 0.34fr) minmax(0, 0.66fr);
+      gap: clamp(2rem, 5vw, 6rem);
+      height: 100%;
+    }
+
+    .roles {
+      border-top: 4px solid var(--accent);
+      padding-top: 1rem;
+    }
+
+    .roles dl { margin: 0; }
+
+    .roles dt {
+      margin-top: 0.9rem;
+      color: var(--accent);
+      font-family: var(--display);
+      font-size: clamp(1rem, 1.1vw, 1.3rem);
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .roles dd {
+      margin: 0.15rem 0 0;
+      color: var(--ink);
+      font-size: clamp(1.1rem, 1.35vw, 1.55rem);
+      line-height: 1.25;
+    }
+
+    .steps {
+      counter-reset: tactic-step;
+    }
+
+    .steps li {
+      position: relative;
+      min-height: 3.2rem;
+      margin-bottom: clamp(0.75rem, 1.5vh, 1.25rem);
+      padding: 0 0 clamp(0.75rem, 1.5vh, 1.25rem) 4.2rem;
+      border-bottom: 1px solid var(--line);
+      counter-increment: tactic-step;
+    }
+
+    .steps li::before {
+      content: counter(tactic-step, decimal-leading-zero);
+      position: absolute;
+      top: 0;
+      left: 0;
+      color: var(--accent);
+      font-family: var(--display);
+      font-size: clamp(1.55rem, 2vw, 2.25rem);
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .command {
+      display: inline;
+      color: var(--accent);
+      font-family: var(--display);
+      font-weight: 900;
+      letter-spacing: 0.025em;
+    }
+
+    .branch-list {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .outside-tactic .branch-list {
+      gap: 0.45rem;
+      margin-top: 0.5rem;
+    }
+
+    .outside-tactic .branch { padding-top: 0.45rem; }
+
+    .branch {
+      display: grid;
+      grid-template-columns: minmax(8rem, 0.28fr) minmax(0, 0.72fr);
+      gap: 1rem;
+      border-top: 1px solid var(--line);
+      padding-top: 0.7rem;
+    }
+
+    .branch strong {
+      color: var(--accent);
+      font-family: var(--display);
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .default-lead {
+      max-width: 58ch;
+      margin: 0 0 0.8rem;
+      color: var(--ink);
+      font-family: var(--display);
+      font-size: clamp(1.45rem, 2vw, 2.25rem);
+      font-weight: 800;
+      line-height: 1.18;
+    }
+
+    .tactic-flow {
+      display: flex;
+      min-height: 0;
+      height: 100%;
+      flex-direction: column;
+    }
+
+    .video-strip {
+      display: grid;
+      grid-template-columns: minmax(12rem, 0.24fr) minmax(0, 0.76fr);
+      gap: 1.15rem;
+      align-items: center;
+      margin-bottom: 0.72rem;
+      border-top: 4px solid var(--accent);
+      border-bottom: 1px solid var(--line);
+      padding: 0.62rem 0 0.68rem;
+    }
+
+    .video-strip a {
+      color: var(--accent);
+      font-family: var(--display);
+      font-size: clamp(1.02rem, 1.25vw, 1.4rem);
+      font-weight: 900;
+      line-height: 1.08;
+      text-transform: uppercase;
+    }
+
+    .video-strip span {
+      color: var(--muted);
+      font-size: clamp(0.92rem, 1.05vw, 1.15rem);
+      line-height: 1.22;
+    }
+
+    .ordered-steps {
+      display: grid;
+      gap: 0;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: ordered-step;
+    }
+
+    .ordered-steps li {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(12rem, 0.28fr) minmax(0, 0.72fr);
+      gap: 1.1rem;
+      min-height: 3.1rem;
+      border-bottom: 1px solid var(--line);
+      padding: 0.55rem 0 0.55rem 3.5rem;
+      counter-increment: ordered-step;
+    }
+
+    .ordered-steps li::before {
+      content: counter(ordered-step, decimal-leading-zero);
+      position: absolute;
+      top: 0.55rem;
+      left: 0;
+      color: var(--accent);
+      font-family: var(--display);
+      font-size: clamp(1.45rem, 1.8vw, 2rem);
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .ordered-steps strong {
+      color: var(--ink);
+      font-family: var(--display);
+      font-size: clamp(1rem, 1.14vw, 1.28rem);
+      line-height: 1.1;
+      text-transform: uppercase;
+    }
+
+    .ordered-steps p {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(0.98rem, 1.12vw, 1.25rem);
+      line-height: 1.24;
+    }
+
+    .tactic-end {
+      margin: auto 0 0;
+      border-top: 3px solid var(--accent);
+      padding-top: 0.65rem;
+      color: var(--ink);
+      font-size: clamp(1.02rem, 1.2vw, 1.35rem);
+      font-weight: 750;
+      line-height: 1.24;
+    }
+
+    .tactic-end strong { color: var(--accent); }
+
+    .visual-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.42fr) minmax(19rem, 0.58fr);
+      gap: clamp(1.5rem, 3.5vw, 4.5rem);
+      height: 100%;
+      min-height: 0;
+    }
+
+    .visual-slide { overflow: hidden; }
+
+    .visual-frame {
+      position: relative;
+      min-height: 25rem;
+      overflow: hidden;
+      border-top: 5px solid var(--accent);
+      background: #020405;
+      box-shadow: 0 1.2rem 3.5rem rgba(0, 0, 0, 0.3);
+    }
+
+    .visual-frame::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.04) 48%, rgba(0, 0, 0, 0.72) 100%);
+      pointer-events: none;
+    }
+
+    .visual-frame img {
+      width: 100%;
+      height: 100%;
+      min-height: inherit;
+      object-fit: cover;
+      display: block;
+    }
+
+    .visual-frame.radar img {
+      grid-area: 1 / 1;
+      object-fit: contain;
+      filter: saturate(0.82) contrast(1.08);
+    }
+
+    .visual-frame.radar {
+      display: grid;
+      place-items: stretch;
+    }
+
+    .radar-overlay {
+      grid-area: 1 / 1;
+      z-index: 3;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .radar-anchor {
+      fill: var(--accent);
+      stroke: #071016;
+      stroke-width: 7;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .radar-leader {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 5;
+      stroke-linecap: round;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .radar-plate {
+      fill: rgba(6, 10, 13, 0.94);
+      stroke: var(--accent);
+      stroke-width: 4;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .radar-label {
+      fill: var(--ink);
+      font-family: var(--display);
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .marker {
+      position: absolute;
+      z-index: 3;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      max-width: 14rem;
+      border: 2px solid var(--accent);
+      padding: 0.28rem 0.55rem 0.28rem 0.34rem;
+      background: rgba(6, 10, 13, 0.9);
+      color: var(--ink);
+      font-family: var(--display);
+      font-size: clamp(0.7rem, 0.86vw, 0.96rem);
+      font-weight: 850;
+      line-height: 1.08;
+      text-transform: uppercase;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0.55rem 1.4rem rgba(0, 0, 0, 0.42);
+    }
+
+    .marker b {
+      display: grid;
+      flex: 0 0 1.55rem;
+      width: 1.55rem;
+      height: 1.55rem;
+      place-items: center;
+      background: var(--accent);
+      color: #071016;
+      font-size: 0.88rem;
+    }
+
+    .marker.attack b { color: #241006; }
+
+    .visual-panel {
+      display: flex;
+      min-height: 0;
+      flex-direction: column;
+    }
+
+    .visual-panel h3 { margin-bottom: 0.85rem; }
+
+    .visual-points {
+      display: grid;
+      gap: 0.72rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .visual-points li {
+      border-top: 1px solid var(--line);
+      padding-top: 0.62rem;
+      color: var(--muted);
+      font-size: clamp(1rem, 1.16vw, 1.3rem);
+      line-height: 1.25;
+    }
+
+    .visual-points strong {
+      display: block;
+      margin-bottom: 0.12rem;
+      color: var(--ink);
+      font-family: var(--display);
+      font-size: 1.06em;
+      text-transform: uppercase;
+    }
+
+    .after-entry {
+      margin-top: auto;
+      border: 2px solid var(--accent);
+      padding: 0.85rem 1rem;
+      background: color-mix(in srgb, var(--accent) 8%, transparent);
+    }
+
+    .after-entry strong {
+      display: block;
+      margin-bottom: 0.3rem;
+      color: var(--accent);
+      font-family: var(--display);
+      font-size: 1.12rem;
+      text-transform: uppercase;
+    }
+
+    .after-entry p {
+      margin: 0;
+      color: var(--ink);
+      font-size: clamp(0.94rem, 1.06vw, 1.16rem);
+      line-height: 1.24;
+    }
+
+    .image-credit {
+      margin: 0.65rem 0 0;
+      color: var(--muted);
+      font-size: clamp(0.72rem, 0.8vw, 0.88rem);
+      line-height: 1.2;
+    }
+
+    .image-credit a { color: var(--ink); }
+
+    .breach-layout {
+      display: grid;
+      grid-template-columns: minmax(18rem, 0.33fr) minmax(0, 0.67fr);
+      gap: clamp(1.4rem, 3vw, 3.5rem);
+      min-height: 0;
+      height: 100%;
+    }
+
+    .breach-summary {
+      display: flex;
+      min-height: 0;
+      flex-direction: column;
+      border-top: 5px solid var(--accent);
+      padding-top: 0.85rem;
+    }
+
+    .call-template {
+      margin: 0 0 0.75rem;
+      color: var(--ink);
+      font-family: var(--display);
+      font-size: clamp(1.45rem, 2.2vw, 2.8rem);
+      font-weight: 900;
+      line-height: 1.02;
+      text-transform: uppercase;
+    }
+
+    .call-template span { color: var(--accent); }
+
+    .breach-rules {
+      display: grid;
+      gap: 0.45rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .breach-rules li {
+      border-top: 1px solid var(--line);
+      padding-top: 0.45rem;
+      color: var(--muted);
+      font-size: clamp(0.92rem, 1.02vw, 1.12rem);
+      line-height: 1.22;
+    }
+
+    .breach-rules strong { color: var(--ink); }
+
+    .breach-cards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+      min-height: 0;
+    }
+
+    .breach-card {
+      border-top: 4px solid var(--accent);
+      padding: 0.65rem 0.75rem 0.72rem;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .breach-card h3 {
+      margin-bottom: 0.35rem;
+      font-size: clamp(1.1rem, 1.45vw, 1.65rem);
+    }
+
+    .breach-card p {
+      margin: 0 0 0.32rem;
+      color: var(--muted);
+      font-size: clamp(0.83rem, 0.94vw, 1.04rem);
+      line-height: 1.2;
+    }
+
+    .breach-card p:last-child { margin-bottom: 0; }
+    .breach-card strong { color: var(--ink); }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: clamp(1.2rem, 3vw, 3rem);
+      align-items: start;
+    }
+
+    .timeline-step {
+      border-top: 5px solid var(--accent);
+      padding-top: 0.85rem;
+    }
+
+    .timeline-step .number {
+      display: block;
+      margin-bottom: 0.3rem;
+      color: var(--accent);
+      font-family: var(--display);
+      font-size: clamp(2.7rem, 5vw, 6rem);
+      font-weight: 900;
+      line-height: 0.9;
+    }
+
+    .timeline-step strong {
+      display: block;
+      margin-bottom: 0.35rem;
+      font-family: var(--display);
+      font-size: clamp(1.25rem, 1.6vw, 1.8rem);
+      text-transform: uppercase;
+    }
+
+    .timeline-step p {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 1.2vw, 1.35rem);
+      line-height: 1.3;
+    }
+
+    .quiz-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0 3rem;
+      counter-reset: quiz;
+    }
+
+    .quiz-list li {
+      position: relative;
+      min-height: 5.4rem;
+      border-top: 1px solid var(--line);
+      padding: 0.85rem 0 0.85rem 3.2rem;
+      counter-increment: quiz;
+    }
+
+    .quiz-list li::before {
+      content: counter(quiz);
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-family: var(--display);
+      font-size: 2rem;
+      font-weight: 900;
+    }
+
+    .answer {
+      display: block;
+      max-height: 0;
+      overflow: hidden;
+      color: var(--practice);
+      font-weight: 800;
+      opacity: 0;
+      transition: max-height 180ms ease, opacity 180ms ease, margin 180ms ease;
+    }
+
+    .answers-visible .answer {
+      max-height: 5rem;
+      margin-top: 0.25rem;
+      opacity: 1;
+    }
+
+    .reveal-answers {
+      margin-top: 1rem;
+      border: 1px solid var(--accent);
+      border-radius: 0;
+      padding: 0.7rem 1rem;
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      font-family: var(--display);
+      font-size: 1rem;
+      font-weight: 850;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .controls {
+      position: fixed;
+      right: 1.25rem;
+      bottom: 1.1rem;
+      left: 1.25rem;
+      z-index: 20;
+      display: grid;
+      grid-template-columns: minmax(12rem, 1fr) auto minmax(12rem, 1fr);
+      align-items: center;
+      gap: 1rem;
+      min-height: 3.4rem;
+      border-top: 1px solid var(--line);
+      padding-top: 0.85rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .deck-meta {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .timer-group,
+    .nav-group {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .timer-group { justify-content: center; }
+    .nav-group { justify-content: flex-end; }
+
+    .timer {
+      min-width: 5.2rem;
+      color: var(--ink);
+      font-family: var(--display);
+      font-size: 1.2rem;
+      font-variant-numeric: tabular-nums;
+      font-weight: 850;
+      letter-spacing: 0.04em;
+      text-align: center;
+    }
+
+    .control-button {
+      min-width: 2.75rem;
+      height: 2.75rem;
+      border: 1px solid var(--line);
+      border-radius: 0;
+      background: color-mix(in srgb, var(--surface) 90%, transparent);
+      color: var(--ink);
+      cursor: pointer;
+      font-family: var(--display);
+      font-size: 0.92rem;
+      font-weight: 800;
+    }
+
+    .control-button:hover,
+    .control-button:focus-visible {
+      border-color: var(--accent);
+      background: var(--surface-2);
+      color: var(--accent);
+    }
+
+    .counter {
+      min-width: 4.5rem;
+      color: var(--ink);
+      font-family: var(--display);
+      font-weight: 850;
+      text-align: center;
+    }
+
+    .progress {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 30;
+      height: 0.38rem;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      background: var(--accent);
+      transition: width 220ms ease, background 220ms ease;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 920px), (max-aspect-ratio: 4 / 3) {
+      .slide {
+        padding: 1.5rem 1.5rem 6.5rem 2.25rem;
+      }
+
+      .slide.is-active:not(.cover) { display: block; }
+      .slide-head { gap: 1rem; margin-bottom: 1.25rem; }
+      .split,
+      .tactic-layout,
+      .protocol,
+      .commandments,
+      .glossary-grid,
+      .zones,
+      .timeline,
+      .quiz-list,
+      .visual-grid,
+      .breach-layout,
+      .breach-cards { grid-template-columns: 1fr; }
+      .split > * + * { border-left: 0; border-top: 1px solid var(--line); padding: 1.4rem 0 0; }
+      .tactic-layout { height: auto; }
+      .visual-grid,
+      .breach-layout { height: auto; }
+      .ordered-steps li { grid-template-columns: 1fr; gap: 0.2rem; }
+      .tactic-flow { height: auto; }
+      .visual-frame { min-height: 22rem; }
+      .after-entry { margin-top: 1rem; }
+      .timeline { gap: 1rem; }
+      .source-table,
+      .grenades-table,
+      .roles-table { min-width: 880px; }
+      .nade-grid { grid-template-columns: 1fr; }
+      .controls { grid-template-columns: 1fr auto; }
+      .deck-meta { display: none; }
+      .timer-group { justify-content: flex-start; }
+    }
+
+    @media (min-width: 921px) and (max-height: 860px) {
+      .slide {
+        gap: 0.8rem;
+        padding-top: 2.2rem;
+        padding-bottom: 5.3rem;
+      }
+
+      .slide-head { padding-bottom: 0.65rem; }
+      h2 { font-size: clamp(2.35rem, 3.8vw, 4.25rem); }
+      h3 { margin-bottom: 0.55rem; }
+
+      .slide-body {
+        font-size: clamp(1.05rem, 1.38vw, 1.48rem);
+        line-height: 1.28;
+      }
+
+      .formula { margin-bottom: 0.85rem; }
+      .examples { gap: 0.48rem; margin-bottom: 0.75rem; }
+      .rule-list li,
+      .check-list li { margin-bottom: 0.65rem; }
+      .dense-balance .balance-list li {
+        margin-bottom: 0.42rem;
+        padding-top: 0.36rem;
+      }
+      .dense-balance .verdict {
+        margin-top: 0.48rem;
+        padding-top: 0.42rem;
+      }
+      .dense-balance .source-note {
+        margin-top: 0.32rem;
+        font-size: 0.75rem;
+      }
+      .dense-roles .formula {
+        margin-bottom: 0.42rem;
+        font-size: clamp(1.55rem, 2.45vw, 2.6rem);
+      }
+      .dense-roles th,
+      .dense-roles td {
+        padding-top: 0.34rem;
+        padding-bottom: 0.34rem;
+      }
+      .dense-roles th { font-size: 0.78rem; }
+      .dense-roles td {
+        font-size: 0.86rem;
+        line-height: 1.13;
+      }
+      .dense-roles .table-note {
+        margin-top: 0.42rem;
+        font-size: 0.82rem;
+        line-height: 1.16;
+      }
+      .dense-roles .verdict {
+        margin-top: 0.42rem;
+        padding-top: 0.38rem;
+        font-size: 0.98rem;
+        line-height: 1.16;
+      }
+      .roles { padding-top: 0.65rem; }
+      .roles dt { margin-top: 0.48rem; }
+      .roles dd { font-size: clamp(1rem, 1.16vw, 1.25rem); }
+      .steps li {
+        min-height: 2.6rem;
+        margin-bottom: 0.42rem;
+        padding: 0 0 0.48rem 3.45rem;
+      }
+      .branch-list { gap: 0.35rem; margin-top: 0.35rem; }
+      .branch { padding-top: 0.42rem; }
+      .video-strip { margin-bottom: 0.38rem; padding: 0.42rem 0 0.46rem; }
+      .ordered-steps li { min-height: 2.55rem; padding-top: 0.38rem; padding-bottom: 0.38rem; }
+      .ordered-steps li::before { top: 0.38rem; }
+      .ordered-steps p { font-size: 0.98rem; line-height: 1.18; }
+      .tactic-end { padding-top: 0.42rem; font-size: 1rem; }
+      .visual-frame { min-height: 20rem; }
+      .visual-panel h3 { margin-bottom: 0.35rem; font-size: 1.55rem; }
+      .visual-points { gap: 0.24rem; }
+      .visual-points li { padding-top: 0.28rem; font-size: 0.94rem; line-height: 1.18; }
+      .after-entry { margin-top: 0.55rem; padding: 0.45rem 0.62rem; }
+      .after-entry strong { margin-bottom: 0.18rem; font-size: 1rem; }
+      .after-entry p { font-size: 0.86rem; line-height: 1.16; }
+      .image-credit { margin-top: 0.32rem; font-size: 0.67rem; }
+      .nade-grid { gap: 0.55rem; }
+      .nade-copy { padding: 0.44rem 0.5rem 0.5rem; }
+      .nade-copy h3 { margin-bottom: 0.28rem; font-size: 0.9rem; }
+      .nade-copy p { margin-bottom: 0.2rem; font-size: 0.72rem; line-height: 1.12; }
+      .nade-copy .nade-pass { margin-top: 0.32rem; padding-top: 0.3rem; }
+      .breach-card { padding: 0.42rem 0.58rem 0.48rem; }
+      .breach-card p { margin-bottom: 0.2rem; }
+      .verdict {
+        margin-top: 0.72rem;
+        padding-top: 0.58rem;
+        font-size: clamp(1.08rem, 1.38vw, 1.45rem);
+      }
+      .controls { bottom: 0.65rem; padding-top: 0.55rem; }
+    }
+
+    @media (max-width: 540px) {
+      .slide { padding-bottom: 7.25rem; }
+      .controls {
+        right: 0.55rem;
+        left: 0.55rem;
+        grid-template-columns: auto 1fr;
+        gap: 0.25rem;
+      }
+
+      .timer-group,
+      .nav-group { gap: 0.25rem; }
+      .nav-group { justify-content: flex-end; }
+      .control-button {
+        min-width: 2.75rem;
+        padding: 0 0.3rem;
+        font-size: 0.82rem;
+      }
+      .timer { min-width: 3.6rem; font-size: 1rem; }
+      .counter { min-width: 3rem; font-size: 0.9rem; }
+      [data-action="fullscreen"] { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @media print {
+      html,
+      body { width: auto; height: auto; overflow: visible; background: #fff; color: #111; }
+      .deck { width: auto; height: auto; background: #fff; }
+      .slide,
+      .slide.is-active {
+        position: relative;
+        display: grid !important;
+        width: 13.333in;
+        height: 7.5in;
+        page-break-after: always;
+        overflow: hidden;
+        color: #111;
+        background: #fff;
+        animation: none;
+      }
+      .slide::after { color: rgba(0, 0, 0, 0.04); }
+      .slide-body,
+      td,
+      .lead,
+      .example,
+      .timeline-step p { color: #333; }
+      .controls,
+      .progress { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" aria-label="Презентация командной тренировки по карте Нюк" aria-describedby="keyboard-help">
+    <section class="slide cover is-active" data-index="01" data-minutes="1" aria-hidden="false">
+      <div class="slide-body">
+        <p class="eyebrow">CS2 · карта Нюк · тренер L!S · визуальная версия</p>
+        <h1>Командная тренировка <span>на 45 минут</span></h1>
+        <p class="lead">Общие правила команды, понятная защита и три простых варианта атаки.</p>
+        <div class="cover-meta">
+          <span><strong>Защита (CT):</strong> занять карту, передавать зоны, выживать до помощи</span>
+          <span><strong>Атака (T):</strong> Рампа, A и Улица с понятным продолжением</span>
+          <span><strong>После звонка:</strong> 30 минут самостоятельной практики</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-index="01a" data-minutes="3" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Общее правило для всех карт</p>
+          <h2>Дефолт: базовое начало раунда</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body tactic-flow">
+        <p class="default-lead">Дефолт — заранее согласованное начало раунда без раннего решения идти всей пятёркой на одну точку.</p>
+        <ol class="ordered-steps">
+          <li><strong>Каждый отвечает за зону</strong><p>Команда распределяется по ключевым направлениям. Игрок знает, какой выпад соперника он контролирует и кому передаёт зону при уходе.</p></li>
+          <li><strong>Активную зону занимает пара</strong><p>Первый проверяет контакт, второй держит расстояние для размена. Одиночные игроки безопасно следят за выпадами и не начинают ненужную дуэль.</p></li>
+          <li><strong>Команда собирает факты</strong><p>Слушаем гранаты и шаги, замечаем слабое место защиты. Гранаты тратим ради занятия пространства или помощи товарищу.</p></li>
+          <li><strong>Лидер выбирает продолжение</strong><p>После информации пятёрка собирается на выход, меняет направление или сохраняет контроль. Пока команды нет, продолжается дефолт.</p></li>
+        </ol>
+        <p class="tactic-end"><strong>За атаку:</strong> распределённый контроль до выбора точки. <strong>За защиту:</strong> стартовая расстановка и правила перетяжки до подтверждения атаки.</p>
+        <p class="source-note">Основание: <a href="https://refrag.gg/blog/what-is-a-default-cs2/" target="_blank" rel="noopener noreferrer">Refrag · что такое дефолт</a>; тренер m1cks о том, как выходы строятся из основной структуры команды: <a href="https://www.hltv.org/news/31728/m1cks-there-was-a-very-real-sense-on-cloud9-where-everyone-was-playing-not-to-lose" target="_blank" rel="noopener noreferrer">интервью HLTV</a>.</p>
+      </div>
+    </section>
+
+    <section class="slide" data-index="02" data-minutes="2" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Общее правило гранат</p>
+          <h2>Граната работает на команду</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body">
+        <div class="utility-banner">
+          <strong>Не бросаем гранату без задачи</strong>
+          <span>До броска понятно, кому она помогает и какое действие товарищ делает следом.</span>
+        </div>
+        <div class="split">
+          <section>
+            <h3>Соперник играет быстро</h3>
+            <ul class="rule-list">
+              <li><strong>Сначала зажигательная.</strong> Она останавливает первую волну и даёт время занять линию.</li>
+              <li><strong>Затем дым.</strong> Закрываем соседний проход либо бросаем после огня, чтобы не погасить свою зажигательную.</li>
+              <li><strong>На Улице готов ИКС-дым.</strong> Отдаём его при подтверждённом продолжении быстрого выхода.</li>
+            </ul>
+          </section>
+          <section>
+            <h3>Соперник играет медленно</h3>
+            <ul class="rule-list">
+              <li>Не выбрасываем весь запас в первые секунды только по привычке.</li>
+              <li>Ждём звук, увиденного игрока, открытую дверь, бомбу или просьбу товарища.</li>
+              <li>Сохраняем дым и зажигательную на настоящий выход или вторую волну.</li>
+            </ul>
+          </section>
+        </div>
+        <p class="verdict">Ослепляющая создаёт перестрелку товарищу; дым даёт переход или отход; огонь останавливает либо выталкивает соперника.</p>
+      </div>
+    </section>
+
+    <section class="slide" data-index="03" data-minutes="3" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Правила из командной методички</p>
+          <h2>10 заповедей команды</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body commandments">
+        <label class="commandment"><input type="checkbox"><span><strong>Не умирай без размена</strong><span>Напарник должен успеть сразу наказать соперника после твоей гибели.</span></span></label>
+        <label class="commandment"><input type="checkbox"><span><strong>Не выходи просто потому, что можешь</strong><span>Начинай перестрелку только ради общей цели команды.</span></span></label>
+        <label class="commandment"><input type="checkbox"><span><strong>Говори только полезную информацию</strong><span>Место, число, действие — затем освободи эфир.</span></span></label>
+        <label class="commandment"><input type="checkbox"><span><strong>Отличай «вижу» от «думаю»</strong><span>Не выдавай звук или предположение за подтверждённый факт.</span></span></label>
+        <label class="commandment"><input type="checkbox"><span><strong>Получили 5 на 4 — перестань помогать сопернику</strong><span>Снизьте риск и удерживайте уже занятое пространство.</span></span></label>
+        <label class="commandment"><input type="checkbox"><span><strong>Проигрываете по людям — создавайте событие вместе</strong><span>В меньшинстве давите, усиливайте или ищите шанс вдвоём.</span></span></label>
+        <label class="commandment"><input type="checkbox"><span><strong>Граната должна создавать действие товарищу</strong><span>Помоги занять пространство, перейти или выиграть перестрелку.</span></span></label>
+        <label class="commandment"><input type="checkbox"><span><strong>Покупайте и сохраняйте оружие командой</strong><span>Одно решение по деньгам усиливает всю пятёрку.</span></span></label>
+        <label class="commandment"><input type="checkbox"><span><strong>Меняйте позиции по информации, а не по страху</strong><span>Один дым или шаги не запускают общую перетяжку.</span></span></label>
+        <label class="commandment"><input type="checkbox"><span><strong>Договоритесь о повторяющихся ситуациях заранее</strong><span>Знакомая ситуация сразу запускает известные каждому действия.</span></span></label>
+      </div>
+    </section>
+
+    <section class="slide" data-index="04" data-minutes="2" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Командные решения</p>
+          <h2>Один план на пятерых</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body">
+        <div class="protocol">
+          <aside class="protocol-summary">
+            <p><span>Предложить</span> может каждый.<br><span>Решает</span> один.<br><span>Выполняют</span> все пятеро.</p>
+          </aside>
+          <section>
+            <ol class="steps">
+              <li><strong>Приоритет у лидера карты.</strong> На тренировке это L!S; он задаёт направление, момент начала и условие отмены.</li>
+              <li><strong>Лидер молчит — играем основу.</strong> Держим свои зоны, собираем сведения и не начинаем одиночный выход.</li>
+              <li><strong>Предложить может любой.</strong> Коротко: действие и причина. Например: «Предлагаю B: Рампа свободна».</li>
+              <li><strong>Команда принята — не спорим.</strong> Не меняем направление и не останавливаем товарищей посреди исполнения.</li>
+              <li><strong>Новый критический факт сообщаем сразу.</strong> Бомба, три соперника или сорванный вход. Изменяет решение лидер; обсуждение — после раунда.</li>
+            </ol>
+          </section>
+        </div>
+        <p class="source-note">Основание: B1ad3 о <a href="https://www.hltv.org/news/24934/b1ad3-well-try-to-get-an-igl-thats-the-main-priority" target="_blank" rel="noopener noreferrer">структуре, общем плане и предложениях игроков</a>.</p>
+      </div>
+    </section>
+
+    <section class="slide dense-balance" data-index="05" data-minutes="2" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Командная система</p>
+          <h2>Общая рамка, личный стиль</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body">
+        <div class="split">
+          <section>
+            <h3>Обязательно для всех</h3>
+            <ul class="balance-list">
+              <li><strong>Карта закрыта:</strong> каждая важная зона имеет ответственного.</li>
+              <li><strong>Сведения точные:</strong> говорим факт и своё следующее действие.</li>
+              <li><strong>Гранаты помогают:</strong> товарищ знает, что делать после броска.</li>
+              <li><strong>Есть размен:</strong> первый не идёт один, второй держит расстояние.</li>
+              <li><strong>Общее решение соблюдается:</strong> не ломаем направление и время команды.</li>
+            </ul>
+          </section>
+          <section>
+            <h3>Игрок выбирает сам</h3>
+            <ul class="balance-list">
+              <li><strong>Удобную позицию</strong> внутри своей зоны и подходящее оружие.</li>
+              <li><strong>Способ выиграть перестрелку,</strong> если действие товарища остаётся целым.</li>
+              <li><strong>Смену позиции</strong> между раундами или после прогона с передачей зоны.</li>
+              <li><strong>Осмысленный выпад,</strong> если игрок чувствует момент, заранее говорит и получает прикрытие.</li>
+              <li><strong>Личный темп и стиль:</strong> система связывает игроков, а не превращает их в роботов.</li>
+            </ul>
+          </section>
+        </div>
+        <p class="verdict">Свобода заканчивается там, где ломается действие товарища. Это правило работает на любой карте.</p>
+        <p class="source-note">Основание: B1ad3 о <a href="https://www.hltv.org/news/28068/b1ad3-i-didnt-have-a-lot-of-belief-in-the-previous-lineup-because-i-saw-the-problems-but-now-we-have-really-good-discipline" target="_blank" rel="noopener noreferrer">системе со свободой решений в конкретных ситуациях</a>.</p>
+      </div>
+    </section>
+
+    <section class="slide" data-index="06" data-minutes="2" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Общие правила</p>
+          <h2>Короткая связь</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body">
+        <p class="formula"><span>Место</span> / число / бомба / что делаю</p>
+        <div class="examples">
+          <p class="example"><strong>Рампа:</strong> двое, бомбы не видел, отхожу на B.</p>
+          <p class="example"><strong>Улица:</strong> трое за стенкой, двое прошли в Секрет, остаюсь в Мейне.</p>
+          <p class="example"><strong>Умер в Будке:</strong> двое вошли на A, один на Балках, бомбу не видел.</p>
+        </div>
+        <div class="split">
+          <section>
+            <h3>Факт или предположение</h3>
+            <p>«Вижу двоих в Секрете» — факт. «Думаю, выходят B» — предположение. Всегда называем разницу.</p>
+          </section>
+          <section>
+            <h3>После смерти</h3>
+            <p>Один точный отчёт — и тишина. Живые игроки должны слышать шаги и текущую команду.</p>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-index="07" data-minutes="1" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Единый язык · внутри</p>
+          <h2>Верх и низ — это этажи</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body glossary-grid">
+        <dl class="glossary">
+          <div><dt>Верх</dt><dd>Верхний этаж с точкой A. После слова всегда называем точную позицию.</dd></div>
+          <div><dt>Мейн</dt><dd>Комната между Улицей и A. «Мини» отдельно не используем.</dd></div>
+          <div><dt>Будка</dt><dd>Помещение между Лобби и A; основной вход атаки.</dd></div>
+          <div><dt>Скрип</dt><dd>Одинарная дверь из Лобби на A рядом с Вентиляцией.</dd></div>
+          <div><dt>Балки</dt><dd>Высокая металлическая площадка вдоль стены точки A.</dd></div>
+          <div><dt>Девятка</dt><dd>Верхняя позиция с лестницей над A; отсюда видна точка.</dd></div>
+          <div><dt>Трофейка</dt><dd>Комната между Лобби и Рампой.</dd></div>
+        </dl>
+        <dl class="glossary">
+          <div><dt>Низ</dt><dd>Нижний этаж с точкой B. После слова называем точную позицию.</dd></div>
+          <div><dt>Рампа</dt><dd>Комната и наклонный спуск от Трофейки к нижнему этажу.</dd></div>
+          <div><dt>Тёмка</dt><dd>Тёмное укрытие за ящиком на B рядом со спуском Рампы.</dd></div>
+          <div><dt>Декон</dt><dd>Комната с одной оранжевой дверью между задним коридором и B.</dd></div>
+          <div><dt>Двойные двери</dt><dd>Другой вход на B через две оранжевые двери; это не Декон.</dd></div>
+          <div><dt>Вентиляция</dt><dd>Шахта, по которой можно быстро спуститься с A на B.</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="slide" data-index="08" data-minutes="1" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Единый язык · снаружи</p>
+          <h2>Улица без двусмысленностей</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body glossary-grid">
+        <dl class="glossary">
+          <div><dt>Красный</dt><dd>Уточняем: Красный атаки у выхода T или Красный защиты у Гаража.</dd></div>
+          <div><dt>Гараж</dt><dd>Большое здание на дальнем краю Улицы со стороны защиты.</dd></div>
+          <div><dt>Секрет</dt><dd>Лестница с Улицы вниз в тоннели к точке B.</dd></div>
+          <div><dt>Ящики Улицы</dt><dd>Укрытия рядом со Скалой, вдоль которых атака делает переход.</dd></div>
+        </dl>
+        <dl class="glossary">
+          <div><dt>Крыша</dt><dd>Крыша над Лобби со стороны атаки; путь к Скале начинается здесь.</dd></div>
+          <div><dt>Скала (Сило)</dt><dd>Высокая цилиндрическая конструкция с обзором Улицы. «Сила» — ошибка.</dd></div>
+          <div><dt>ИКС-дым</dt><dd>Дым поперёк Улицы, закрывающий защите обзор перехода к Секрету.</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="slide ct" data-index="09" data-minutes="2" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Защита · видео</p>
+          <h2>Базовая игра за защиту</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body">
+        <div class="table-wrap">
+          <table class="source-table">
+            <thead>
+              <tr><th>Тема</th><th>Ссылка и время</th><th>Длина</th><th>Что смотрим</th><th>Ожидаемый вывод</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Защита: расстановка</strong></td>
+                <td><a href="https://www.youtube.com/watch?v=HHhVoql9BNQ&amp;t=24s" target="_blank" rel="noopener noreferrer">YouTube · канал sebcs<br>0:24–4:28</a></td>
+                <td>4:05</td>
+                <td>Ответственность A, Рампы, Улицы и свободного игрока</td>
+                <td>Каждый называет свою зону и сведения, после которых имеет право уйти</td>
+              </tr>
+              <tr>
+                <td><strong>Защита Улицы</strong></td>
+                <td><a href="https://www.youtube.com/watch?v=zhgmkbM-ACA&amp;t=0s" target="_blank" rel="noopener noreferrer">YouTube · канал CS Tactics<br>0:00–1:56</a></td>
+                <td>1:57</td>
+                <td>Гранаты против быстрого выхода и безопасное занятие Красного</td>
+                <td>Остановить первую волну, сообщить число и остаться живым</td>
+              </tr>
+              <tr>
+                <td><strong>Защита A</strong></td>
+                <td><a href="https://www.youtube.com/watch?v=zhgmkbM-ACA&amp;t=145s" target="_blank" rel="noopener noreferrer">YouTube · канал CS Tactics<br>2:25–3:46</a></td>
+                <td>1:22</td>
+                <td>Зажигательные в Скрип и Будку, сохранение дыма</td>
+                <td>Два защитника держат разные входы и не тратят всё заранее</td>
+              </tr>
+              <tr>
+                <td><strong>Защита Рампы</strong></td>
+                <td><a href="https://www.youtube.com/watch?v=zhgmkbM-ACA&amp;t=227s" target="_blank" rel="noopener noreferrer">YouTube · канал CS Tactics<br>3:47–4:22</a></td>
+                <td>0:36</td>
+                <td>Порядок зажигательной и дыма при разном темпе</td>
+                <td>Задержать выход и выжить важнее первого убийства</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note">На звонке показываем один фрагмент по самой слабой зоне, не более двух минут. Остальное — материал до или после игры.</p>
+      </div>
+    </section>
+
+    <section class="slide ct dense-roles" data-index="10" data-minutes="1" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Защита · основа</p>
+          <h2>Стандартная расстановка</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body">
+        <p class="formula"><span>2 на A</span> / 1 Улица / 1 Рампа / 1 свободный</p>
+        <div class="table-wrap">
+          <table class="roles-table">
+            <thead><tr><th>Роль · первый прогон</th><th>Старт</th><th>Ответственность</th></tr></thead>
+            <tbody>
+              <tr><td><strong>A · Будка</strong><br>D4ba</td><td>Будка / точка</td><td>Будка, ближняя линия A, безопасный отход за точку</td></tr>
+              <tr><td><strong>A · Скрип</strong><br>middle</td><td>Скрип / Балки</td><td>Скрип и помощь первому. Не смотрит тот же угол</td></tr>
+              <tr><td><strong>Улица</strong><br>d0lfero</td><td>Мейн / ящики</td><td>Увидеть стенку и переход, выжить и назвать число</td></tr>
+              <tr><td><strong>Рампа</strong><br>L!S</td><td>Верх Рампы</td><td>Контакт, число, задержка и отход к B</td></tr>
+              <tr><td><strong>Свободный</strong><br>Reconnecting</td><td>Девятка / между этажами</td><td>Первым закрывает подтверждённую дыру</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note"><strong>Почему так:</strong> D4ba силён в первых контактах; middle и Reconnecting назначены на поддержку по командной диагностике. Улица и Рампа — проверочные позиции, а не вывод из статистики.</p>
+        <p class="verdict">Это не постоянные места. После двух прогонов можно поменяться целой ролью: позиция + гранаты + команды.</p>
+      </div>
+    </section>
+
+    <section class="slide ct visual-slide" data-index="10v" data-minutes="1" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Защита · схема основы</p>
+          <h2>Пять зон ответственности</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body visual-grid">
+        <div class="visual-frame radar" aria-label="Схема верхнего этажа Нюка с пятью ролями защиты">
+          <img src="assets/nuke-radar-clean.webp" alt="Чистый радар Нюка с точными русскими выносками ролей">
+          <svg class="radar-overlay" viewBox="0 0 1558 848" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Пять точных зон ответственности защиты">
+            <g class="radar-callout"><circle class="radar-anchor" cx="775" cy="455" r="13"></circle><path class="radar-leader" d="M 775 455 L 715 430"></path><rect class="radar-plate" x="500" y="395" width="215" height="54" rx="10"></rect><text class="radar-label" x="518" y="431">1 · A · Будка</text></g>
+            <g class="radar-callout"><circle class="radar-anchor" cx="835" cy="470" r="13"></circle><path class="radar-leader" d="M 835 470 L 900 505"></path><rect class="radar-plate" x="900" y="478" width="225" height="54" rx="10"></rect><text class="radar-label" x="918" y="514">2 · A · Скрип</text></g>
+            <g class="radar-callout"><circle class="radar-anchor" cx="990" cy="625" r="13"></circle><path class="radar-leader" d="M 990 625 L 1060 670"></path><rect class="radar-plate" x="1060" y="643" width="180" height="54" rx="10"></rect><text class="radar-label" x="1078" y="679">3 · Улица</text></g>
+            <g class="radar-callout"><circle class="radar-anchor" cx="800" cy="205" r="13"></circle><path class="radar-leader" d="M 800 205 L 710 165"></path><rect class="radar-plate" x="520" y="128" width="190" height="54" rx="10"></rect><text class="radar-label" x="538" y="164">4 · Рампа</text></g>
+            <g class="radar-callout"><circle class="radar-anchor" cx="965" cy="410" r="13"></circle><path class="radar-leader" d="M 965 410 L 1050 370"></path><rect class="radar-plate" x="1050" y="343" width="255" height="54" rx="10"></rect><text class="radar-label" x="1068" y="379">5 · Свободный</text></g>
+          </svg>
+        </div>
+        <aside class="visual-panel">
+          <h3>Что должно быть закрыто</h3>
+          <ol class="visual-points">
+            <li><strong>1 + 2 · точка A</strong>Два разных входа: Будка и Скрип. Не смотрят одну линию.</li>
+            <li><strong>3 · Улица</strong>Видит стенку дымов, считает переход и остаётся жив.</li>
+            <li><strong>4 · Рампа</strong>Даёт первый контакт, задерживает и заранее называет отход.</li>
+            <li><strong>5 · свободный</strong>Не угадывает атаку. Первым закрывает только подтверждённую дыру.</li>
+          </ol>
+          <div class="after-entry"><strong>Передача зоны</strong><p>Уйти можно после слов «передал» и ответа нового ответственного.</p></div>
+          <p class="image-credit">Чистый радар: <a href="https://csnades.gg/nuke/callouts" target="_blank" rel="noopener noreferrer">CSNADES · Nuke 2026</a>. Русские метки — командный слой L!S.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="slide ct" data-index="11" data-minutes="1" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Защита · реакция 1</p>
+          <h2>Давление на Рампу</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body tactic-flow">
+        <div class="video-strip">
+          <a href="https://www.youtube.com/watch?v=zhgmkbM-ACA&amp;t=227s" target="_blank" rel="noopener noreferrer">Видео · защита Рампы, 3:47–4:22</a>
+          <span>Смотрим порядок гранат и безопасный отход. Длина: 0:36.</span>
+        </div>
+        <ol class="ordered-steps">
+          <li><strong>L!S принимает первый контакт.</strong><p>Слышит двух и больше — говорит: <span class="command">РАМПА, ТРОЕ, БОМБА ЕСТЬ/НЕТ</span>. При быстром выходе сначала зажигательная, затем дым.</p></li>
+          <li><strong>Reconnecting усиливает Рампу.</strong><p>Занимает другую линию или даёт названную ослепляющую. Подсадка — разовая ловушка, а не постоянная позиция.</p></li>
+          <li><strong>L!S выбирает: стоять или отходить.</strong><p>Коротко говорит <span class="command">СТОЮ</span> либо <span class="command">ОТХОЖУ НА B</span>. Повторно не выглядывает без помощи.</p></li>
+          <li><strong>A и Улица не бросают свои входы.</strong><p>Если Рампа тиха, уйти с неё можно только после слов <span class="command">РАМПУ ПЕРЕДАЛ</span> и ответа нового ответственного.</p></li>
+        </ol>
+        <p class="tactic-end"><strong>Продолжение:</strong> задержали выход и играем вдвоём с разных углов. <strong>Отмена удержания:</strong> гранаты закончились или преимущество потеряно — живыми отходим к B.</p>
+      </div>
+    </section>
+
+    <section class="slide ct visual-slide" data-index="11v" data-minutes="1" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Защита · Рампа на экране</p>
+          <h2>Контакт, задержка и отход</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body visual-grid">
+        <div class="visual-frame" aria-label="Рампа Нюка с отмеченными входом, двумя линиями защиты и отходом">
+          <img src="assets/nuke-ramp.jpg" alt="Помещение Рампы на карте Нюк и спуск к нижней точке B">
+          <span class="marker" style="left:38%; top:51%;"><b>1</b>Вход из Трофейки</span>
+          <span class="marker" style="left:63%; top:49%;"><b>2</b>Первый контакт</span>
+          <span class="marker" style="left:82%; top:58%;"><b>3</b>Вторая линия</span>
+          <span class="marker" style="left:49%; top:78%;"><b>4</b>Отход к B</span>
+        </div>
+        <aside class="visual-panel">
+          <h3>Роли в момент давления</h3>
+          <ol class="visual-points">
+            <li><strong>1 · атака показалась</strong>Опорник сразу называет число и наличие бомбы.</li>
+            <li><strong>2 · опорник Рампы</strong>Огонь, затем дым; не отдаёт вторую дуэль без помощи.</li>
+            <li><strong>3 · свободный игрок</strong>Стоит на другом угле или даёт названную ослепляющую.</li>
+            <li><strong>4 · безопасный исход</strong>Если не удержать — живым уйти ниже и сохранить сведения.</li>
+          </ol>
+          <div class="after-entry"><strong>Короткая команда</strong><p>«Рампа, трое, бомба, отхожу B». Этого достаточно, чтобы пятёрка поняла продолжение.</p></div>
+          <p class="image-credit">Кадр карты: <a href="https://www.pcgameshardware.de/screenshots/original/2023/03/nuke_ramp_s2-pcgh.jpg" target="_blank" rel="noopener noreferrer">PC Games Hardware</a>.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="slide ct" data-index="12" data-minutes="1" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Защита · реакция 2</p>
+          <h2>Улица и Секрет</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body tactic-flow">
+        <div class="video-strip">
+          <a href="https://www.youtube.com/watch?v=zhgmkbM-ACA&amp;t=0s" target="_blank" rel="noopener noreferrer">Видео · защита Улицы, 0:00–1:56</a>
+          <span>Смотрим безопасную линию, гранаты против быстрого выхода и сохранение жизни.</span>
+        </div>
+        <ol class="ordered-steps">
+          <li><strong>d0lfero читает выход с Улицы.</strong><p>Из Мейна, от ящиков или из Гаража замечает дым, считает прошедших и не открывается всем углам сразу.</p></li>
+          <li><strong>Reconnecting закрывает Секрет.</strong><p>Если Улицу атакуют часто, принимает спуск из укрытия и не выглядывает в дым без ослепляющей.</p></li>
+          <li><strong>Потерю зоны называем сразу.</strong><p>d0lfero говорит: <span class="command">УЛИЦА ПОТЕРЯНА, ДВОЕ К СЕКРЕТУ, УХОЖУ В МЕЙН</span>. Reconnecting держит следующий проход.</p></li>
+          <li><strong>Остальные ждут подтверждение.</strong><p>Общая перетяжка начинается после двух увиденных игроков, бомбы или контакта внизу. Один дым ещё не означает атаку B.</p></li>
+        </ol>
+        <p class="tactic-end"><strong>Продолжение:</strong> тормозим переход, считаем игроков и сохраняем перекрёстные линии. <strong>Отмена удержания:</strong> Улица потеряна — не возвращаем её по одному, закрываем Секрет и Мейн.</p>
+      </div>
+    </section>
+
+    <section class="slide ct visual-slide" data-index="12v" data-minutes="1" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Защита · Улица на экране</p>
+          <h2>Считаем переход, а не геройствуем</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body visual-grid">
+        <div class="visual-frame" aria-label="Улица Нюка с отмеченными линиями Мейна, Гаража, стены дымов и пути в Секрет">
+          <img src="assets/nuke-outside.jpg" alt="Открытая Улица на карте Нюк между реакторами и внешними постройками">
+          <span class="marker" style="left:18%; top:46%;"><b>1</b>Линия Гаража</span>
+          <span class="marker" style="left:47%; top:55%;"><b>2</b>Мейн</span>
+          <span class="marker" style="left:31%; top:74%;"><b>3</b>Стенка дымов</span>
+          <span class="marker" style="left:68%; top:78%;"><b>4</b>Путь в Секрет</span>
+        </div>
+        <aside class="visual-panel">
+          <h3>Задача опорника Улицы</h3>
+          <ol class="visual-points">
+            <li><strong>1–2 · безопасная линия</strong>Из Гаража, Мейна или от ящиков видит продолжение, не открываясь всем углам.</li>
+            <li><strong>3 · появилась стенка</strong>Называет дым и пытается посчитать силу перехода. Один дым — ещё не атака B.</li>
+            <li><strong>4 · подтвердили Секрет</strong>Свободный принимает лестницу из укрытия; опорник остаётся жив и держит путь назад.</li>
+          </ol>
+          <div class="after-entry"><strong>Если Улица потеряна</strong><p>«Улица потеряна, двое к Секрету, бомбу не видел, ухожу в Мейн». Ближний закрывает следующий проход, остальные не бросают A и Рампу.</p></div>
+          <p class="image-credit">Кадр карты и пример внешней раскидки: <a href="https://blast.tv/article/cs2-Nuke-smokes" target="_blank" rel="noopener noreferrer">BLAST · Nuke smokes</a>.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="slide ct" data-index="13" data-minutes="1" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Защита · реакция 3</p>
+          <h2>Давление на A</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body tactic-flow">
+        <div class="video-strip">
+          <a href="https://www.youtube.com/watch?v=zhgmkbM-ACA&amp;t=145s" target="_blank" rel="noopener noreferrer">Видео · защита A, 2:25–3:46</a>
+          <span>Смотрим разные линии двух опорников и момент для зажигательных. Длина: 1:22.</span>
+        </div>
+        <ol class="ordered-steps">
+          <li><strong>D4ba держит Будку, middle — Скрип.</strong><p>Игроки не повторяют один угол: каждый заранее знает свой вход и путь безопасного отхода.</p></li>
+          <li><strong>Быстрый выход останавливаем по входам.</strong><p>D4ba даёт огонь в Будку, middle — в Скрип. Дым используем после огня или на второй путь атаки.</p></li>
+          <li><strong>Первый контакт запускает размен.</strong><p>Увидев атаку, называем число и не отдаём повторную дуэль без ослепляющей товарища.</p></li>
+          <li><strong>Если A потеряна, собираемся на возврат.</strong><p>Два готовых игрока сходятся из Девятки и Мейна, называют одну ослепляющую и входят вместе.</p></li>
+        </ol>
+        <p class="tactic-end"><strong>Продолжение:</strong> против медленной атаки держим гранаты до первых сведений. <strong>Отмена удержания:</strong> опорник отходит и ждёт совместный возврат, а не выглядывает один.</p>
+      </div>
+    </section>
+
+    <section class="slide ct visual-slide" data-index="13v" data-minutes="1" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Защита · точка A на экране</p>
+          <h2>Два входа — две линии</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body visual-grid">
+        <div class="visual-frame" aria-label="Точка A Нюка с отмеченными Будкой, Скрипом, Мейном и Девяткой">
+          <img src="assets/nuke-a-site.jpg" alt="Точка A на карте Нюк, вид сверху с Девятки">
+          <span class="marker" style="left:17%; top:26%;"><b>1</b>Девятка</span>
+          <span class="marker" style="left:36%; top:61%;"><b>2</b>Будка</span>
+          <span class="marker" style="left:80%; top:57%;"><b>3</b>Скрип</span>
+          <span class="marker" style="left:65%; top:47%;"><b>4</b>Мейн</span>
+        </div>
+        <aside class="visual-panel">
+          <h3>Как не сложиться вдвоём</h3>
+          <ol class="visual-points">
+            <li><strong>2 · защитник Будки</strong>Останавливает основной вход и даёт пространство для размена.</li>
+            <li><strong>3 · защитник Скрипа</strong>Закрывает дверь и Балки — не повторяет угол напарника.</li>
+            <li><strong>1 + 4 · возврат точки</strong>После потери два готовых игрока собираются в Девятке и Мейне.</li>
+          </ol>
+          <div class="after-entry"><strong>Если A прорвали</strong><p>Живой опорник сообщает число, бомбу и свой отход. Возврат начинается по одной названной ослепляющей, а не двумя одиночными выглядываниями.</p></div>
+          <p class="image-credit">Кадр карты: <a href="https://gameriv.com/counter-strike-2-all-map-changes/" target="_blank" rel="noopener noreferrer">GameRiv · изменения карт CS2</a>.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="slide ct" data-index="13b" data-minutes="2" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Защита · зона прорвана</p>
+          <h2>Что делает вся пятёрка</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body breach-layout">
+        <aside class="breach-summary">
+          <p class="call-template"><span>Зона</span> → сколько → бомба → куда ушёл</p>
+          <ul class="breach-rules">
+            <li><strong>Опорник:</strong> сообщает потерю и выживает; не возвращает зону в одиночку.</li>
+            <li><strong>Ближайший:</strong> закрывает следующий проход, а не бежит в уже потерянный.</li>
+            <li><strong>Дальние:</strong> держат целые маршруты до бомбы или двух подтверждённых соперников.</li>
+            <li><strong>Лидер:</strong> выбирает «сдерживаем», «возврат вместе» или «сохраняем оружие».</li>
+          </ul>
+          <div class="after-entry"><strong>Возврат вместе</strong><p>Собраться минимум вдвоём, назвать одну ослепляющую, выйти с разных входов и быть готовыми к размену.</p></div>
+        </aside>
+        <div class="breach-cards">
+          <article class="breach-card">
+            <h3>A потеряна</h3>
+            <p><strong>Команда:</strong> «A потеряна, двое, бомба, я в Мейне».</p>
+            <p><strong>Остальные:</strong> свободный идёт в Девятку; Улица держит Мейн, Рампа — выход из Лобби. После подтверждения установки возвращаем точку вдвоём-втроём.</p>
+          </article>
+          <article class="breach-card">
+            <h3>Улица потеряна</h3>
+            <p><strong>Команда:</strong> число, направление к Секрету и видел ли бомбу.</p>
+            <p><strong>Остальные:</strong> опорник отходит в Гараж или Мейн; свободный проверяет Секрет из укрытия. A и Рампа не уходят по одному дыму.</p>
+          </article>
+          <article class="breach-card">
+            <h3>Секрет прорван</h3>
+            <p><strong>Команда:</strong> «Двое Секрет, бомба есть/нет, ухожу в низ».</p>
+            <p><strong>Остальные:</strong> ближайший закрывает Декон или Двойные двери; Рампа спускается на B; один защитник остаётся наверху до подтверждения бомбы.</p>
+          </article>
+          <article class="breach-card">
+            <h3>Рампа потеряна</h3>
+            <p><strong>Команда:</strong> «Трое Рампа, бомба, отхожу B».</p>
+            <p><strong>Остальные:</strong> свободный занимает вторую линию низа; Улица держит Секрет от окружения; с A уходит один только после продолжения атаки вниз.</p>
+          </article>
+          <p class="source-note" style="grid-column:1 / -1;">Проверено по разбору серии Astralis: опорники Рампы и Улицы добывают сведения, задерживают и сохраняют жизнь, а команда заранее меняет роли и собирается на совместный возврат. Источники: <a href="https://www.hltv.org/news/25528/astraliss-nuke-analyzing-the-26-0-streak" target="_blank" rel="noopener noreferrer">HLTV · Astralis на Nuke</a>; <a href="https://www.hltv.org/news/24934/b1ad3-well-try-to-get-an-igl-thats-the-main-priority" target="_blank" rel="noopener noreferrer">B1ad3 о критичной информации на Nuke</a>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide attack" data-index="15" data-minutes="2" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Атака · постоянное правило</p>
+          <h2>Два игрока всегда держат Лобби</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body">
+        <div class="table-wrap">
+          <table class="roles-table">
+            <thead><tr><th>Роль · первый прогон</th><th>Зона</th><th>До общего решения</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Первый Лобби</strong><br>D4ba</td><td>Будка</td><td>Первый контакт только под ослепляющую и готовый размен</td></tr>
+              <tr><td><strong>Поддержка Лобби</strong><br>middle</td><td>Скрип / Лобби</td><td>Ослепляющая, размен и контроль выпада защиты</td></tr>
+              <tr><td><strong>Первый по Улице</strong><br>d0lfero</td><td>Красный защиты</td><td>Проверяет ближний угол и первым собирает сведения</td></tr>
+              <tr><td><strong>Дым и размен</strong><br>L!S</td><td>Дым в Гараж</td><td>Сразу бросает дым, затем идёт вторым за d0lfero</td></tr>
+              <tr><td><strong>Связующий</strong><br>Reconnecting</td><td>Рампа / третьим по Улице</td><td>Соединяет направления и несёт бомбу не первым</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note"><strong>Основание первого прогона:</strong> D4ba — сильный первый контакт; middle — основная поддержка гранатами; Reconnecting — связь и безопасное положение бомбы. d0lfero первым проверяет Улицу, а L!S после быстрого дыма идёт на размен.</p>
+        <p class="verdict">До команды на выход пара Лобби не уходит. Роли можно менять после прогона; бомба не идёт первой.</p>
+      </div>
+    </section>
+
+    <section class="slide attack" data-index="16" data-minutes="1" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Атака · тактика 1</p>
+          <h2>Открываем Рампу</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body tactic-flow">
+        <div class="video-strip">
+          <a href="https://www.youtube.com/watch?v=6_WAimVYF0I&amp;t=698s" target="_blank" rel="noopener noreferrer">Видео · гранаты Рампы, с 11:38</a>
+          <span>Смотрим одну ослепляющую, которая запускает первый выход и размен.</span>
+        </div>
+        <ol class="ordered-steps">
+          <li><strong>Reconnecting называет ослепляющую.</strong><p>Команда: <span class="command">ОСЛЕПЛЯЮ РАМПУ</span>. Первый начинает движение на взрыве, не раньше.</p></li>
+          <li><strong>Первый и второй входят одной парой.</strong><p>Первый чистит ближайший угол, второй смотрит его бой и сохраняет расстояние для размена.</p></li>
+          <li><strong>На верху Рампы делаем короткую остановку.</strong><p>Считаем защитников и слушаем низ. За уходящим опорником не гонимся.</p></li>
+          <li><strong>По команде <span class="command">ВЫХОД B</span> бомба идёт третьей.</strong><p>Последнюю гранату сохраняем на Декон — дверь между B и коридором — или на Двойные двери точки B.</p></li>
+        </ol>
+        <p class="tactic-end"><strong>Продолжение:</strong> заняли верх и вместе спускаемся на B. <strong>Отмена:</strong> два защитника, плотные гранаты или смерть без размена — возвращаемся в Лобби или меняем направление.</p>
+      </div>
+    </section>
+
+    <section class="slide attack visual-slide" data-index="16v" data-minutes="1" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Атака · Рампа на экране</p>
+          <h2>Трое входят одной волной</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body visual-grid">
+        <div class="visual-frame" aria-label="Схема атаки Рампы с ослепляющей, первым игроком, разменом и бомбой">
+          <img src="assets/nuke-ramp.jpg" alt="Рампа Нюка и путь к нижней точке B">
+          <span class="marker attack" style="left:37%; top:50%;"><b>1</b>Ослепляющая</span>
+          <span class="marker attack" style="left:53%; top:56%;"><b>2</b>Первый</span>
+          <span class="marker attack" style="left:62%; top:63%;"><b>3</b>Размен</span>
+          <span class="marker attack" style="left:46%; top:73%;"><b>4</b>Бомба третья</span>
+        </div>
+        <aside class="visual-panel">
+          <h3>Порядок входа</h3>
+          <ol class="visual-points">
+            <li><strong>1 · названа ослепляющая</strong>Первый начинает движение на её взрыве, не раньше.</li>
+            <li><strong>2 + 3 · одна пара</strong>Первый чистит ближайший угол; второй смотрит его бой и готов к размену.</li>
+            <li><strong>4 · бомба не первая</strong>Идёт третьей и не падает в точке первого контакта.</li>
+          </ol>
+          <div class="after-entry"><strong>После прорыва Рампы</strong><p>Не гонимся за уходящим защитником. Первый занимает следующий угол низа, второй остаётся рядом, один игрок держит Трофейку от обхода, лидер выбирает B или отмену.</p></div>
+          <p class="image-credit">Кадр: <a href="https://www.pcgameshardware.de/screenshots/original/2023/03/nuke_ramp_s2-pcgh.jpg" target="_blank" rel="noopener noreferrer">PC Games Hardware</a>. Логика продолжения: <a href="https://blast.tv/article/the-best-pistol-strat-for-every-map-in-cs2" target="_blank" rel="noopener noreferrer">BLAST · варианты после контроля Рампы</a>.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="slide attack" data-index="17" data-minutes="1" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Атака · тактика 2</p>
+          <h2>Открываем A</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body tactic-flow">
+        <div class="video-strip">
+          <a href="https://www.youtube.com/watch?v=6_WAimVYF0I&amp;t=467s" target="_blank" rel="noopener noreferrer">Видео · гранаты для выхода A, с 7:47</a>
+          <span>Смотрим дым в Мейн, огонь на крышу Будки и ослепляющую перед входом.</span>
+        </div>
+        <ol class="ordered-steps">
+          <li><strong>Reconnecting закрывает Мейн, второй игрок — крышу Будки.</strong><p>Дым и зажигательная летят одновременно. Другие гранаты без задачи не добавляем.</p></li>
+          <li><strong>middle говорит: <span class="command">ОСЛЕПЛЯЮ ЧЕРЕЗ ДВА</span>.</strong><p>D4ba и игрок размена выходят из Будки на взрыве ослепляющей.</p></li>
+          <li><strong>Игрок Скрипа входит в ту же секунду.</strong><p>Будка чистит ближний угол и Балки; Скрип — Вентиляцию и место установки бомбы.</p></li>
+          <li><strong>Reconnecting вносит бомбу второй волной.</strong><p>Заходит только после команды <span class="command">ТОЧКА</span>, когда первые углы уже проверены.</p></li>
+        </ol>
+        <p class="tactic-end"><strong>Продолжение:</strong> два входа открываются одновременно и игроки остаются на расстоянии размена. <strong>Отмена:</strong> время входов разошлось — говорим <span class="command">ОТМЕНА A</span> и собираемся заново.</p>
+      </div>
+    </section>
+
+    <section class="slide attack visual-slide" data-index="17v" data-minutes="1" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Атака · точка A на экране</p>
+          <h2>Два входа в одну секунду</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body visual-grid">
+        <div class="visual-frame" aria-label="Схема одновременного входа на A через Будку и Скрип с бомбой во второй волне">
+          <img src="assets/nuke-a-site.jpg" alt="Точка A на Нюке с Будкой, Скрипом, Мейном и Девяткой">
+          <span class="marker attack" style="left:34%; top:64%;"><b>1</b>Будка · пара</span>
+          <span class="marker attack" style="left:80%; top:58%;"><b>2</b>Скрип</span>
+          <span class="marker attack" style="left:55%; top:68%;"><b>3</b>Бомба</span>
+          <span class="marker attack" style="left:17%; top:26%;"><b>4</b>Девятка</span>
+          <span class="marker attack" style="left:66%; top:47%;"><b>5</b>Мейн</span>
+        </div>
+        <aside class="visual-panel">
+          <h3>Кто что чистит</h3>
+          <ol class="visual-points">
+            <li><strong>1 · Будка</strong>Первый берёт ближний угол, второй идёт на размен и смотрит Балки.</li>
+            <li><strong>2 · Скрип</strong>Входит одновременно и переводит прицел на Вентиляцию и точку.</li>
+            <li><strong>3 · бомба</strong>Заходит второй волной только после команды «точка».</li>
+          </ol>
+          <div class="after-entry"><strong>После прорыва A</strong><p>Ближние углы зачищены — первый не ищет новое убийство. Один держит Девятку, один Мейн или Вентиляцию, бомба ставится по команде; остальные остаются на расстоянии размена.</p></div>
+          <p class="image-credit">Кадр: <a href="https://gameriv.com/counter-strike-2-all-map-changes/" target="_blank" rel="noopener noreferrer">GameRiv</a>. Принцип входа: <a href="https://www.hltv.org/news/39644/b1ad3-we-need-to-show-a-much-better-game-if-we-want-to-beat-vitality" target="_blank" rel="noopener noreferrer">B1ad3 · ослепляющие и совместный выход</a>.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="slide attack outside-tactic" data-index="18" data-minutes="2" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Атака · тактика 3</p>
+          <h2>Контроль Улицы одним дымом</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body tactic-flow">
+        <div class="video-strip">
+          <a href="https://www.youtube.com/watch?v=bx3_2tiPW6k" target="_blank" rel="noopener noreferrer">Видео · один быстрый дым в Гараж</a>
+          <span>Смотрим весь короткий бросок с места появления. <a href="https://www.cs2tricks.com/nades/nuke/smokes/garage-from-t-spawn-7fda" target="_blank" rel="noopener noreferrer">Пошаговая схема</a>.</span>
+        </div>
+        <ol class="ordered-steps">
+          <li><strong>L!S сразу бросает дым в Гараж.</strong><p>Прыжковый бросок с места появления. d0lfero в это же время начинает движение к Улице — команда не ждёт приземления дыма.</p></li>
+          <li><strong>d0lfero идёт первым, L!S — вторым.</strong><p>Первый проверяет ближний угол у Красного защиты, второй смотрит его бой и готов к размену.</p></li>
+          <li><strong>Reconnecting с бомбой идёт третьим.</strong><p>D4ba и middle всё это время держат Будку и Скрип в Лобби, чтобы защита не обошла основную группу.</p></li>
+          <li><strong>У Красного защиты останавливаемся и выбираем путь.</strong><p><span class="command">СЕКРЕТ</span> ведёт к B; <span class="command">МЕЙН</span> соединяет группу с выходом Лобби на A.</p></li>
+        </ol>
+        <p class="tactic-end"><strong>Важно:</strong> дым закрывает Гараж, но не делает путь в Секрет полностью безопасным — проверяем Мейн и Девятку, при необходимости просим ослепляющую. <strong>Отмена:</strong> дым не лёг или первый погиб без размена.</p>
+      </div>
+    </section>
+
+    <section class="slide attack visual-slide" data-index="18v" data-minutes="1" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Атака · Улица на экране</p>
+          <h2>Быстрый дым, размен и выбор</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body visual-grid">
+        <div class="visual-frame" aria-label="Схема быстрого занятия Улицы под дымом в Гараж и двух продолжений атаки">
+          <img src="assets/nuke-outside.jpg" alt="Улица Нюка между внешними реакторами">
+          <span class="marker attack" style="left:24%; top:64%;"><b>1</b>Дым в Гараж</span>
+          <span class="marker attack" style="left:51%; top:69%;"><b>2</b>Пара с разменом</span>
+          <span class="marker attack" style="left:68%; top:78%;"><b>3</b>Секрет к B</span>
+          <span class="marker attack" style="left:47%; top:51%;"><b>4</b>Мейн к A</span>
+          <span class="marker attack" style="left:26%; top:27%;"><b>5</b>Девятка</span>
+        </div>
+        <aside class="visual-panel">
+          <h3>Точка принятия решения</h3>
+          <ol class="visual-points">
+            <li><strong>1 · L!S бросает дым</strong>Дым закрывает дальнюю линию Гаража; d0lfero уже начинает занимать пространство.</li>
+            <li><strong>2 · группа идёт по порядку</strong>d0lfero первый, L!S на размене, Reconnecting с бомбой третий.</li>
+            <li><strong>3–5 · один общий выбор</strong>Секрет ведёт к B; Мейн соединяет Улицу с выходом Лобби на A. Девятку сначала проверяем как опасную линию.</li>
+          </ol>
+          <div class="after-entry"><strong>После прорыва Улицы</strong><p>Первый чистит следующий угол, второй остаётся в размене, бомба идёт третьей. Один игрок держит открытый путь назад и обход; лидер коротко называет конечную точку.</p></div>
+          <p class="image-credit">Дым в Гараж ограничивает защитника с дальней винтовкой, но не закрывает Мейн и Девятку: <a href="https://blast.tv/article/cs2-Nuke-smokes" target="_blank" rel="noopener noreferrer">BLAST · Nuke smokes</a>. <a href="https://www.youtube.com/watch?v=bx3_2tiPW6k" target="_blank" rel="noopener noreferrer">Видео броска</a>.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="slide ct" data-index="19" data-minutes="2" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Защита · обязательные гранаты</p>
+          <h2>Кто учит какую гранату</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body">
+        <div class="nade-grid" aria-label="Пять упражнений защиты с гранатами">
+          <article class="nade-drill" data-nade-drill data-owner="d0lfero" data-backup="L!S" data-method="Шагом, прыжок и левая кнопка" data-criterion="3/3">
+            <img class="csnades-frame" src="assets/csnades-nuke-outside-molotov.webp" alt="Кадр CSNADES для зажигательной на Улицу Нюка">
+            <div class="nade-copy"><h3>Огонь на Улицу</h3><p><strong>Владелец:</strong> d0lfero · <strong>резерв:</strong> L!S</p><p><strong>Бросок:</strong> шагом, прыжок + левая кнопка.</p><p class="nade-pass">Движение · зачёт 3/3</p><a class="csnades-direct" href="https://csnades.gg/nuke/molotovs/outside-from-outside-ct" target="_blank" rel="noopener noreferrer">Открыть прямую схему</a></div>
+          </article>
+          <article class="nade-drill" data-nade-drill data-owner="Reconnecting" data-backup="d0lfero" data-method="На бегу, левая кнопка" data-criterion="3/3">
+            <img class="csnades-frame" src="assets/csnades-nuke-t-red-smoke.webp" alt="Кадр CSNADES для дыма на Красный атаки на Нюке">
+            <div class="nade-copy"><h3>ИКС-дым</h3><p><strong>Владелец:</strong> Reconnecting · <strong>резерв:</strong> d0lfero</p><p><strong>Бросок:</strong> на бегу, левая кнопка.</p><p class="nade-pass">Движение · зачёт 3/3</p><a class="csnades-direct" href="https://csnades.gg/nuke/smokes/t-red-from-ct-red" target="_blank" rel="noopener noreferrer">Открыть прямую схему</a></div>
+          </article>
+          <article class="nade-drill" data-nade-drill data-owner="L!S" data-backup="middle" data-method="С места, прыжок и левая кнопка" data-criterion="5/5">
+            <img class="csnades-frame" src="assets/csnades-nuke-trophy-smoke.webp" alt="Кадр CSNADES для дыма в Трофейку на Нюке">
+            <div class="nade-copy"><h3>Дым в Трофейку</h3><p><strong>Владелец:</strong> L!S · <strong>резерв:</strong> middle</p><p><strong>Бросок:</strong> с места, прыжок + левая кнопка.</p><p class="nade-pass">Точный · зачёт 5/5</p><a class="csnades-direct" href="https://csnades.gg/nuke/smokes/trophy-from-ramp" target="_blank" rel="noopener noreferrer">Открыть прямую схему</a></div>
+          </article>
+          <article class="nade-drill" data-nade-drill data-owner="D4ba" data-backup="Reconnecting" data-method="С места, левая кнопка" data-criterion="5/5">
+            <img class="csnades-frame" src="assets/csnades-nuke-hut-molotov.webp" alt="Кадр CSNADES для зажигательной в Будку с Девятки">
+            <div class="nade-copy"><h3>Огонь в Будку</h3><p><strong>Владелец:</strong> D4ba · <strong>резерв:</strong> Reconnecting</p><p><strong>Бросок:</strong> с места, левая кнопка.</p><p class="nade-pass">Точный · зачёт 5/5</p><a class="csnades-direct" href="https://csnades.gg/nuke/molotovs/hut-from-heaven" target="_blank" rel="noopener noreferrer">Открыть прямую схему</a></div>
+          </article>
+          <article class="nade-drill" data-nade-drill data-owner="middle" data-backup="D4ba" data-method="С места, левая кнопка" data-criterion="5/5">
+            <img class="csnades-frame" src="assets/csnades-nuke-squeaky-molotov.webp" alt="Кадр CSNADES для зажигательной в Скрип с Девятки">
+            <div class="nade-copy"><h3>Огонь в Скрип</h3><p><strong>Владелец:</strong> middle · <strong>резерв:</strong> D4ba</p><p><strong>Бросок:</strong> с места, левая кнопка.</p><p class="nade-pass">Точный · зачёт 5/5</p><a class="csnades-direct" href="https://csnades.gg/nuke/molotovs/squeaky-from-heaven" target="_blank" rel="noopener noreferrer">Открыть прямую схему</a></div>
+          </article>
+        </div>
+        <p class="table-note"><strong>Зачёт:</strong> 5/5 для точного броска с места; 3/3 для броска в движении. Без подсказки, граната выполняет указанную задачу.</p>
+      </div>
+    </section>
+
+    <section class="slide attack" data-index="20" data-minutes="2" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Атака · обязательные гранаты</p>
+          <h2>Кто учит какую гранату</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body">
+        <div class="nade-grid" aria-label="Пять упражнений атаки с гранатами">
+          <article class="nade-drill" data-nade-drill data-owner="L!S" data-backup="d0lfero" data-method="С места, прыжок и левая кнопка" data-criterion="5/5">
+            <img class="csnades-frame" src="assets/csnades-nuke-front-garage-smoke.webp" alt="Кадр CSNADES для дыма перед Гаражом с места появления атаки">
+            <div class="nade-copy"><h3>Дым перед Гаражом</h3><p><strong>Владелец:</strong> L!S · <strong>резерв:</strong> d0lfero</p><p><strong>Бросок:</strong> с места, прыжок + левая кнопка.</p><p class="nade-pass">Точный · зачёт 5/5</p><a class="csnades-direct" href="https://csnades.gg/nuke/smokes/front-garage-from-t-spawn-b" target="_blank" rel="noopener noreferrer">Открыть прямую схему</a></div>
+          </article>
+          <article class="nade-drill" data-nade-drill data-owner="Reconnecting" data-backup="middle" data-method="На бегу, левая кнопка" data-criterion="3/3">
+            <img class="csnades-frame" src="assets/csnades-nuke-ramp-flash.webp" alt="Кадр CSNADES для ослепляющей на Рампу из Трофейки">
+            <div class="nade-copy"><h3>Ослепляющая на Рампу</h3><p><strong>Владелец:</strong> Reconnecting · <strong>резерв:</strong> middle</p><p><strong>Бросок:</strong> на бегу, левая кнопка.</p><p class="nade-pass">Движение · зачёт 3/3</p><a class="csnades-direct" href="https://csnades.gg/nuke/flashbangs/ramp-from-trophy" target="_blank" rel="noopener noreferrer">Открыть прямую схему</a></div>
+          </article>
+          <article class="nade-drill" data-nade-drill data-owner="Reconnecting" data-backup="L!S" data-method="С места, прыжок и обе кнопки" data-criterion="5/5">
+            <img class="csnades-frame" src="assets/csnades-nuke-a-main-smoke.webp" alt="Кадр CSNADES для дыма в Мейн с Крыши атаки">
+            <div class="nade-copy"><h3>Дым в Мейн</h3><p><strong>Владелец:</strong> Reconnecting · <strong>резерв:</strong> L!S</p><p><strong>Бросок:</strong> с места, прыжок + обе кнопки.</p><p class="nade-pass">Точный · зачёт 5/5</p><a class="csnades-direct" href="https://csnades.gg/nuke/smokes/a-main-from-t-roof" target="_blank" rel="noopener noreferrer">Открыть прямую схему</a></div>
+          </article>
+          <article class="nade-drill" data-nade-drill data-owner="middle" data-backup="D4ba" data-method="На бегу, левая кнопка" data-criterion="3/3">
+            <img class="csnades-frame" src="assets/csnades-nuke-hut-flash.webp" alt="Кадр CSNADES для ослепляющей в Будку из Лобби">
+            <div class="nade-copy"><h3>Ослепляющая в Будку</h3><p><strong>Владелец:</strong> middle · <strong>резерв:</strong> D4ba</p><p><strong>Бросок:</strong> на бегу, левая кнопка.</p><p class="nade-pass">Движение · зачёт 3/3</p><a class="csnades-direct" href="https://csnades.gg/nuke/flashbangs/hut-from-lobby-a" target="_blank" rel="noopener noreferrer">Открыть прямую схему</a></div>
+          </article>
+          <article class="nade-drill" data-nade-drill data-owner="d0lfero" data-backup="L!S" data-method="С места, прыжок и левая кнопка" data-criterion="5/5">
+            <img class="csnades-frame" src="assets/csnades-nuke-secret-smoke.webp" alt="Кадр CSNADES для ближнего дыма в Секрет с места появления атаки">
+            <div class="nade-copy"><h3>Ближний дым в Секрет</h3><p><strong>Владелец:</strong> d0lfero · <strong>резерв:</strong> L!S</p><p><strong>Бросок:</strong> с места, прыжок + левая кнопка.</p><p class="nade-pass">Точный · зачёт 5/5</p><a class="csnades-direct" href="https://csnades.gg/nuke/smokes/secret-close-from-t-spawn" target="_blank" rel="noopener noreferrer">Открыть прямую схему</a></div>
+          </article>
+        </div>
+        <p class="table-note"><strong>Зачёт:</strong> 5/5 для точного броска с места; 3/3 для броска в движении. Резерв исполняет только после явной передачи роли.</p>
+      </div>
+    </section>
+
+    <section class="slide practice" data-index="21" data-minutes="1" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">После звонка · домашняя практика</p>
+          <h2>Задание каждой роли</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body">
+        <div class="table-wrap">
+          <table class="roles-table">
+            <thead><tr><th>Первый прогон</th><th>Атака</th><th>Защита и совместная связка</th></tr></thead>
+            <tbody>
+              <tr><td><strong>D4ba</strong><br>первый Лобби</td><td>Выход из Будки на ослепляющей</td><td>Огонь в Будку · связка A с middle</td></tr>
+              <tr><td><strong>middle</strong><br>поддержка Лобби</td><td>Ослепляющая в Будку</td><td>Огонь в Скрип · связка A с D4ba</td></tr>
+              <tr><td><strong>d0lfero</strong><br>первый по Улице</td><td>Запасной дыма в Гараж · проверка Красного защиты</td><td>Огонь на Улицу · связка с L!S</td></tr>
+              <tr><td><strong>L!S</strong><br>дым и размен</td><td>Дым в Гараж с места появления</td><td>Дым в Трофейку · связка Улицы с d0lfero</td></tr>
+              <tr><td><strong>Reconnecting</strong><br>связующий</td><td>Ослепляющая на Рампу и дым в Мейн</td><td>ИКС-дым · запускает связки Рампы и A</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note">Если роли поменялись, игрок выполняет задание новой роли, а не сохраняет старый набор.</p>
+      </div>
+    </section>
+
+    <section class="slide practice" data-index="22" data-minutes="1" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">После звонка · 30 минут</p>
+          <h2>Как выполнить домашнюю практику</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body timeline">
+        <section class="timeline-step">
+          <span class="number">12</span>
+          <strong>минут атаки</strong>
+          <p>Открыть свою ссылку. Две попытки с подсказкой, затем пять подряд без неё.</p>
+        </section>
+        <section class="timeline-step">
+          <span class="number">08</span>
+          <strong>минут защиты</strong>
+          <p>Три точных броска подряд. Перед каждым назвать условие раннего или позднего броска.</p>
+        </section>
+        <section class="timeline-step">
+          <span class="number">08</span>
+          <strong>минут связки</strong>
+          <p>Дважды чисто: граната легла, команда сказана, первый вышел вовремя, второй готов к размену.</p>
+        </section>
+        <section class="timeline-step">
+          <span class="number">02</span>
+          <strong>минуты отчёта</strong>
+          <p>«Ник / роль / атака: X из 5 / защита: X из 3 / когда отменяю выход».</p>
+        </section>
+      </div>
+    </section>
+
+    <section class="slide practice" data-index="23" data-minutes="1" aria-hidden="true">
+      <header class="slide-head">
+        <div>
+          <p class="eyebrow">Финальная проверка</p>
+          <h2>Шесть коротких ответов</h2>
+        </div>
+        <div class="timing" aria-label="Время слайда"></div>
+      </header>
+      <div class="slide-body">
+        <ol class="quiz-list">
+          <li>На Улице появился один дым, но игрока никто не видел. Вся защита уходит вниз?<span class="answer">Нет. Все сохраняют зоны; один игрок проверяет Секрет.</span></li>
+          <li>Начался быстрый выход на Рампу. Какой порядок гранат?<span class="answer">Сначала зажигательная, затем дым.</span></li>
+          <li>Соперник играет медленно. Когда бросаем гранату?<span class="answer">После подтверждённых сведений или под действие товарища.</span></li>
+          <li>Общей команды нет. Что делает пятёрка?<span class="answer">Играет основу: держит зоны и собирает сведения.</span></li>
+          <li>Что запускает согласованный выход на A или Рампу?<span class="answer">Одна принятая команда и заранее названная граната.</span></li>
+          <li>Опорник потерял зону. Что он говорит и что делает ближайший?<span class="answer">Зона, число, бомба, свой отход. Ближайший закрывает следующий проход.</span></li>
+        </ol>
+        <button class="reveal-answers" type="button" data-action="answers">Показать ответы</button>
+        <p class="verdict">Зачёт — 5 из 6. Ошибка возвращает к нужному слайду и одному повторению без соперника.</p>
+      </div>
+    </section>
+    <div class="controls" aria-label="Управление презентацией">
+      <div class="deck-meta">Нюк · L!S · 45 минут</div>
+      <div class="timer-group">
+        <button class="control-button" type="button" data-action="timer" aria-label="Запустить или остановить таймер">Старт</button>
+        <output class="timer" aria-live="off">00:00</output>
+        <button class="control-button" type="button" data-action="reset" aria-label="Сбросить таймер">Сброс</button>
+      </div>
+      <div class="nav-group">
+        <button class="control-button" type="button" data-action="fullscreen" aria-label="Переключить полноэкранный режим">Экран</button>
+        <button class="control-button" type="button" data-action="prev" aria-label="Предыдущий слайд">←</button>
+        <span class="counter" aria-live="polite">1 / 31</span>
+        <button class="control-button" type="button" data-action="next" aria-label="Следующий слайд">→</button>
+      </div>
+    </div>
+    <div class="progress" aria-hidden="true"><div class="progress-fill"></div></div>
+    <p class="sr-only" id="keyboard-help">Стрелки и пробел переключают слайды. Клавиша T запускает таймер. Клавиша F включает полный экран. Клавиша R показывает ответы на последнем слайде.</p>
+  </main>
+
+  <script>
+    (() => {
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      slides.forEach((slide, index) => { slide.dataset.index = String(index + 1).padStart(2, '0'); });
+      const progress = document.querySelector('.progress-fill');
+      const counter = document.querySelector('.counter');
+      const timerOutput = document.querySelector('.timer');
+      const timerButton = document.querySelector('[data-action="timer"]');
+      const fullscreenButton = document.querySelector('[data-action="fullscreen"]');
+      const totalMinutes = slides.reduce((sum, slide) => sum + Number(slide.dataset.minutes || 0), 0);
+      let current = 0;
+      let elapsed = 0;
+      let timerStartedAt = 0;
+      let timerFrame = 0;
+      let timerRunning = false;
+      let touchStartX = null;
+
+      const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+      function plannedRange(index) {
+        const before = slides.slice(0, index).reduce((sum, slide) => sum + Number(slide.dataset.minutes || 0), 0);
+        const duration = Number(slides[index].dataset.minutes || 0);
+        return { before, after: before + duration, duration };
+      }
+
+      function renderTiming() {
+        slides.forEach((slide, index) => {
+          const target = slide.querySelector('.timing');
+          if (!target) return;
+          const range = plannedRange(index);
+          target.innerHTML = `<strong>${range.duration} ${range.duration === 1 ? 'минута' : range.duration < 5 ? 'минуты' : 'минут'}</strong>план ${range.before}:00–${range.after}:00`;
+        });
+      }
+
+      function showSlide(index, updateHash = true) {
+        current = clamp(index, 0, slides.length - 1);
+        const nextSlide = slides[current];
+        const focused = document.activeElement;
+        if (focused instanceof HTMLElement && focused.closest('.slide') && !nextSlide.contains(focused)) focused.blur();
+        slides.forEach((slide, slideIndex) => {
+          const active = slideIndex === current;
+          slide.classList.toggle('is-active', active);
+          slide.inert = !active;
+          slide.setAttribute('aria-hidden', String(!active));
+          if (active) slide.scrollTop = 0;
+        });
+        const activeSlide = slides[current];
+        const accent = getComputedStyle(activeSlide).getPropertyValue('--accent').trim();
+        progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+        progress.style.background = accent;
+        counter.textContent = `${current + 1} / ${slides.length}`;
+        document.documentElement.style.setProperty('--accent', accent);
+        if (updateHash) history.replaceState(null, '', `#${current + 1}`);
+      }
+
+      function navigate(delta) { showSlide(current + delta); }
+
+      function formatTime(milliseconds) {
+        const totalSeconds = Math.floor(milliseconds / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      }
+
+      function updateTimer() {
+        if (!timerRunning) return;
+        const currentElapsed = elapsed + performance.now() - timerStartedAt;
+        timerOutput.value = formatTime(currentElapsed);
+        timerOutput.textContent = formatTime(currentElapsed);
+        timerFrame = requestAnimationFrame(updateTimer);
+      }
+
+      function toggleTimer() {
+        if (timerRunning) {
+          elapsed += performance.now() - timerStartedAt;
+          timerRunning = false;
+          cancelAnimationFrame(timerFrame);
+          timerButton.textContent = 'Старт';
+        } else {
+          timerStartedAt = performance.now();
+          timerRunning = true;
+          timerButton.textContent = 'Пауза';
+          updateTimer();
+        }
+      }
+
+      function resetTimer() {
+        timerRunning = false;
+        elapsed = 0;
+        cancelAnimationFrame(timerFrame);
+        timerOutput.value = '00:00';
+        timerOutput.textContent = '00:00';
+        timerButton.textContent = 'Старт';
+      }
+
+      async function toggleFullscreen() {
+        try {
+          if (document.fullscreenElement) await document.exitFullscreen();
+          else await document.documentElement.requestFullscreen();
+        } catch (_) {
+          // Браузер может запретить полный экран для локального файла.
+        }
+      }
+
+      function toggleAnswers() {
+        const finalSlide = slides[slides.length - 1];
+        const visible = finalSlide.classList.toggle('answers-visible');
+        const button = finalSlide.querySelector('[data-action="answers"]');
+        if (button) button.textContent = visible ? 'Скрыть ответы' : 'Показать ответы';
+      }
+
+      document.addEventListener('click', (event) => {
+        const action = event.target.closest('[data-action]')?.dataset.action;
+        if (!action) return;
+        if (action === 'prev') navigate(-1);
+        if (action === 'next') navigate(1);
+        if (action === 'timer') toggleTimer();
+        if (action === 'reset') resetTimer();
+        if (action === 'fullscreen') toggleFullscreen();
+        if (action === 'answers') toggleAnswers();
+      });
+
+      document.addEventListener('keydown', (event) => {
+        const tag = event.target.tagName;
+        const interactive = ['A', 'BUTTON', 'INPUT', 'TEXTAREA', 'SELECT'].includes(tag);
+        const textInput = ['TEXTAREA', 'SELECT'].includes(tag) || (tag === 'INPUT' && event.target.type !== 'checkbox');
+        const activatesControl = ['Enter', ' '].includes(event.key);
+        if ((textInput || (interactive && activatesControl)) && event.key !== 'Escape') return;
+        if (['ArrowRight', 'PageDown', 'Enter', ' '].includes(event.key)) {
+          event.preventDefault();
+          navigate(1);
+        }
+        if (['ArrowLeft', 'PageUp', 'Backspace'].includes(event.key)) {
+          event.preventDefault();
+          navigate(-1);
+        }
+        if (event.key === 'Home') showSlide(0);
+        if (event.key === 'End') showSlide(slides.length - 1);
+        if (event.code === 'KeyT') toggleTimer();
+        if (event.code === 'KeyF') toggleFullscreen();
+        if (event.code === 'KeyR') toggleAnswers();
+      });
+
+      document.addEventListener('touchstart', (event) => {
+        touchStartX = event.changedTouches[0]?.clientX ?? null;
+      }, { passive: true });
+
+      document.addEventListener('touchend', (event) => {
+        if (touchStartX === null) return;
+        const delta = (event.changedTouches[0]?.clientX ?? touchStartX) - touchStartX;
+        if (Math.abs(delta) > 60) navigate(delta < 0 ? 1 : -1);
+        touchStartX = null;
+      }, { passive: true });
+
+      window.addEventListener('hashchange', () => {
+        const requested = Number(location.hash.slice(1));
+        showSlide(Number.isInteger(requested) && requested > 0 && requested <= slides.length ? requested - 1 : 0, false);
+      });
+
+      document.addEventListener('fullscreenchange', () => {
+        fullscreenButton.textContent = document.fullscreenElement ? 'Окно' : 'Экран';
+      });
+
+      renderTiming();
+      const requested = Number(location.hash.slice(1));
+      showSlide(Number.isInteger(requested) && requested > 0 && requested <= slides.length ? requested - 1 : 0, false);
+      document.querySelector('.deck-meta').textContent = `Нюк · L!S · визуальный план ${totalMinutes} минут`;
+    })();
+  </script>
+</body>
+</html>

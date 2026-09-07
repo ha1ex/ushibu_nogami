@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Inferno — интерактивная командная тренировка CS2 для L!S: коллы, дефолты, выходы, ретейки и гранаты.">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="assets/deck.css">
+  <title>Inferno · командная тренировка L!S</title>
+</head>
+<body>
+  <div class="deck" aria-label="Тренировочная презентация Inferno">
+    <header class="deck-header">
+      <div class="brand"><span class="mark">L!</span><div class="brand-copy"><p class="eyebrow">Ушибу ногами · CS2</p><strong>Inferno / протокол раунда</strong></div></div>
+      <div class="header-actions"><span class="timer-readout" data-timer>00:00</span><button class="ui-button" id="timer-button" type="button" aria-pressed="false">Старт таймера</button></div>
+    </header>
+
+    <main class="deck-main">
+      <p class="sr-only">Цель тренировки. Радар / коллы. T-дефолт. CT-дефолт. Выход A. Выход B. Ротации. Ретейк A. Ретейк B. Постплент A. Постплент B. GO / STOP / SUCCESS. Домашняя работа.</p>
+
+      <section class="slide is-active" data-slide-title="Inferno: карта решений" aria-hidden="false">
+        <div class="slide-body cover">
+          <div><p class="eyebrow">Командная тренировка · 55 минут + гранаты</p><h1>Inferno <span>карта решений</span></h1><p class="lead">Не учим «красивый раунд». Учим <strong>общий язык, пять стартовых ролей и два выхода</strong>, которые не разваливаются после первого контакта.</p><div class="cover-meta"><span class="token">5 игроков</span><span class="token">2 выхода</span><span class="token">10 гранат</span><span class="token">1 голос решения</span></div></div>
+          <div data-map="t-default"></div>
+        </div>
+      </section>
+
+      <section class="slide" data-slide-title="Цель тренировки" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">01 · контракт занятия</p><h2>Цель тренировки</h2></div><span class="slide-index">06 минут</span></header>
+        <div class="slide-body grid-3">
+          <article class="panel panel--t"><span class="kicker">T · результат</span><h3>Выход без паузы</h3><p>После <strong>GO</strong> все пять ролей выполняют один план: гранаты, первый контакт, размен, плент и занятие постплента.</p></article>
+          <article class="panel panel--ct"><span class="kicker">CT · результат</span><h3>Живое инфо</h3><p>Якорь называет число, гранаты и бомбу; второй игрок помогает и отходит. Ротация начинается только по подтверждённому условию.</p></article>
+          <article class="panel panel--signal"><span class="kicker">Проверка</span><h3>3 чистых повтора</h3><p>Сценарий засчитывается, если команда три раза подряд приходит в нужные позиции без потери темпа и дружественных флешек.</p></article>
+          <article class="panel"><span class="kicker">Ограничение</span><h3>Без героизма</h3><p>Первый контакт не означает «всем вперёд». Вне вызова GO сохраняем пространство, гранаты и возможность сменить решение.</p></article>
+          <article class="panel"><span class="kicker">Язык</span><h3>Колл = место + число</h3><p>«Банан, двое, одна флеш» сильнее «они B». Короткий проверяемый факт оставляет капитану решение.</p></article>
+          <article class="panel"><span class="kicker">Темп</span><h3>Одно окно</h3><p>Решение принято — следующая полезная граната летит в течение трёх секунд. Если условия исчезли, звучит STOP.</p></article>
+        </div>
+      </section>
+
+      <section class="slide" data-slide-title="Маршрут занятия" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">02 · маршрут</p><h2>55 минут до общего языка</h2></div><span class="slide-index">Полевой блок отдельно</span></header>
+        <div class="slide-body flow">
+          <article class="step-card"><span class="step-no">00–08</span><h3>Ориентация</h3><p>Цель, русский радар, формат инфо и стоп-слово.</p></article>
+          <article class="step-card"><span class="step-no">08–22</span><h3>T-система</h3><p>Дефолт, банан, мид, развилка решения.</p></article>
+          <article class="step-card"><span class="step-no">22–38</span><h3>Два выхода</h3><p>A и B: роли, тайминг, плент, постплент.</p></article>
+          <article class="step-card"><span class="step-no">38–49</span><h3>CT-система</h3><p>Дефолт, реакции, ротации и ретейки.</p></article>
+          <article class="step-card"><span class="step-no">49–55</span><h3>Протокол</h3><p>GO / STOP / SUCCESS и восемь вопросов.</p></article>
+          <article class="step-card"><span class="step-no">+25</span><h3>Гранаты</h3><p>Десять лайнапов: владелец сдаёт, резерв повторяет.</p></article>
+          <article class="step-card"><span class="step-no">+30</span><h3>Сухие прогоны</h3><p>По пять повторов A и B, затем две CT-реакции.</p></article>
+          <article class="step-card"><span class="step-no">Финиш</span><h3>Запись ошибок</h3><p>Фиксируем только повторяемые сбои, не отдельные промахи.</p></article>
+        </div>
+      </section>
+
+      <section class="slide" data-slide-title="Радар / коллы" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">03 · единый словарь</p><h2>Радар / коллы</h2></div><span class="slide-index">20 якорей</span></header>
+        <div class="slide-body split"><div><p class="lead">На схеме только русские командные названия. <strong>Точка — позиция, линия — связь с подписью.</strong></p><div class="signal-note">Формат: «место → число → направление → граната/бомба». Пример: «Банан, трое, идут вверх, бомбу не видел».</div><ul class="checklist"><li>Не смешиваем «шорт» и «лонг» с направлением движения.</li><li>«КТ» — проход от B к респауну CT; «арка» — развилка у A.</li><li>Если игрок не уверен — говорит «звук», а не утверждает число.</li></ul></div><div data-map="callouts"></div></div>
+      </section>
+
+      <section class="slide" data-slide-title="Дисциплина информации" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">04 · голос раунда</p><h2>Один факт — один ответ</h2></div><span class="slide-index">упражнение 3×</span></header>
+        <div class="slide-body grid-3">
+          <article class="panel"><span class="kicker">Слышу</span><h3>«Банан, двое»</h3><p>Называем зону и минимум подтверждённых игроков. Не додумываем бомбу.</p></article>
+          <article class="panel"><span class="kicker">Делаю</span><h3>«Даю дым, ухожу»</h3><p>Сообщаем действие, которое меняет обзор или ротацию партнёра.</p></article>
+          <article class="panel"><span class="kicker">Нужно</span><h3>«Флеш за стену»</h3><p>Запрос содержит место и окно: «через две секунды» или «по контакту».</p></article>
+          <article class="panel panel--signal"><span class="kicker">Запрещено</span><h3>«Они все здесь»</h3><p>Без бомбы или трёх моделей это предположение. Оно не запускает полную ротацию.</p></article>
+          <article class="panel panel--signal"><span class="kicker">Запрещено</span><h3>Двойное командование</h3><p>После решения L!S остальные дают факты, а не параллельный маршрут.</p></article>
+          <article class="panel"><span class="kicker">Дрилл</span><h3>Немой наблюдатель</h3><p>Тренер отмечает каждый колл без места, числа или действия; после раунда игрок переформулирует.</p></article>
+        </div>
+      </section>
+
+      <section class="slide" data-slide-title="T-дефолт / роли" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">05 · старт раунда</p><h2>T-дефолт 2–2–1</h2></div><span class="slide-index">не схема для дуэлей</span></header>
+        <div class="slide-body split"><div class="role-grid"><article class="role-card"><h3>D4ba</h3><b>Первый банана</b><p>Забирает пространство под флеш, не проходит мешки один.</p></article><article class="role-card"><h3>L!S</h3><b>Поддержка / капитан</b><p>Вторая граната банана, собирает инфо, объявляет развилку.</p></article><article class="role-card"><h3>d0lfero</h3><b>AWP мид</b><p>Держит агрессию и отход; не открывает выход сухим пиком.</p></article><article class="role-card"><h3>middle</h3><b>Второй мид</b><p>Контроль нижнего мида и размен AWP.</p></article><article class="role-card"><h3>Reconnecting</h3><b>Апартаменты</b><p>Слышит пуш, сохраняет поздний балкон и фланг.</p></article></div><div data-map="t-default"></div></div>
+      </section>
+
+      <section class="slide" data-slide-title="T: контроль банана" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">06 · первый коридор</p><h2>Банан: взять, не отдать</h2></div><span class="slide-index">D4ba + L!S</span></header>
+        <div class="slide-body grid-3">
+          <article class="panel panel--t"><span class="kicker">Старт</span><h3>Флеш → угол</h3><p>L!S даёт высокую флешку, D4ba проверяет ближнюю стену и брёвна. Контакт сразу называется.</p></article>
+          <article class="panel panel--t"><span class="kicker">Контроль</span><h3>До мешков</h3><p>После размена занимаете брёвна/низ банана. За мешки без второй гранаты не проходить.</p></article>
+          <article class="panel panel--signal"><span class="kicker">Ответ CT</span><h3>Молотов + HE</h3><p>Не стойте в общей точке. Отойдите, сохраните второй дым и вернитесь после взрыва.</p></article>
+          <article class="panel"><span class="kicker">Успех</span><h3>Пространство живыми</h3><p>Два игрока живы, минимум один дым B сохранён, CT не знают финальный план.</p></article>
+          <article class="panel"><span class="kicker">STOP</span><h3>Два урона + нет гранат</h3><p>Не лечим плохой старт третьим телом. Уходим в дефолт и давим A.</p></article>
+          <article class="panel"><span class="kicker">Колл</span><h3>«Банан наш»</h3><p>Означает: видим мешки, нет активного CT, есть игрок на удержании. Иначе — «низ банана».</p></article>
+        </div>
+      </section>
+
+      <section class="slide" data-slide-title="T: мид и апартаменты" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">07 · второй коридор</p><h2>Мид без подарков</h2></div><span class="slide-index">d0lfero + middle + Reconnecting</span></header>
+        <div class="slide-body split"><div><div class="grid-2"><article class="panel"><span class="kicker">d0lfero</span><h3>Линия отхода</h3><p>Первый прицел — агрессия нижнего мида. После контакта меняет угол, не повторяет без флешки.</p></article><article class="panel"><span class="kicker">middle</span><h3>Размен</h3><p>Держит второй мид и выход из подвала, затем помогает занять верхний мид.</p></article><article class="panel"><span class="kicker">Reconnecting</span><h3>Тихое давление</h3><p>Слышит апартаменты, проверяет пуш и к решению сохраняет балкон.</p></article><article class="panel panel--signal"><span class="kicker">Запрет</span><h3>Три сухих пика</h3><p>Верхний мид берём после флешки или ошибки CT. Одна модель не тянет троих.</p></article></div></div><div data-map="t-default"></div></div>
+      </section>
+
+      <section class="slide" data-slide-title="T: дерево решения" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">08 · капитанский цикл</p><h2>Инфо → решение</h2></div><span class="slide-index">окно 1:20–0:55</span></header>
+        <div class="slide-body decision">
+          <article class="panel"><span class="kicker">Собрать</span><h3>Что знаем?</h3><p>Банан: гранаты/число. Мид: AWP/смоки. Апартаменты: пуш/тишина.</p></article>
+          <article class="panel panel--t"><span class="kicker">A</span><h3>Слабый шорт</h3><p>Трое верхний мид, двое апартаменты. Выход A по трём гранатам.</p></article>
+          <article class="panel panel--t"><span class="kicker">B</span><h3>Банан сохранён</h3><p>Трое собираются снизу, пятый держит мид до последней гранаты.</p></article>
+          <article class="panel panel--signal"><span class="kicker">Сброс</span><h3>Нет условия</h3><p>STOP, восстановить пары, выбить гранату и принять новое решение до 0:45.</p></article>
+        </div>
+      </section>
+
+      <section class="slide" data-slide-title="Выход A / роли" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">09 · пакет A</p><h2>Выход A: шорт + балкон</h2></div><span class="slide-index">3 + 2</span></header>
+        <div class="slide-body split"><div class="role-grid"><article class="role-card"><h3>D4ba</h3><b>Первый шорт</b><p>Чистит близкий угол, кладбище, плент.</p></article><article class="role-card"><h3>L!S</h3><b>Размен / бомба</b><p>Идёт в дистанции одного размена, зовёт плент.</p></article><article class="role-card"><h3>middle</h3><b>Первый апартаментов</b><p>Выходит на балкон по вспышке гранат шорта.</p></article><article class="role-card"><h3>Reconnecting</h3><b>Второй балкона</b><p>Разменяет яму, затем закрывает апартаменты.</p></article><article class="role-card"><h3>d0lfero</h3><b>Арка / фланг</b><p>Держит лонг и позднюю ротацию, входит последним.</p></article></div><div data-map="a-exec"></div></div>
+      </section>
+
+      <section class="slide" data-slide-title="Выход A / таймлайн" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">10 · пакет A</p><h2>GO A — четыре такта</h2></div><span class="slide-index">без остановки на коврах</span></header>
+        <div class="slide-body flow">
+          <article class="step-card"><span class="step-no">T−05</span><h3>Сбор</h3><p>Трое верхний мид, двое апартаменты. Бомба у L!S. Все подтверждают готовность.</p></article>
+          <article class="step-card"><span class="step-no">T−03</span><h3>Изоляция</h3><p>Смоки мото, арка и яма. Молотов квадрат — только если окно безопасно.</p></article>
+          <article class="step-card"><span class="step-no">GO</span><h3>Два контакта</h3><p>D4ba выходит шорт; middle показывает балкон одновременно, а не после первого фрага.</p></article>
+          <article class="step-card"><span class="step-no">T+08</span><h3>Закрепление</h3><p>L!S ставит открытую для шорта; d0lfero закрывает библиотеку и лонг.</p></article>
+        </div>
+      </section>
+
+      <section class="slide" data-slide-title="Постплент A" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">11 · после установки</p><h2>Постплент A: три линии</h2></div><span class="slide-index">бомба видна с шорта</span></header>
+        <div class="slide-body grid-3"><article class="panel panel--t"><span class="kicker">Линия 1</span><h3>Шорт</h3><p>L!S + D4ba играют разменом, один смотрит бомбу, второй — выход из библиотеки.</p></article><article class="panel panel--t"><span class="kicker">Линия 2</span><h3>Апартаменты</h3><p>Reconnecting остаётся на позднем контакте, не падает в яму без причины.</p></article><article class="panel panel--t"><span class="kicker">Линия 3</span><h3>Мид / лонг</h3><p>d0lfero ловит ротацию и может сохранить AWP, если ретейк уже закрыт.</p></article><article class="panel"><span class="kicker">Граната</span><h3>Последняя флеш</h3><p>middle хранит её для касания бомбы, а не выбрасывает после плента.</p></article><article class="panel panel--signal"><span class="kicker">STOP</span><h3>Не пикать дым</h3><p>Пусть CT тратят время и комплект. Контакт открывает игрок, которого нельзя разменять первым.</p></article><article class="panel"><span class="kicker">SUCCESS</span><h3>Два сектора закрыты</h3><p>Бомба видна минимум одной паре, ни один игрок не держит две линии сразу.</p></article></div>
+      </section>
+
+      <section class="slide" data-slide-title="Выход B / роли" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">12 · пакет B</p><h2>Выход B: банан + поздний мид</h2></div><span class="slide-index">4 + 1</span></header>
+        <div class="slide-body split"><div class="role-grid"><article class="role-card"><h3>D4ba</h3><b>Первый</b><p>Проверяет близкий угол, новые ящики, первый плент.</p></article><article class="role-card"><h3>middle</h3><b>Размен</b><p>Входит на дистанции одного корпуса.</p></article><article class="role-card"><h3>L!S</h3><b>Бомба / решение</b><p>После первого сектора сразу выбирает точку установки.</p></article><article class="role-card"><h3>Reconnecting</h3><b>Гранаты</b><p>Последняя флеш, молотов новых ящиков, затем церковь.</p></article><article class="role-card"><h3>d0lfero</h3><b>Поздний фланг</b><p>Держит верхний мид до падения двух смоков, затем догоняет.</p></article></div><div data-map="b-exec"></div></div>
+      </section>
+
+      <section class="slide" data-slide-title="Выход B / таймлайн" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">13 · пакет B</p><h2>GO B — дым не команда</h2></div><span class="slide-index">команда = голос L!S</span></header>
+        <div class="slide-body flow"><article class="step-card"><span class="step-no">T−06</span><h3>Сбор</h3><p>Четверо ниже мешков, d0lfero показывает присутствие в миде.</p></article><article class="step-card"><span class="step-no">T−03</span><h3>Экран</h3><p>Смоки КТ и гробы; молотов новые ящики; первая флеш над плентом.</p></article><article class="step-card"><span class="step-no">GO</span><h3>Парами</h3><p>D4ba + middle чистят справа налево. L!S + Reconnecting входят второй парой.</p></article><article class="step-card"><span class="step-no">T+09</span><h3>Плент</h3><p>Установка под банан. d0lfero закрывает церковь или остаётся на отсечке.</p></article></div>
+      </section>
+
+      <section class="slide" data-slide-title="Постплент B" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">14 · после установки</p><h2>Постплент B: не застрять</h2></div><span class="slide-index">два темпа</span></header>
+        <div class="slide-body grid-3"><article class="panel panel--t"><span class="kicker">Банан</span><h3>Пара размена</h3><p>D4ba + middle возвращаются к половине стены; один держит, второй не показывает плечо.</p></article><article class="panel panel--t"><span class="kicker">Церковь</span><h3>Один контакт</h3><p>d0lfero контролирует дверь и сообщает число, не углубляется в КТ.</p></article><article class="panel panel--t"><span class="kicker">Плент</span><h3>Укрытая пара</h3><p>L!S + Reconnecting сохраняют флеш/молотов на касание.</p></article><article class="panel panel--signal"><span class="kicker">Ошибка</span><h3>Пятеро на пленте</h3><p>Одна ретейк-флеш ослепит всех. Сразу разводим игроков на банан, церковь и плент.</p></article><article class="panel"><span class="kicker">Отсчёт</span><h3>Не угадывать</h3><p>Гранату кидаем по звуку дефьюза или точному таймеру партнёра.</p></article><article class="panel"><span class="kicker">SUCCESS</span><h3>Бомба + размен</h3><p>Минимум один живой видит плент, второй может наказать его убийцу.</p></article></div>
+      </section>
+
+      <section class="slide" data-slide-title="CT-дефолт / роли" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">15 · старт защиты</p><h2>CT-дефолт 2–1–2</h2></div><span class="slide-index">жизнь важнее метра</span></header>
+        <div class="slide-body split"><div class="role-grid"><article class="role-card ct"><h3>D4ba</h3><b>Якорь B</b><p>Плент/новые ящики, сохраняет дым на выход.</p></article><article class="role-card ct"><h3>middle</h3><b>Контакт банана</b><p>Первая флеш/HE, затем живым уходит к B.</p></article><article class="role-card ct"><h3>d0lfero</h3><b>AWP арка</b><p>Мид и ранняя ротация без повторного сухого пика.</p></article><article class="role-card ct"><h3>Reconnecting</h3><b>Яма</b><p>Контролирует балкон и разменяет шорт.</p></article><article class="role-card ct"><h3>L!S</h3><b>Шорт / ротация</b><p>Собирает инфо A и принимает решение о помощи.</p></article></div><div data-map="ct-default"></div></div>
+      </section>
+
+      <section class="slide" data-slide-title="CT: реакция банана" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">16 · B-реакция</p><h2>Банан: задержать и жить</h2></div><span class="slide-index">middle + D4ba</span></header>
+        <div class="slide-body grid-3"><article class="panel panel--ct"><span class="kicker">1–2 T</span><h3>Сохраняем пару</h3><p>middle даёт флеш на репик, D4ba не раскрывает позицию. Ротации нет.</p></article><article class="panel panel--ct"><span class="kicker">3+ T + комплект</span><h3>Дым входа</h3><p>D4ba задерживает проход; middle отходит к пленту и зовёт одного помощника.</p></article><article class="panel panel--signal"><span class="kicker">Бомба видна</span><h3>Полная тревога</h3><p>L!S начинает ротацию, d0lfero закрывает КТ, Reconnecting остаётся A до подтверждения.</p></article><article class="panel"><span class="kicker">Дым погас</span><h3>Не встречать по одному</h3><p>Если гранат нет — играть укрытия и две линии; не отбирать банан через молотов.</p></article><article class="panel"><span class="kicker">Фейк</span><h3>Помощник возвращается</h3><p>Нет контакта семь секунд и бомба не видна — L!S восстанавливает A.</p></article><article class="panel"><span class="kicker">SUCCESS</span><h3>Время куплено</h3><p>Якорь жив, названо число, смок отнял время, ретейк входит минимум втроём.</p></article></div>
+      </section>
+
+      <section class="slide" data-slide-title="CT: A-реакция и ротации" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">17 · A-реакция</p><h2>Ротации только по условию</h2></div><span class="slide-index">нет бомбы — нет паники</span></header>
+        <div class="slide-body split"><div><div class="grid-2"><article class="panel panel--ct"><span class="kicker">Апартаменты</span><h3>Массовый выход</h3><p>Reconnecting падает в яму, L!S держит шорт, d0lfero перестраивается на библиотеку.</p></article><article class="panel panel--ct"><span class="kicker">Шорт + смоки</span><h3>Третий A</h3><p>middle уходит первым через КТ, D4ba один B сохраняет дым.</p></article><article class="panel panel--signal"><span class="kicker">Бомба A</span><h3>Полная ротация</h3><p>D4ba покидает B только после визуального/звукового подтверждения бомбы.</p></article><article class="panel"><span class="kicker">Потеряли мид</span><h3>Закрыть библиотеку</h3><p>d0lfero не ищет реванш, сообщает окно и строит перекрёстный огонь с L!S.</p></article></div></div><div data-map="retake-a"></div></div>
+      </section>
+
+      <section class="slide" data-slide-title="Ретейк A" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">18 · возврат A</p><h2>Ретейк A: библиотека + шорт</h2></div><span class="slide-index">GO после готовности</span></header>
+        <div class="slide-body split"><div><ol class="checklist"><li><strong>Сбор:</strong> два игрока библиотека/лонг, один шорт; не входить до второй группы.</li><li><strong>Разведка:</strong> HE в яму или флеш над плентом — по информации, не одновременно.</li><li><strong>GO:</strong> шорт давит яму; библиотека чистит плент и балкон.</li><li><strong>Бомба:</strong> ближайший с набором объявляет дефьюз, остальные закрывают тело.</li><li><strong>STOP:</strong> меньше 12 секунд и нет набора/гранат — сохраняем оружие.</li></ol></div><div data-map="retake-a"></div></div>
+      </section>
+
+      <section class="slide" data-slide-title="Ретейк B" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">19 · возврат B</p><h2>Ретейк B: КТ + церковь</h2></div><span class="slide-index">не в один дым</span></header>
+        <div class="slide-body split"><div><ol class="checklist"><li><strong>Сбор:</strong> минимум двое КТ, третий церковь или банан.</li><li><strong>Первая флеш:</strong> над новыми ящиками; КТ входит на её взрыве.</li><li><strong>Разделение:</strong> церковь связывает плент, КТ чистит гробы → новые ящики.</li><li><strong>Дефьюз:</strong> набор первым, дым на бомбу только после зачистки близкого угла.</li><li><strong>STOP:</strong> 2v4 без комплекта — оружие важнее позднего одиночного входа.</li></ol></div><div data-map="retake-b"></div></div>
+      </section>
+
+      <section class="slide" data-slide-title="GO / STOP / SUCCESS" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">20 · общий протокол</p><h2>GO / STOP / SUCCESS</h2></div><span class="slide-index">три слова без оттенков</span></header>
+        <div class="slide-body status-grid"><article class="status-card go"><h3>GO</h3><p>Решение окончательное. Гранаты летят, первые пары входят, никто не меняет направление по одному контакту.</p></article><article class="status-card stop"><h3>STOP</h3><p>Замереть в безопасной позиции, не расходовать ключевой комплект, доложить потери и доступные гранаты.</p></article><article class="status-card success"><h3>SUCCESS</h3><p>Названо достигнутое состояние: «плент наш», «бомба стоит», «банан очищен». После этого начинается следующий протокол.</p></article><article class="panel"><span class="kicker">Кто говорит</span><h3>L!S</h3><p>GO и смена решения. Любой игрок может крикнуть STOP при исчезновении физической возможности выполнить пакет.</p></article><article class="panel"><span class="kicker">Повтор</span><h3>Эхо один раз</h3><p>Ближайший к капитану повторяет GO/STOP. Остальные молчат и исполняют.</p></article><article class="panel"><span class="kicker">Дрилл</span><h3>Ложное окно</h3><p>Тренер случайно убирает ключевого игрока; команда должна STOP и перестроиться за пять секунд.</p></article></div>
+      </section>
+
+      <section class="slide" data-slide-title="Сценарии реакции" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">21 · давление</p><h2>Четыре сбоя — четыре ответа</h2></div><span class="slide-index">решение за 5 секунд</span></header>
+        <div class="slide-body grid-2"><article class="panel panel--signal"><span class="kicker">T · потеряли первого банана</span><h3>Не кормим второго</h3><p>Дым на отход, второй сохраняет позицию, капитан решает A или поздний возврат втроём.</p></article><article class="panel panel--signal"><span class="kicker">T · AWP на арке</span><h3>Закрыть, не проверять</h3><p>Смок арки или мото, давление апартаментами; сухой повторный пик запрещён.</p></article><article class="panel panel--ct"><span class="kicker">CT · потеряли банан</span><h3>Сжать B</h3><p>D4ba остаётся укрыто, middle уходит на плент, помощь приходит только по комплекту/бомбе.</p></article><article class="panel panel--ct"><span class="kicker">CT · потеряли яму</span><h3>Ретейк A</h3><p>L!S и d0lfero не входят по одному: отходят в библиотеку, ждут банан-ротацию и флеш.</p></article></div>
+      </section>
+
+      <section class="slide" data-slide-title="Гранаты 1–5" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">22 · библиотека гранат</p><h2>Гранаты 1–5 / экраны</h2></div><span class="slide-index">кадры CSNADES</span></header>
+        <div class="slide-body nade-grid">
+          <article class="nade-card" data-lineup><h3>01 · Дым мото</h3><a href="https://csnades.gg/inferno/smokes/moto-from-alt-mid" target="_blank" rel="noreferrer">Открыть CSNADES ↗</a><div class="nade-shots"><figure class="nade-frame"><img src="assets/nades/n01-overview.webp" alt="Обзор броска для дыма мото"><span>Обзор броска</span></figure><figure class="nade-frame"><img src="assets/nades/n01-lineup.webp" alt="Ориентир для дыма мото"><span>Ориентир</span></figure></div><div class="nade-meta"><span data-owner><b>Владелец:</b> L!S</span><span data-backup><b>Резерв:</b> middle</span><span data-throw><b>Бросок:</b> с места, прыжок + ЛКМ</span><span class="pass" data-pass><b>Зачёт:</b> 5/5 закрывает мото без щели</span></div></article>
+          <article class="nade-card" data-lineup><h3>02 · Дым арки</h3><a href="https://csnades.gg/inferno/smokes/arches-from-alt-mid" target="_blank" rel="noreferrer">Открыть CSNADES ↗</a><div class="nade-shots"><figure class="nade-frame"><img src="assets/nades/n02-overview.webp" alt="Обзор броска для дыма арки"><span>Обзор броска</span></figure><figure class="nade-frame"><img src="assets/nades/n02-lineup.webp" alt="Ориентир для дыма арки"><span>Ориентир</span></figure></div><div class="nade-meta"><span data-owner><b>Владелец:</b> middle</span><span data-backup><b>Резерв:</b> Reconnecting</span><span data-throw><b>Бросок:</b> с места, прыжок + ЛКМ</span><span class="pass" data-pass><b>Зачёт:</b> 5/5 перекрывает обе линии арки</span></div></article>
+          <article class="nade-card" data-lineup><h3>03 · Дым ямы</h3><a href="https://csnades.gg/inferno/smokes/pit-from-alt-mid" target="_blank" rel="noreferrer">Открыть CSNADES ↗</a><div class="nade-shots"><figure class="nade-frame"><img src="assets/nades/n03-overview.webp" alt="Обзор броска для дыма ямы"><span>Обзор броска</span></figure><figure class="nade-frame"><img src="assets/nades/n03-lineup.webp" alt="Ориентир для дыма ямы"><span>Ориентир</span></figure></div><div class="nade-meta"><span data-owner><b>Владелец:</b> d0lfero</span><span data-backup><b>Резерв:</b> L!S</span><span data-throw><b>Бросок:</b> с места, прыжок + ЛКМ</span><span class="pass" data-pass><b>Зачёт:</b> 5/5 закрывает глубокую яму</span></div></article>
+          <article class="nade-card" data-lineup><h3>04 · Дым КТ</h3><a href="https://csnades.gg/inferno/smokes/ct-from-banana" target="_blank" rel="noreferrer">Открыть CSNADES ↗</a><div class="nade-shots"><figure class="nade-frame"><img src="assets/nades/n04-overview.webp" alt="Обзор броска для дыма КТ"><span>Обзор броска</span></figure><figure class="nade-frame"><img src="assets/nades/n04-lineup.webp" alt="Ориентир для дыма КТ"><span>Ориентир</span></figure></div><div class="nade-meta"><span data-owner><b>Владелец:</b> Reconnecting</span><span data-backup><b>Резерв:</b> middle</span><span data-throw><b>Бросок:</b> с места, ЛКМ</span><span class="pass" data-pass><b>Зачёт:</b> 5/5 без щели у КТ</span></div></article>
+          <article class="nade-card" data-lineup><h3>05 · Дым гробов</h3><a href="https://csnades.gg/inferno/smokes/coffins-from-half-wall-a" target="_blank" rel="noreferrer">Открыть CSNADES ↗</a><div class="nade-shots"><figure class="nade-frame"><img src="assets/nades/n05-overview.webp" alt="Обзор броска для дыма гробов"><span>Обзор броска</span></figure><figure class="nade-frame"><img src="assets/nades/n05-lineup.webp" alt="Ориентир для дыма гробов"><span>Ориентир</span></figure></div><div class="nade-meta"><span data-owner><b>Владелец:</b> L!S</span><span data-backup><b>Резерв:</b> d0lfero</span><span data-throw><b>Бросок:</b> с места, прыжок + ЛКМ</span><span class="pass" data-pass><b>Зачёт:</b> 5/5 не оставляет обзор с гробов</span></div></article>
+        </div>
+      </section>
+
+      <section class="slide" data-slide-title="Гранаты 6–10" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">23 · библиотека гранат</p><h2>Гранаты 6–10 / контроль</h2></div><span class="slide-index">кадры CSNADES</span></header>
+        <div class="slide-body nade-grid">
+          <article class="nade-card" data-lineup><h3>06 · Молотов новых</h3><a href="https://csnades.gg/inferno/molotovs/new-box-from-car" target="_blank" rel="noreferrer">Открыть CSNADES ↗</a><div class="nade-shots"><figure class="nade-frame"><img src="assets/nades/n06-overview.webp" alt="Обзор броска для молотова новых ящиков"><span>Обзор броска</span></figure><figure class="nade-frame"><img src="assets/nades/n06-lineup.webp" alt="Ориентир для молотова новых ящиков"><span>Ориентир</span></figure></div><div class="nade-meta"><span data-owner><b>Владелец:</b> D4ba</span><span data-backup><b>Резерв:</b> Reconnecting</span><span data-throw><b>Бросок:</b> с места, прыжок + ЛКМ</span><span class="pass" data-pass><b>Зачёт:</b> 3/3 выжигает новые ящики</span></div></article>
+          <article class="nade-card" data-lineup><h3>07 · Молотов апельсинов</h3><a href="https://csnades.gg/inferno/molotovs/oranges-from-car" target="_blank" rel="noreferrer">Открыть CSNADES ↗</a><div class="nade-shots"><figure class="nade-frame"><img src="assets/nades/n07-overview.webp" alt="Обзор броска для молотова апельсинов"><span>Обзор броска</span></figure><figure class="nade-frame"><img src="assets/nades/n07-lineup.webp" alt="Ориентир для молотова апельсинов"><span>Ориентир</span></figure></div><div class="nade-meta"><span data-owner><b>Владелец:</b> middle</span><span data-backup><b>Резерв:</b> D4ba</span><span data-throw><b>Бросок:</b> с места, ЛКМ</span><span class="pass" data-pass><b>Зачёт:</b> 3/3 покрывает оба укрытия</span></div></article>
+          <article class="nade-card" data-lineup><h3>08 · Дым бойлера</h3><a href="https://csnades.gg/inferno/smokes/boiler-from-alt-mid" target="_blank" rel="noreferrer">Открыть CSNADES ↗</a><div class="nade-shots"><figure class="nade-frame"><img src="assets/nades/n08-overview.webp" alt="Обзор броска для дыма бойлера"><span>Обзор броска</span></figure><figure class="nade-frame"><img src="assets/nades/n08-lineup.webp" alt="Ориентир для дыма бойлера"><span>Ориентир</span></figure></div><div class="nade-meta"><span data-owner><b>Владелец:</b> Reconnecting</span><span data-backup><b>Резерв:</b> L!S</span><span data-throw><b>Бросок:</b> с места, ЛКМ</span><span class="pass" data-pass><b>Зачёт:</b> 5/5 закрывает дверь бойлера</span></div></article>
+          <article class="nade-card" data-lineup><h3>09 · CT-дым верхнего мида</h3><a href="https://csnades.gg/inferno/smokes/top-mid-from-ct-spawn" target="_blank" rel="noreferrer">Открыть CSNADES ↗</a><div class="nade-shots"><figure class="nade-frame"><img src="assets/nades/n09-overview.webp" alt="Обзор броска CT-дыма верхнего мида"><span>Обзор броска</span></figure><figure class="nade-frame"><img src="assets/nades/n09-lineup.webp" alt="Ориентир CT-дыма верхнего мида"><span>Ориентир</span></figure></div><div class="nade-meta"><span data-owner><b>Владелец:</b> d0lfero</span><span data-backup><b>Резерв:</b> middle</span><span data-throw><b>Бросок:</b> с места, прыжок + ЛКМ</span><span class="pass" data-pass><b>Зачёт:</b> 5/5 перекрывает верхний мид</span></div></article>
+          <article class="nade-card" data-lineup><h3>10 · CT-флеш банана</h3><a href="https://csnades.gg/inferno/flashbangs/top-banana-from-ct" target="_blank" rel="noreferrer">Открыть CSNADES ↗</a><div class="nade-shots"><figure class="nade-frame"><img src="assets/nades/n10-overview.webp" alt="Обзор броска CT-флешки банана"><span>Обзор броска</span></figure><figure class="nade-frame"><img src="assets/nades/n10-lineup.webp" alt="Ориентир CT-флешки банана"><span>Ориентир</span></figure></div><div class="nade-meta"><span data-owner><b>Владелец:</b> D4ba</span><span data-backup><b>Резерв:</b> L!S</span><span data-throw><b>Бросок:</b> с места, ЛКМ</span><span class="pass" data-pass><b>Зачёт:</b> 3/3 слепит верх банана, не пару</span></div></article>
+        </div>
+      </section>
+
+      <section class="slide" data-slide-title="Домашняя работа" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">24 · закрепление</p><h2>Домашняя работа</h2></div><span class="slide-index">до следующей игры</span></header>
+        <div class="slide-body grid-2"><article class="panel"><span class="kicker">Каждый · 20 минут</span><h3>Своя пара гранат</h3><p>Владелец сдаёт 5/5 для дыма или 3/3 для огня/флешки. Резерв повторяет сразу после него.</p></article><article class="panel"><span class="kicker">Команда · 25 минут</span><h3>Сухие выходы</h3><p>Пять A и пять B. Отсчёт от GO до плента; повторяем раунд, если роль потеряла темп.</p></article><article class="panel"><span class="kicker">CT · 15 минут</span><h3>Две реакции</h3><p>Массовый контакт банана и потеря ямы. Якорь обязан жить до прихода помощи.</p></article><article class="panel"><span class="kicker">Запись · 10 минут</span><h3>Три клипа</h3><p>Один хороший GO, один честный STOP, один сломанный размен. На разборе называем причину, не виновника.</p></article><article class="panel panel--signal"><span class="kicker">Порог допуска</span><h3>Без сдачи — без гранаты</h3><p>Непроверенный лайнап не входит в матчевый пакет. Владелец выбирает более простой вариант.</p></article><article class="panel"><span class="kicker">Финал</span><h3>Один лист</h3><p>L!S фиксирует стартовые роли, два условия GO и два условия STOP для каждого выхода.</p></article></div>
+      </section>
+
+      <section class="slide" data-slide-title="Финальный тест" aria-hidden="true">
+        <header class="slide-head"><div><p class="eyebrow">25 · проверка понимания</p><h2>Финальный тест</h2></div><span class="slide-index">8 вопросов · отвечаем вслух</span></header>
+        <div class="slide-body quiz-grid"><article class="quiz-card" data-quiz-question><b>01</b><p>Какой минимальный формат инфо после контакта на банане?</p></article><article class="quiz-card" data-quiz-question><b>02</b><p>Кто принимает финальное решение GO и кто может сказать STOP?</p></article><article class="quiz-card" data-quiz-question><b>03</b><p>Где находится d0lfero в T-дефолте и что он не должен делать?</p></article><article class="quiz-card" data-quiz-question><b>04</b><p>Какие три экрана открывают наш выход A?</p></article><article class="quiz-card" data-quiz-question><b>05</b><p>Когда d0lfero покидает поздний мид в выходе B?</p></article><article class="quiz-card" data-quiz-question><b>06</b><p>Какой факт запускает полную CT-ротацию с противоположного плента?</p></article><article class="quiz-card" data-quiz-question><b>07</b><p>Из каких двух направлений собирается ретейк A?</p></article><article class="quiz-card" data-quiz-question><b>08</b><p>Какой критерий SUCCESS у дыма и у огня/флешки?</p></article></div>
+      </section>
+    </main>
+
+    <footer class="deck-footer">
+      <div class="progress-track" aria-hidden="true"><div class="progress-fill" data-progress="0"></div></div>
+      <div class="nav-actions"><button class="ui-button" id="previous-button" type="button" aria-label="Предыдущий слайд">← Назад</button><select class="slide-picker" id="slide-picker" aria-label="Выбрать слайд"></select><button class="ui-button ui-button--next" id="next-button" type="button" aria-label="Следующий слайд">Дальше →</button></div>
+      <span class="hint">← → · Home / End · URL ?slide=N</span>
+      <span class="counter"><span data-current>01</span> / <span data-total>26</span></span>
+    </footer>
+  </div>
+  <script src="assets/deck.js"></script>
+</body>
+</html>
