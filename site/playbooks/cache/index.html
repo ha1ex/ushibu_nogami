@@ -23,6 +23,8 @@
       https://www.playnews.gg/en/guides/counter-strike-2-the-cache-2026-guide-callouts-rework-and-changes-up-to-the-august-3-patch
     - NartOutHere utility video (2026-07-04): current CS2 utility cross-check.
       https://www.youtube.com/watch?v=5gbIC3igve8
+    - Pol0 Cache guide (2026-07-08): CT positions/setups, rotations, T spots/defaults.
+      https://www.youtube.com/watch?v=SvwQ_Ns8jRY
     - Local radar: assets/cache-radar.webp, downloaded from CSNADES CDN and credited on every use.
       https://assets.csnades.gg/cache_game_radar_78bfffc917.webp
     Lineups below were checked for direct-link availability and metadata. Since CS2 is unavailable
@@ -129,10 +131,16 @@
     .visual-notes { display: grid; align-content: start; gap: .65rem; min-height: 0; }
     .note { border-left: 3px solid var(--accent); background: rgba(255,255,255,.035); padding: .62rem .75rem; }
     .note b { display: block; margin-bottom: .18rem; color: var(--accent); font: 850 .83em/1 var(--display); letter-spacing: .07em; text-transform: uppercase; }
+    .video-strip { display: grid; grid-template-columns: minmax(9.5rem, .38fr) minmax(0, .62fr); gap: .6rem; align-items: center; margin-top: .55rem; border-top: 2px solid var(--accent); border-bottom: 1px solid var(--line); padding: .42rem .52rem; background: color-mix(in srgb, var(--accent) 5%, transparent); font-size: .72em; line-height: 1.25; }
+    .video-strip a, .video-strip strong { color: var(--accent); font: 850 1em/1.15 var(--display); letter-spacing: .04em; text-transform: uppercase; }
+    .video-strip span { color: var(--muted); }
+    .video-strip--exception { border-top-color: var(--muted); background: rgba(255,255,255,.025); }
+    .video-strip--exception strong { color: var(--muted); }
+    .protocol > .video-strip, .sequence > .video-strip { grid-column: 1 / -1; }
 
     .map-marker { --dx: 1.4rem; --dy: -1.45rem; --len: 1.55rem; --angle: -36deg; position: absolute; left: calc(var(--x) * 1%); top: calc(var(--y) * 1%); z-index: 4; width: 0; height: 0; color: var(--accent); }
     .anchor-dot { position: absolute; left: -.37rem; top: -.37rem; width: .74rem; height: .74rem; border: .17rem solid #07100f; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 2px currentColor, 0 0 14px currentColor; }
-    .leader-line { position: absolute; left: .24rem; top: -.08rem; width: var(--len); height: 2px; background: currentColor; transform: rotate(var(--angle)); transform-origin: left center; opacity: .92; }
+    .leader-line { position: absolute; left: 0; top: -1px; width: var(--len); height: 2px; background: currentColor; transform: rotate(var(--angle)); transform-origin: left center; opacity: .92; }
     .marker-label { position: absolute; left: var(--dx); top: var(--dy); display: flex; align-items: center; gap: .28rem; width: max-content; max-width: 9rem; border: 1px solid color-mix(in srgb, currentColor 65%, transparent); background: rgba(4,11,10,.92); padding: .24rem .42rem; color: var(--ink); font: 850 clamp(.48rem, .6vw, .65rem)/1.05 var(--display); letter-spacing: .035em; text-transform: uppercase; white-space: normal; }
     .marker-label b { display: inline-grid; flex: 0 0 auto; place-items: center; width: 1.05rem; height: 1.05rem; background: currentColor; color: #06100e; font-size: .78rem; }
     .routes { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -205,6 +213,7 @@
       .visual-notes { grid-template-columns: repeat(2, minmax(0,1fr)); }
       .utility-card { grid-template-columns: 2rem 4.5rem 1fr; }
       .utility-card > :nth-child(n+4) { display: none; }
+      .video-strip { grid-template-columns: 1fr; }
       [data-action="fullscreen"] { display: none; }
     }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
@@ -260,20 +269,20 @@
       <div class="slide-body visual-grid">
         <figure class="radar-frame" data-tactical-diagram="callouts" aria-label="Ключевые коллауты Cache">
           <img src="assets/cache-radar.webp" alt="Радар Cache с точными метками ключевых коллаутов" width="2048" height="1596">
-          <span class="map-marker" data-callout="Мейн A" data-x="21" data-y="64" style="--x:21;--y:64;--dx:1.3rem;--dy:.5rem;--len:1.3rem;--angle:24deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Мейн A</span></span>
-          <span class="map-marker" data-callout="Скрип" data-x="31" data-y="56" style="--x:31;--y:56;--dx:1.5rem;--dy:-4.4rem;--len:1.4rem;--angle:-40deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Скрип</span></span>
-          <span class="map-marker" data-callout="Погрузчик" data-x="17" data-y="54" style="--x:17;--y:54;--dx:1.3rem;--dy:-1.7rem;--len:1.2rem;--angle:-38deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Погрузчик</span></span>
-          <span class="map-marker" data-callout="Квад" data-x="6" data-y="46" style="--x:6;--y:46;--dx:1.4rem;--dy:-1.6rem;--len:1.2rem;--angle:-35deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Квад</span></span>
-          <span class="map-marker" data-callout="Хайвей" data-x="33" data-y="41" style="--x:33;--y:41;--dx:1.3rem;--dy:-1.7rem;--len:1.3rem;--angle:-40deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Хайвей</span></span>
-          <span class="map-marker" data-callout="Мид" data-x="51" data-y="53" style="--x:51;--y:53;--dx:-4.2rem;--dy:1rem;--len:1.1rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>6</b>Мид</span></span>
-          <span class="map-marker" data-callout="Гараж" data-x="46" data-y="66" style="--x:46;--y:66;--dx:-4.5rem;--dy:.8rem;--len:1.2rem;--angle:150deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>7</b>Гараж</span></span>
-          <span class="map-marker" data-callout="Буст" data-x="40" data-y="55" style="--x:40;--y:55;--dx:-4.4rem;--dy:-1.7rem;--len:1.25rem;--angle:-145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>8</b>Буст</span></span>
-          <span class="map-marker" data-callout="Белый ящик" data-x="52" data-y="47" style="--x:52;--y:47;--dx:-4.8rem;--dy:.8rem;--len:1.4rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>9</b>Белый ящик</span></span>
-          <span class="map-marker" data-callout="Венты" data-x="61" data-y="48" style="--x:61;--y:48;--dx:1.4rem;--dy:-1.75rem;--len:1.2rem;--angle:-36deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>10</b>Венты</span></span>
-          <span class="map-marker" data-callout="Мейн B" data-x="75" data-y="66" style="--x:75;--y:66;--dx:-4.8rem;--dy:1rem;--len:1.3rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>11</b>Мейн B</span></span>
-          <span class="map-marker" data-callout="Шашки" data-x="67" data-y="55" style="--x:67;--y:55;--dx:1.5rem;--dy:-1.8rem;--len:1.4rem;--angle:-40deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>12</b>Шашки</span></span>
-          <span class="map-marker" data-callout="Хевен" data-x="86" data-y="59" style="--x:86;--y:59;--dx:1.5rem;--dy:-1.8rem;--len:1.4rem;--angle:-40deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>13</b>Хевен</span></span>
-          <span class="map-marker" data-callout="Санрум" data-x="68" data-y="75" style="--x:68;--y:75;--dx:1.4rem;--dy:.7rem;--len:1.2rem;--angle:32deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>14</b>Санрум</span></span>
+          <span class="map-marker" data-callout="Мейн A" data-x="43" data-y="25" style="--x:43;--y:25"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Мейн A</span></span>
+          <span class="map-marker" data-callout="Скрип" data-x="37" data-y="7" style="--x:37;--y:7"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Скрип</span></span>
+          <span class="map-marker" data-callout="Погрузчик" data-x="35" data-y="22" style="--x:35;--y:22"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Погрузчик</span></span>
+          <span class="map-marker" data-callout="Квад" data-x="27" data-y="7" style="--x:27;--y:7"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Квад</span></span>
+          <span class="map-marker" data-callout="Хайвей" data-x="30" data-y="40" style="--x:30;--y:40"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Хайвей</span></span>
+          <span class="map-marker" data-callout="Мид" data-x="39" data-y="49" style="--x:39;--y:49"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>6</b>Мид</span></span>
+          <span class="map-marker" data-callout="Гараж" data-x="55" data-y="52" style="--x:55;--y:52"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>7</b>Гараж</span></span>
+          <span class="map-marker" data-callout="Буст" data-x="45" data-y="40" style="--x:45;--y:40"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>8</b>Буст</span></span>
+          <span class="map-marker" data-callout="Белый ящик" data-x="31" data-y="43" style="--x:31;--y:43"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>9</b>Белый ящик</span></span>
+          <span class="map-marker" data-callout="Венты" data-x="40" data-y="59" style="--x:40;--y:59"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>10</b>Венты</span></span>
+          <span class="map-marker" data-callout="Мейн B" data-x="40" data-y="69" style="--x:40;--y:69"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>11</b>Мейн B</span></span>
+          <span class="map-marker" data-callout="Шашки" data-x="31" data-y="60" style="--x:31;--y:60"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>12</b>Шашки</span></span>
+          <span class="map-marker" data-callout="Хевен" data-x="24" data-y="70" style="--x:24;--y:70"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>13</b>Хевен</span></span>
+          <span class="map-marker" data-callout="Санрум" data-x="45" data-y="86" style="--x:45;--y:86"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>14</b>Санрум</span></span>
         </figure>
         <aside class="visual-notes"><div class="note"><b>Три линии</b>Мейн A / Гараж→Мид / Мейн B.</div><div class="note"><b>Два шарнира</b>Хайвей открывает сплит A. Венты открывают сплит B.</div><div class="note"><b>Два звука</b>Скрип и Венты — называем действие, а не только шум.</div></aside>
       </div>
@@ -284,11 +293,11 @@
       <div class="slide-body visual-grid">
         <figure class="radar-frame compact" data-tactical-diagram="a-callouts" aria-label="Коллауты A сайта">
           <img src="assets/cache-radar.webp" alt="Радар Cache с зонами Мейн A, Скрип, Погрузчик, Квад и Хайвей" width="2048" height="1596">
-          <span class="map-marker" data-x="21" data-y="64" style="--x:21;--y:64;--dx:1.4rem;--dy:.7rem;--angle:25deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Мейн A</span></span>
-          <span class="map-marker" data-x="31" data-y="56" style="--x:31;--y:56;--dx:1.5rem;--dy:-1.8rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Скрип</span></span>
-          <span class="map-marker" data-x="17" data-y="54" style="--x:17;--y:54;--dx:1.4rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Погрузчик</span></span>
-          <span class="map-marker" data-x="6" data-y="46" style="--x:6;--y:46;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Квад</span></span>
-          <span class="map-marker" data-x="33" data-y="41" style="--x:33;--y:41;--dx:1.5rem;--dy:-1.8rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Хайвей</span></span>
+          <span class="map-marker" data-x="43" data-y="25" style="--x:43;--y:25"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Мейн A</span></span>
+          <span class="map-marker" data-x="37" data-y="7" style="--x:37;--y:7"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Скрип</span></span>
+          <span class="map-marker" data-x="35" data-y="22" style="--x:35;--y:22"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Погрузчик</span></span>
+          <span class="map-marker" data-x="27" data-y="7" style="--x:27;--y:7"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Квад</span></span>
+          <span class="map-marker" data-x="30" data-y="40" style="--x:30;--y:40"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Хайвей</span></span>
         </figure>
         <aside class="visual-notes"><div class="note"><b>Порядок Мейн A</b>Погрузчик → ближний сайт → Квад.</div><div class="note"><b>Порядок Скрипа</b>ближний угол → Погрузчик → сайт.</div><div class="note"><b>Хайвей</b>не «ещё один вход», а страховка сплита и ротаций.</div></aside>
       </div>
@@ -299,12 +308,12 @@
       <div class="slide-body visual-grid">
         <figure class="radar-frame compact" data-tactical-diagram="mid-callouts" aria-label="Коллауты Мида">
           <img src="assets/cache-radar.webp" alt="Радар Cache с зонами Гараж, Буст, Белый ящик, Мид, Хайвей и Венты" width="2048" height="1596">
-          <span class="map-marker" data-x="46" data-y="66" style="--x:46;--y:66;--dx:-4.6rem;--dy:.8rem;--angle:150deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Гараж</span></span>
-          <span class="map-marker" data-x="40" data-y="55" style="--x:40;--y:55;--dx:-4.3rem;--dy:-1.8rem;--angle:-145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Буст</span></span>
-          <span class="map-marker" data-x="52" data-y="47" style="--x:52;--y:47;--dx:-4.8rem;--dy:.8rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Белый ящик</span></span>
-          <span class="map-marker" data-x="51" data-y="53" style="--x:51;--y:53;--dx:-4rem;--dy:1rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Мид</span></span>
-          <span class="map-marker" data-x="33" data-y="41" style="--x:33;--y:41;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Хайвей</span></span>
-          <span class="map-marker" data-x="61" data-y="48" style="--x:61;--y:48;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>6</b>Венты</span></span>
+          <span class="map-marker" data-x="55" data-y="52" style="--x:55;--y:52"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Гараж</span></span>
+          <span class="map-marker" data-x="45" data-y="40" style="--x:45;--y:40"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Буст</span></span>
+          <span class="map-marker" data-x="31" data-y="43" style="--x:31;--y:43"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Белый ящик</span></span>
+          <span class="map-marker" data-x="39" data-y="49" style="--x:39;--y:49"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Мид</span></span>
+          <span class="map-marker" data-x="30" data-y="40" style="--x:30;--y:40"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Хайвей</span></span>
+          <span class="map-marker" data-x="40" data-y="59" style="--x:40;--y:59"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>6</b>Венты</span></span>
         </figure>
         <aside class="visual-notes"><div class="note"><b>Белый ящик занят</b>не значит, что Мид выигран.</div><div class="note"><b>Контроль есть</b>когда Хайвей и Венты нельзя занять бесплатно.</div><div class="note"><b>Колл</b><span class="mono">МИД НАШ / МИД ПОТЕРЯН / ВЕНТЫ ОТКРЫТЫ</span>.</div></aside>
       </div>
@@ -315,11 +324,11 @@
       <div class="slide-body visual-grid">
         <figure class="radar-frame compact" data-tactical-diagram="b-callouts" aria-label="Коллауты B сайта">
           <img src="assets/cache-radar.webp" alt="Радар Cache с зонами Мейн B, Санрум, Шашки, Венты и Хевен" width="2048" height="1596">
-          <span class="map-marker" data-x="75" data-y="66" style="--x:75;--y:66;--dx:-4.8rem;--dy:1rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Мейн B</span></span>
-          <span class="map-marker" data-x="68" data-y="75" style="--x:68;--y:75;--dx:1.4rem;--dy:.7rem;--angle:32deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Санрум</span></span>
-          <span class="map-marker" data-x="67" data-y="55" style="--x:67;--y:55;--dx:1.45rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Шашки</span></span>
-          <span class="map-marker" data-x="61" data-y="48" style="--x:61;--y:48;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Венты</span></span>
-          <span class="map-marker" data-x="86" data-y="59" style="--x:86;--y:59;--dx:1.45rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Хевен</span></span>
+          <span class="map-marker" data-x="40" data-y="69" style="--x:40;--y:69"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Мейн B</span></span>
+          <span class="map-marker" data-x="45" data-y="86" style="--x:45;--y:86"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Санрум</span></span>
+          <span class="map-marker" data-x="31" data-y="60" style="--x:31;--y:60"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Шашки</span></span>
+          <span class="map-marker" data-x="40" data-y="59" style="--x:40;--y:59"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Венты</span></span>
+          <span class="map-marker" data-x="24" data-y="70" style="--x:24;--y:70"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Хевен</span></span>
         </figure>
         <aside class="visual-notes"><div class="note"><b>Мейн + Венты</b>две противоположные задачи для B-защиты.</div><div class="note"><b>Шашки</b>не проходной двор: сначала право войти, потом выход.</div><div class="note"><b>Хевен жив</b>ретейк жив. Хевен потерян — не по одному.</div></aside>
       </div>
@@ -330,13 +339,13 @@
       <div class="slide-body visual-grid">
         <figure class="radar-frame compact" data-tactical-diagram="roles" aria-label="Роли пятёрки на Cache">
           <img src="assets/cache-radar.webp" alt="Радар Cache с пятью стартовыми ролями команды" width="2048" height="1596">
-          <span class="map-marker" data-x="22" data-y="64" style="--x:22;--y:64;--dx:-5.7rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>D4ba · первый A</span></span>
-          <span class="map-marker" data-x="31" data-y="58" style="--x:31;--y:58;--dx:1.4rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>d0lfero · скрытый</span></span>
-          <span class="map-marker" data-x="47" data-y="66" style="--x:47;--y:66;--dx:-5rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>L!S · капитан / Мид</span></span>
-          <span class="map-marker" data-x="67" data-y="75" style="--x:67;--y:75;--dx:1.4rem;--dy:.75rem;--angle:31deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>middle · гранаты B</span></span>
-          <span class="map-marker" data-x="76" data-y="67" style="--x:76;--y:67;--dx:1.45rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Reconnecting · бомба</span></span>
+          <span class="map-marker" data-x="43" data-y="25" style="--x:43;--y:25;--dx:-7.2rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>D4ba · капитан / первый A</span></span>
+          <span class="map-marker" data-x="37" data-y="7" style="--x:37;--y:7"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>d0lfero · скрытый</span></span>
+          <span class="map-marker" data-x="55" data-y="52" style="--x:55;--y:52;--dx:1.4rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>L!S · Мид</span></span>
+          <span class="map-marker" data-x="45" data-y="86" style="--x:45;--y:86"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>middle · гранаты B</span></span>
+          <span class="map-marker" data-x="40" data-y="69" style="--x:40;--y:69"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Reconnecting · бомба</span></span>
         </figure>
-        <aside class="visual-notes"><div class="note"><b>Владелец ≠ монополия</b>У каждой гранаты есть страховка.</div><div class="note"><b>Бомба</b>не первая в проходе и не последняя в другой части карты.</div><div class="note"><b>Капитан</b>называет только решение; локальные игроки называют факты.</div></aside>
+        <aside class="visual-notes"><div class="note"><b>Владелец ≠ монополия</b>У каждой гранаты есть страховка.</div><div class="note"><b>Бомба</b>не первая в проходе и не последняя в другой части карты.</div><div class="note"><b>Капитан</b>называет только решение; локальные игроки называют факты.</div><div class="video-strip video-strip--exception" data-video-kind="exception"><strong>Видео · без точного фрагмента</strong><span>Имена, страховки и голос капитана — внутреннее распределение нашей пятёрки.</span></div></aside>
       </div>
     </section>
 
@@ -345,14 +354,14 @@
       <div class="slide-body visual-grid">
         <figure class="radar-frame compact" data-tactical-diagram="t-default" aria-label="T-дефолт на Cache">
           <img src="assets/cache-radar.webp" alt="T-дефолт: два A, один Мид и два B" width="2048" height="1596">
-          <svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="44,88 31,73 22,65" marker-end="url(#arrow-t)"/><polyline points="44,88 42,71 47,64" marker-end="url(#arrow-t)"/><polyline points="44,88 58,78 69,74" marker-end="url(#arrow-t)"/></svg>
-          <span class="map-marker" data-x="22" data-y="65" style="--x:22;--y:65;--dx:-4.9rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Мейн A</span></span>
-          <span class="map-marker" data-x="31" data-y="59" style="--x:31;--y:59;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Удержание Скрипа</span></span>
-          <span class="map-marker" data-x="47" data-y="64" style="--x:47;--y:64;--dx:-4.4rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Инфо из Гаража</span></span>
-          <span class="map-marker" data-x="68" data-y="74" style="--x:68;--y:74;--dx:-5.4rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Гранаты Санрума</span></span>
-          <span class="map-marker" data-x="76" data-y="67" style="--x:76;--y:67;--dx:1.45rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Контакт Мейн B</span></span>
+          <svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="90,52 73,43 61,43 51,34 43,25" marker-end="url(#arrow-t)"/><polyline points="90,52 72,54 55,52" marker-end="url(#arrow-t)"/><polyline points="90,52 75,68 56,72 40,69" marker-end="url(#arrow-t)"/></svg>
+          <span class="map-marker" data-x="43" data-y="25" style="--x:43;--y:25"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Мейн A</span></span>
+          <span class="map-marker" data-x="37" data-y="7" style="--x:37;--y:7"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Удержание Скрипа</span></span>
+          <span class="map-marker" data-x="55" data-y="52" style="--x:55;--y:52"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Инфо из Гаража</span></span>
+          <span class="map-marker" data-x="45" data-y="86" style="--x:45;--y:86"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Гранаты Санрума</span></span>
+          <span class="map-marker" data-x="40" data-y="69" style="--x:40;--y:69"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Контакт Мейн B</span></span>
         </figure>
-        <aside class="visual-notes"><div class="note"><b>Первые 10 сек</b>не отдаём первого; ловим агрессию защиты.</div><div class="note"><b>К 1:30</b>один факт с каждой линии.</div><div class="note"><b>К 1:20</b>решение: сплит A / сплит B / сброс.</div></aside>
+        <aside class="visual-notes"><div class="note"><b>Первые 10 сек</b>не отдаём первого; ловим агрессию защиты.</div><div class="note"><b>К 1:30</b>один факт с каждой линии.</div><div class="note"><b>К 1:20</b>решение: сплит A / сплит B / сброс.</div><div class="video-strip" data-video-kind="clip"><a href="https://www.youtube.com/watch?v=SvwQ_Ns8jRY&amp;t=443s" target="_blank" rel="noopener noreferrer">Видео · T-дефолт, 7:23–9:24</a><span>Стартовые зоны T и работа дефолта до решения.</span></div></aside>
       </div>
     </section>
 
@@ -361,20 +370,21 @@
       <div class="slide-body visual-grid">
         <figure class="radar-frame compact" data-tactical-diagram="mid-control" aria-label="Протокол контроля Мида">
           <img src="assets/cache-radar.webp" alt="Маршрут контроля Мида через Гараж и Буст" width="2048" height="1596">
-          <svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="46,67 47,58 51,52" marker-end="url(#arrow-t)"/><polyline points="40,58 45,54 51,52" marker-end="url(#arrow-t)"/><polyline points="51,52 58,49 61,48" marker-end="url(#arrow-t)"/><polyline points="51,52 42,45 33,41" marker-end="url(#arrow-t)"/></svg>
-          <span class="map-marker" data-x="46" data-y="66" style="--x:46;--y:66;--dx:-5.1rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Пара дымов</span></span>
-          <span class="map-marker" data-x="40" data-y="57" style="--x:40;--y:57;--dx:-5.2rem;--dy:-1.7rem;--angle:-145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Буст / флешка</span></span>
-          <span class="map-marker" data-x="51" data-y="52" style="--x:51;--y:52;--dx:-4.3rem;--dy:1rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Пара у Белого ящика</span></span>
-          <span class="map-marker" data-x="61" data-y="48" style="--x:61;--y:48;--dx:1.4rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Угроза Вентам</span></span>
-          <span class="map-marker" data-x="33" data-y="41" style="--x:33;--y:41;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Угроза Хайвею</span></span>
+          <svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="55,52 46,50 39,49 31,43" marker-end="url(#arrow-t)"/><polyline points="45,40 42,45 39,49 31,43" marker-end="url(#arrow-t)"/><polyline points="39,49 40,54 40,59" marker-end="url(#arrow-t)"/><polyline points="39,49 34,45 30,40" marker-end="url(#arrow-t)"/></svg>
+          <span class="map-marker" data-x="55" data-y="52" style="--x:55;--y:52"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Пара дымов</span></span>
+          <span class="map-marker" data-x="45" data-y="40" style="--x:45;--y:40"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Буст / флешка</span></span>
+          <span class="map-marker" data-x="31" data-y="43" style="--x:31;--y:43"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Пара у Белого ящика</span></span>
+          <span class="map-marker" data-x="40" data-y="59" style="--x:40;--y:59"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Угроза Вентам</span></span>
+          <span class="map-marker" data-x="30" data-y="40" style="--x:30;--y:40"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Угроза Хайвею</span></span>
         </figure>
-        <aside class="visual-notes"><div class="note"><b>1 · Закрыть</b>дым в Левый Мид + Правый Мид.</div><div class="note"><b>2 · Вытеснить</b>молотов в Белый ящик / Мешки.</div><div class="note"><b>3 · Войти парой</b>первый чистит, второй смотрит флешку.</div><div class="note"><b>4 · Зафиксировать</b>один смотрит Хайвей, один Венты.</div></aside>
+        <aside class="visual-notes"><div class="note"><b>1 · Закрыть</b>дым в Левый Мид + Правый Мид.</div><div class="note"><b>2 · Вытеснить</b>молотов в Белый ящик / Мешки.</div><div class="note"><b>3 · Войти парой</b>первый чистит, второй смотрит флешку.</div><div class="note"><b>4 · Зафиксировать</b>один смотрит Хайвей, один Венты.</div><div class="video-strip" data-video-kind="clip"><a href="https://www.youtube.com/watch?v=5gbIC3igve8&amp;t=75s" target="_blank" rel="noopener noreferrer">Видео · контроль Мида, 1:15–2:54</a><span>Гранаты на Мешки, Белый ящик, Венты и флешки для входа.</span></div></aside>
       </div>
     </section>
 
     <section class="slide attack" data-index="11" data-minutes="2" aria-hidden="true">
       <header class="slide-head"><div><p class="eyebrow">Протокол · GO / STOP</p><h2>Слова, которые меняют состояние</h2></div><div class="timing"><strong>2 минуты</strong>без третьего режима</div></header>
       <div class="slide-body protocol">
+        <div class="video-strip video-strip--exception" data-video-kind="exception"><strong>Видео · без точного фрагмента</strong><span>GO / STOP и порядок подтверждений — командный протокол, которого нет в проверенных роликах.</span></div>
         <article class="go"><h3>GO</h3><p class="lead">Входим сейчас. Граната уже летит.</p><ul><li>«ГОТОВ»×5 услышано;</li><li>владелец ключевой гранаты подтвердил;</li><li>первый видит сигнал флешки;</li><li>бомба идёт третьей.</li></ul></article>
         <article class="stop"><h3>STOP</h3><p class="lead">Не выходим. Живём и возвращаем углы.</p><ul><li>ключевой дым или молотов не попал;</li><li>бомба или первый отрезаны;</li><li>нет второй линии;</li><li>неизвестная агрессия в спину.</li></ul></article>
       </div>
@@ -385,20 +395,21 @@
       <div class="slide-body visual-grid">
         <figure class="radar-frame compact" data-tactical-diagram="a-execute" aria-label="Выход A через Мейн A и Скрип">
           <img src="assets/cache-radar.webp" alt="Синхронный выход на A через Мейн A и Скрип" width="2048" height="1596">
-          <svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="22,65 18,59 15,54" marker-end="url(#arrow-t)"/><polyline points="31,59 26,56 20,53" marker-end="url(#arrow-t)"/></svg>
-          <span class="map-marker" data-x="22" data-y="65" style="--x:22;--y:65;--dx:-5.2rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Первый + размен</span></span>
-          <span class="map-marker" data-x="31" data-y="59" style="--x:31;--y:59;--dx:1.4rem;--dy:.7rem;--angle:32deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Скрытый в Скрипе</span></span>
-          <span class="map-marker" data-x="17" data-y="54" style="--x:17;--y:54;--dx:1.4rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Молотов в Погрузчик</span></span>
-          <span class="map-marker" data-x="6" data-y="46" style="--x:6;--y:46;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Проверка Квада</span></span>
-          <span class="map-marker" data-x="33" data-y="41" style="--x:33;--y:41;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Отрезать Хайвей</span></span>
+          <svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="43,25 39,22 33,17" marker-end="url(#arrow-t)"/><polyline points="37,7 34,10 32,15" marker-end="url(#arrow-t)"/></svg>
+          <span class="map-marker" data-x="43" data-y="25" style="--x:43;--y:25"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Первый + размен</span></span>
+          <span class="map-marker" data-x="37" data-y="7" style="--x:37;--y:7"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Скрытый в Скрипе</span></span>
+          <span class="map-marker" data-x="35" data-y="22" style="--x:35;--y:22"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Молотов в Погрузчик</span></span>
+          <span class="map-marker" data-x="27" data-y="7" style="--x:27;--y:7"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Проверка Квада</span></span>
+          <span class="map-marker" data-x="30" data-y="40" style="--x:30;--y:40"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Отрезать Хайвей</span></span>
         </figure>
-        <aside class="visual-notes"><div class="note"><b>До GO</b>молотов в Погрузчик + дым в дальний сайт; Скрип закрыт.</div><div class="note"><b>На GO</b>флешка; пара Мейн A выходит, Скрип открывается под звук.</div><div class="note"><b>После входа</b>1 Погрузчик, 2 Квад, 3 сайт, 4 Хайвей, 5 установка/размен.</div></aside>
+        <aside class="visual-notes"><div class="note"><b>До GO</b>молотов в Погрузчик + дым в дальний сайт; Скрип закрыт.</div><div class="note"><b>На GO</b>флешка; пара Мейн A выходит, Скрип открывается под звук.</div><div class="note"><b>После входа</b>1 Погрузчик, 2 Квад, 3 сайт, 4 Хайвей, 5 установка/размен.</div><div class="video-strip" data-video-kind="clip"><a href="https://www.youtube.com/watch?v=5gbIC3igve8&amp;t=211s" target="_blank" rel="noopener noreferrer">Видео · пакет A, 3:31–4:13</a><span>Дымы выхода A и молотовы в Погрузчик, NBK и Квад.</span></div></aside>
       </div>
     </section>
 
     <section class="slide attack" data-index="13" data-minutes="2" aria-hidden="true">
       <header class="slide-head"><div><p class="eyebrow">Выход A · роли</p><h2>Порядок входа важнее позиции</h2></div><div class="timing"><strong>2 минуты</strong>повторить вслух</div></header>
       <div class="slide-body sequence">
+        <div class="video-strip" data-video-kind="clip"><a href="https://www.youtube.com/watch?v=5gbIC3igve8&amp;t=211s" target="_blank" rel="noopener noreferrer">Видео · пакет A, 3:31–4:13</a><span>Показаны гранаты выхода A; порядок «гранаты → первый → размен/бомба → Скрип» — наш сценарий прогона.</span></div>
         <article class="card"><h3>Гранаты</h3><p>Дым в дальний сайт, молотов в Погрузчик, флешка. Говорит «готов» последним.</p></article>
         <article class="card"><h3>Первый</h3><p>Не ищет все киллы: очищает Погрузчик и создаёт путь.</p></article>
         <article class="card"><h3>Размен + бомба</h3><p>Дистанция одного корпуса. Бомба не блокирует дверь.</p></article>
@@ -411,20 +422,21 @@
       <div class="slide-body visual-grid">
         <figure class="radar-frame compact" data-tactical-diagram="b-split" aria-label="Сплит B через Мейн B и Венты">
           <img src="assets/cache-radar.webp" alt="Сплит B: три игрока в Мейн B и два через Венты" width="2048" height="1596">
-          <svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="69,75 75,67 80,64" marker-end="url(#arrow-t)"/><polyline points="51,52 61,48 68,55" marker-end="url(#arrow-t)"/></svg>
-          <span class="map-marker" data-x="69" data-y="75" style="--x:69;--y:75;--dx:-5rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Гранаты / бомба</span></span>
-          <span class="map-marker" data-x="76" data-y="67" style="--x:76;--y:67;--dx:1.45rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Пара Мейн B</span></span>
-          <span class="map-marker" data-x="61" data-y="48" style="--x:61;--y:48;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Пара Венты</span></span>
-          <span class="map-marker" data-x="67" data-y="55" style="--x:67;--y:55;--dx:1.45rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Клещи в Шашках</span></span>
-          <span class="map-marker" data-x="86" data-y="59" style="--x:86;--y:59;--dx:.4rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Закрыть Хевен</span></span>
+          <svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="49,76 44,72 40,69 34,79" marker-end="url(#arrow-t)"/><polyline points="40,59 35,60 31,62 31,80" marker-end="url(#arrow-t)"/></svg>
+          <span class="map-marker" data-x="49" data-y="76" style="--x:49;--y:76"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Гранаты / бомба</span></span>
+          <span class="map-marker" data-x="40" data-y="69" style="--x:40;--y:69"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Пара Мейн B</span></span>
+          <span class="map-marker" data-x="40" data-y="59" style="--x:40;--y:59"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Пара Венты</span></span>
+          <span class="map-marker" data-x="31" data-y="60" style="--x:31;--y:60"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Клещи в Шашках</span></span>
+          <span class="map-marker" data-x="24" data-y="70" style="--x:24;--y:70"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Закрыть Хевен</span></span>
         </figure>
-        <aside class="visual-notes"><div class="note"><b>Мейн B: 3</b>дым КТ, молотов в Хедшот, флешка; первый + бомба/размен.</div><div class="note"><b>Венты: 2</b>контроль Мида до сплита; первый ломает, второй не падает в спину.</div><div class="note"><b>Синхрон</b>Мейн B показывает давление; Венты выходят через 1 секунду, не через 5.</div></aside>
+        <aside class="visual-notes"><div class="note"><b>Мейн B: 3</b>дым КТ, молотов в Хедшот, флешка; первый + бомба/размен.</div><div class="note"><b>Венты: 2</b>контроль Мида до сплита; первый ломает, второй не падает в спину.</div><div class="note"><b>Синхрон</b>Мейн B показывает давление; Венты выходят через 1 секунду, не через 5.</div><div class="video-strip" data-video-kind="clip"><a href="https://www.youtube.com/watch?v=5gbIC3igve8&amp;t=288s" target="_blank" rel="noopener noreferrer">Видео · пакет B, 4:48–6:13</a><span>Дым Дерева, молотов Хедшота и сольный комплект выхода B.</span></div></aside>
       </div>
     </section>
 
     <section class="slide attack" data-index="15" data-minutes="2" aria-hidden="true">
       <header class="slide-head"><div><p class="eyebrow">Сплит B · таймлайн</p><h2>Контакт → шум → клещи</h2></div><div class="timing"><strong>2 минуты</strong>один голос</div></header>
       <div class="slide-body sequence">
+        <div class="video-strip" data-video-kind="clip"><a href="https://www.youtube.com/watch?v=5gbIC3igve8&amp;t=288s" target="_blank" rel="noopener noreferrer">Видео · пакет B, 4:48–6:13</a><span>Что должно улететь до контакта; установка и позиции после неё остаются нашим протоколом.</span></div>
         <article class="card"><h3>ГОТОВ</h3><p>Трое в Мейн B у Санрума. Двое у Вентов со стороны Белого ящика. Все называют готовность.</p></article>
         <article class="card"><h3>Гранаты</h3><p>Дым КТ + молотов в Хедшот. Флешка объявлена: <span class="mono">флешка через 2</span>.</p></article>
         <article class="card"><h3>GO</h3><p>Мейн B делает контакт. Венты ломаются сразу под звук гранат.</p></article>
@@ -437,14 +449,14 @@
       <div class="slide-body visual-grid">
         <figure class="radar-frame compact" data-tactical-diagram="fast-b" aria-label="Маршрут быстрого B">
           <img src="assets/cache-radar.webp" alt="Быстрый выход B через Санрум и Мейн B" width="2048" height="1596">
-          <svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="44,88 61,79 68,75 76,67 85,65" marker-end="url(#arrow-t)"/></svg>
-          <span class="map-marker" data-x="68" data-y="75" style="--x:68;--y:75;--dx:-5.4rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Дым КТ</span></span>
-          <span class="map-marker" data-x="75" data-y="68" style="--x:75;--y:68;--dx:-5.4rem;--dy:-1.8rem;--angle:-145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Первый контакт</span></span>
-          <span class="map-marker" data-x="80" data-y="64" style="--x:80;--y:64;--dx:1.4rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Размен / Хедшот</span></span>
-          <span class="map-marker" data-x="86" data-y="59" style="--x:86;--y:59;--dx:-6rem;--dy:-3.2rem;--angle:-145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Флешка в Хевен</span></span>
-          <span class="map-marker" data-x="90" data-y="66" style="--x:90;--y:66;--dx:-5rem;--dy:1rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Бомба третья</span></span>
+          <svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="90,52 75,68 56,72 43,69 34,80" marker-end="url(#arrow-t)"/></svg>
+          <span class="map-marker" data-x="17" data-y="48" style="--x:17;--y:48"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Дым в КТ-холлы</span></span>
+          <span class="map-marker" data-x="40" data-y="69" style="--x:40;--y:69"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Первый контакт</span></span>
+          <span class="map-marker" data-x="27" data-y="82" style="--x:27;--y:82"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Размен / Хедшот</span></span>
+          <span class="map-marker" data-x="24" data-y="70" style="--x:24;--y:70"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Флешка в Хевен</span></span>
+          <span class="map-marker" data-x="31" data-y="86" style="--x:31;--y:86"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Бомба третья</span></span>
         </figure>
-        <aside class="visual-notes"><div class="note"><b>Триггер</b>защита показала троих в Миде / слабые гранаты B / плохой респ B.</div><div class="note"><b>Минимум</b>дым КТ, молотов в Хедшот, 2 флешки. Без набора — STOP.</div><div class="note"><b>Первый</b>смотрит Шашки. Второй — Хедшот. Третий — Хевен.</div></aside>
+        <aside class="visual-notes"><div class="note"><b>Триггер</b>защита показала троих в Миде / слабые гранаты B / плохой респ B.</div><div class="note"><b>Минимум</b>дым КТ, молотов в Хедшот, 2 флешки. Без набора — STOP.</div><div class="note"><b>Первый</b>смотрит Шашки. Второй — Хедшот. Третий — Хевен.</div><div class="video-strip" data-video-kind="clip"><a href="https://www.youtube.com/watch?v=5gbIC3igve8&amp;t=345s" target="_blank" rel="noopener noreferrer">Видео · сольный пакет B, 5:45–6:13</a><span>Короткий комплект гранат для быстрого выхода B.</span></div></aside>
       </div>
     </section>
 
@@ -453,24 +465,27 @@
       <div class="slide-body visual-grid">
         <figure class="radar-frame compact" data-tactical-diagram="ct-default" aria-label="КТ-дефолт 2-1-2">
           <img src="assets/cache-radar.webp" alt="КТ-дефолт: два A, один Мид, два B" width="2048" height="1596">
-          <span class="map-marker" data-x="7" data-y="47" style="--x:7;--y:47;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Опорник A · Квад</span></span>
-          <span class="map-marker" data-x="28" data-y="45" style="--x:28;--y:45;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Помощь A · Хайвей</span></span>
-          <span class="map-marker" data-x="54" data-y="45" style="--x:54;--y:45;--dx:-4rem;--dy:-1.8rem;--angle:-145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Мид · Мешки</span></span>
-          <span class="map-marker" data-x="68" data-y="55" style="--x:68;--y:55;--dx:1.45rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Помощник B · Шашки</span></span>
-          <span class="map-marker" data-x="88" data-y="64" style="--x:88;--y:64;--dx:-5.1rem;--dy:1rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Опорник B · сайт</span></span>
+          <span class="map-marker" data-x="27" data-y="7" style="--x:27;--y:7"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Опорник A · Квад</span></span>
+          <span class="map-marker" data-x="30" data-y="40" style="--x:30;--y:40"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Помощь A · Хайвей</span></span>
+          <span class="map-marker" data-x="33" data-y="55" style="--x:33;--y:55"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Мид · Мешки</span></span>
+          <span class="map-marker" data-x="31" data-y="60" style="--x:31;--y:60"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Помощник B · Шашки</span></span>
+          <span class="map-marker" data-x="31" data-y="86" style="--x:31;--y:86"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Опорник B · сайт</span></span>
         </figure>
-        <aside class="visual-notes"><div class="note"><b>Опорник A</b>контакт → задержка → Квад; не умирает в Мейн A.</div><div class="note"><b>Мид</b>информация важнее дуэли; отход в Коннектор.</div><div class="note"><b>Пара B</b>один видит Мейн B, один контролирует Шашки/Венты.</div></aside>
+        <aside class="visual-notes"><div class="note"><b>Опорник A</b>контакт → задержка → Квад; не умирает в Мейн A.</div><div class="note"><b>Мид</b>информация важнее дуэли; отход в Коннектор.</div><div class="note"><b>Пара B</b>один видит Мейн B, один контролирует Шашки/Венты.</div><div class="video-strip" data-video-kind="clip"><a href="https://www.youtube.com/watch?v=SvwQ_Ns8jRY&amp;t=314s" target="_blank" rel="noopener noreferrer">Видео · расстановки защиты, 5:14–7:22</a><span>Готовые схемы защиты и связь между опорниками.</span></div></aside>
       </div>
     </section>
 
     <section class="slide ct" data-index="18" data-minutes="3" aria-hidden="true">
       <header class="slide-head"><div><p class="eyebrow">Защита · реакции КТ</p><h2>Доказательство раньше ротации</h2></div><div class="timing"><strong>3 минуты</strong>матрица сигналов</div></header>
-      <div class="slide-body matrix" role="table" aria-label="Матрица реакций КТ">
-        <div class="head">Сигнал</div><div class="head">Первые 2 секунды</div><div class="head">Ротация</div><div class="head">Стоп-сигнал</div>
-        <div class="cue">Дым×2 в Мид</div><div>Мид отходит к Коннектору, помощник A смотрит Хайвей.</div><div>Помощник B держит Венты; опорники не уходят.</div><div>Нет тела у Белого ящика / нет Вентов.</div>
-        <div class="cue">Дверь Скрипа</div><div>Опорник A меняет угол; помощник A готовит флешку.</div><div>Только после гранат Мейн A + тела.</div><div>Один звук двери без гранат.</div>
-        <div class="cue">Гранаты×3 в Мейн B</div><div>Дым/молотов B задерживают; Шашки не пушат.</div><div>Мид → Хевен; помощник A → КТ после GO.</div><div>Венты тихие и бомба не видна.</div>
-        <div class="cue">Венты сломаны</div><div>Помощник B называет направление, не угадывает.</div><div>Мид следует только за телом/бомбой.</div><div>Венты пусты после флешки.</div>
+      <div class="slide-body">
+        <div class="video-strip" data-video-kind="clip"><a href="https://www.youtube.com/watch?v=5gbIC3igve8&amp;t=374s" target="_blank" rel="noopener noreferrer">Видео · защитные ответы, 6:14–7:59</a><span>Антираш Мида, контроль Мейна A и задержка Мейна B.</span></div>
+        <div class="matrix" role="table" aria-label="Матрица реакций КТ">
+          <div class="head">Сигнал</div><div class="head">Первые 2 секунды</div><div class="head">Ротация</div><div class="head">Стоп-сигнал</div>
+          <div class="cue">Дым×2 в Мид</div><div>Мид отходит к Коннектору, помощник A смотрит Хайвей.</div><div>Помощник B держит Венты; опорники не уходят.</div><div>Нет тела у Белого ящика / нет Вентов.</div>
+          <div class="cue">Дверь Скрипа</div><div>Опорник A меняет угол; помощник A готовит флешку.</div><div>Только после гранат Мейн A + тела.</div><div>Один звук двери без гранат.</div>
+          <div class="cue">Гранаты×3 в Мейн B</div><div>Дым/молотов B задерживают; Шашки не пушат.</div><div>Мид → Хевен; помощник A → КТ после GO.</div><div>Венты тихие и бомба не видна.</div>
+          <div class="cue">Венты сломаны</div><div>Помощник B называет направление, не угадывает.</div><div>Мид следует только за телом/бомбой.</div><div>Венты пусты после флешки.</div>
+        </div>
       </div>
     </section>
 
@@ -479,14 +494,14 @@
       <div class="slide-body visual-grid">
         <figure class="radar-frame compact" data-tactical-diagram="ct-reactions" aria-label="Маршруты реакции КТ">
           <img src="assets/cache-radar.webp" alt="Ротации КТ при выходе на A и B" width="2048" height="1596">
-          <svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="54,44 42,39 29,44 20,50" marker-end="url(#arrow-ct)"/><polyline points="54,44 63,47 69,54 84,62" marker-end="url(#arrow-ct)"/><polyline points="43,14 58,27 70,45 84,59" marker-end="url(#arrow-ct)"/></svg>
-          <span class="map-marker" data-x="54" data-y="44" style="--x:54;--y:44;--dx:-5rem;--dy:-1.8rem;--angle:-145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Мид отходит</span></span>
-          <span class="map-marker" data-x="29" data-y="44" style="--x:29;--y:44;--dx:1.4rem;--dy:-1.7rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Задержка A</span></span>
-          <span class="map-marker" data-x="69" data-y="54" style="--x:69;--y:54;--dx:1.45rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Удержание Шашек</span></span>
-          <span class="map-marker" data-x="84" data-y="59" style="--x:84;--y:59;--dx:1.45rem;--dy:-1.75rem"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Сбор в Хевене</span></span>
-          <span class="map-marker" data-x="43" data-y="14" style="--x:43;--y:14;--dx:-5rem;--dy:.9rem;--angle:145deg"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Безопасный маршрут КТ</span></span>
+          <svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="33,55 25,51 23,46 30,40" marker-end="url(#arrow-ct)"/><polyline points="33,55 40,59 34,69 31,82" marker-end="url(#arrow-ct)"/><polyline points="17,48 20,56 23,68 31,82" marker-end="url(#arrow-ct)"/></svg>
+          <span class="map-marker" data-x="33" data-y="55" style="--x:33;--y:55"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>1</b>Мид отходит</span></span>
+          <span class="map-marker" data-x="30" data-y="40" style="--x:30;--y:40"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>2</b>Задержка A</span></span>
+          <span class="map-marker" data-x="31" data-y="60" style="--x:31;--y:60"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>3</b>Удержание Шашек</span></span>
+          <span class="map-marker" data-x="24" data-y="70" style="--x:24;--y:70"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>4</b>Сбор в Хевене</span></span>
+          <span class="map-marker" data-x="17" data-y="48" style="--x:17;--y:48"><i class="anchor-dot"></i><i class="leader-line"></i><span class="marker-label"><b>5</b>Безопасный маршрут КТ</span></span>
         </figure>
-        <aside class="visual-notes"><div class="note"><b>Одно доказательство</b>тела + бомба или три гранаты + вход.</div><div class="note"><b>Первый помощник</b>даёт гранату, не сухую дуэль.</div><div class="note"><b>Ретейк</b>собираемся втроём, считаем наборы и флешки.</div></aside>
+        <aside class="visual-notes"><div class="note"><b>Одно доказательство</b>тела + бомба или три гранаты + вход.</div><div class="note"><b>Первый помощник</b>даёт гранату, не сухую дуэль.</div><div class="note"><b>Ретейк</b>собираемся втроём, считаем наборы и флешки.</div><div class="video-strip" data-video-kind="clip"><a href="https://www.youtube.com/watch?v=SvwQ_Ns8jRY&amp;t=155s" target="_blank" rel="noopener noreferrer">Видео · помощник B, 2:35–3:05</a><span>Маршрут и обязанности B rotator / Checker; сам ретейк остаётся командным упражнением.</span></div></aside>
       </div>
     </section>
 
@@ -610,6 +625,77 @@
         timerOutput.textContent = '00:00'; timerOutput.value = '00:00';
         timerButton.textContent = 'Старт таймера';
       };
+      const overlaps = (a, b, gap = 3) => !(a.right + gap <= b.left || b.right + gap <= a.left || a.bottom + gap <= b.top || b.bottom + gap <= a.top);
+      const segmentsCross = (a, b, c, d) => {
+        const turn = (p, q, r) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
+        return turn(a, b, c) * turn(a, b, d) < 0 && turn(c, d, a) * turn(c, d, b) < 0;
+      };
+      const leaderEnd = (anchor, label) => {
+        const center = { x: (label.left + label.right) / 2, y: (label.top + label.bottom) / 2 };
+        const dx = center.x - anchor.x;
+        const dy = center.y - anchor.y;
+        const tx = dx > 0 ? (label.left - anchor.x) / dx : (label.right - anchor.x) / dx;
+        const ty = dy > 0 ? (label.top - anchor.y) / dy : (label.bottom - anchor.y) / dy;
+        const t = Math.max(Number.isFinite(tx) ? tx : 0, Number.isFinite(ty) ? ty : 0);
+        return { x: anchor.x + dx * t, y: anchor.y + dy * t };
+      };
+      const layoutDiagram = (frame) => {
+        if (!frame || !frame.offsetWidth) return;
+        const bounds = frame.getBoundingClientRect();
+        const markers = [...frame.querySelectorAll('.map-marker')];
+        const anchors = markers.map((marker) => ({ x: bounds.left + bounds.width * Number(marker.dataset.x) / 100, y: bounds.top + bounds.height * Number(marker.dataset.y) / 100 }));
+        const placed = [];
+        const segments = [];
+        markers.forEach((marker, index) => {
+          const label = marker.querySelector('.marker-label');
+          const leader = marker.querySelector('.leader-line');
+          label.style.removeProperty('left');
+          label.style.removeProperty('top');
+          const measured = label.getBoundingClientRect();
+          const w = measured.width;
+          const h = measured.height;
+          const anchor = anchors[index];
+          const defaultOffsets = [
+            [18, -h - 12], [-w - 18, -h - 12], [18, 12], [-w - 18, 12],
+            [-w / 2, -h - 22], [-w / 2, 22], [36, -h / 2], [-w - 36, -h / 2],
+            [38, -h - 24], [-w - 38, -h - 24], [38, 24], [-w - 38, 24],
+            [58, -h - 34], [-w - 58, -h - 34], [58, 34], [-w - 58, 34],
+            [78, -h - 44], [-w - 78, -h - 44], [78, 44], [-w - 78, 44]
+          ];
+          const offsets = /Шашк/.test(label.textContent)
+            ? [[-w - 36, 12], [-w - 36, -h - 12], ...defaultOffsets]
+            : defaultOffsets;
+          let chosen;
+          for (const [rawX, rawY] of offsets) {
+            const left = Math.min(Math.max(anchor.x + rawX, bounds.left + 5), bounds.right - w - 5);
+            const top = Math.min(Math.max(anchor.y + rawY, bounds.top + 5), bounds.bottom - h - 5);
+            const rect = { left, top, right: left + w, bottom: top + h };
+            const end = leaderEnd(anchor, rect);
+            const coversAnchor = anchors.some((point, other) => other !== index && point.x > rect.left - 4 && point.x < rect.right + 4 && point.y > rect.top - 4 && point.y < rect.bottom + 4);
+            if (!coversAnchor && placed.every((other) => !overlaps(rect, other)) && segments.every((segment) => !segmentsCross(anchor, end, segment.start, segment.end))) {
+              chosen = { rect, end };
+              break;
+            }
+          }
+          if (!chosen) {
+            const left = Math.min(Math.max(anchor.x + 18, bounds.left + 5), bounds.right - w - 5);
+            const top = Math.min(Math.max(anchor.y - h - 12, bounds.top + 5), bounds.bottom - h - 5);
+            const rect = { left, top, right: left + w, bottom: top + h };
+            chosen = { rect, end: leaderEnd(anchor, rect) };
+          }
+          label.style.left = `${chosen.rect.left - anchor.x}px`;
+          label.style.top = `${chosen.rect.top - anchor.y}px`;
+          const dx = chosen.end.x - anchor.x;
+          const dy = chosen.end.y - anchor.y;
+          leader.style.width = `${Math.hypot(dx, dy)}px`;
+          leader.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+          marker.style.setProperty('--leader-end-x', chosen.end.x.toFixed(3));
+          marker.style.setProperty('--leader-end-y', chosen.end.y.toFixed(3));
+          placed.push(chosen.rect);
+          segments.push({ start: anchor, end: chosen.end });
+        });
+      };
+      const layoutActiveDiagram = () => requestAnimationFrame(() => layoutDiagram(slides[current].querySelector('[data-tactical-diagram]')));
       const goTo = (index) => {
         current = Math.max(0, Math.min(slides.length - 1, Number(index) || 0));
         slides.forEach((slide, slideIndex) => {
@@ -624,6 +710,7 @@
         progress.style.background = accent;
         document.documentElement.style.setProperty('--accent', accent);
         history.replaceState(null, '', `#${pad(current + 1)}`);
+        layoutActiveDiagram();
       };
       const toggleFullscreen = async () => {
         try {
@@ -658,6 +745,9 @@
         if (event.key.toLowerCase() === 'f') { event.preventDefault(); toggleFullscreen(); }
       });
       document.addEventListener('fullscreenchange', () => { fullscreenButton.textContent = document.fullscreenElement ? 'В окно' : 'Полноэкранно'; });
+      window.addEventListener('resize', layoutActiveDiagram);
+      window.addEventListener('load', layoutActiveDiagram);
+      if (document.fonts) document.fonts.ready.then(layoutActiveDiagram);
       const hashIndex = Number(location.hash.slice(1)) - 1;
       window.cacheDeck = { goTo, next: () => goTo(current + 1), prev: () => goTo(current - 1), resetTimer };
       goTo(Number.isInteger(hashIndex) && hashIndex >= 0 ? hashIndex : 0);

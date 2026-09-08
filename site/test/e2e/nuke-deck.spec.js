@@ -44,7 +44,7 @@ test('Nuke role diagram uses the clean radar and precise Russian callouts', asyn
   await expect(radar.locator('.radar-leader')).toHaveCount(5);
 
   const labels = await radar.locator('.radar-label').allTextContents();
-  expect(labels).toEqual(['1 · A · Будка', '2 · A · Скрип', '3 · Улица', '4 · Рампа', '5 · Свободный']);
+  expect(labels).toEqual(['1 · A · Будка', '2 · A · Скрип', '3 · Улица', '4 · Рампа', '5 · Девятка']);
   expect(labels.some((label) => /Hut|Squeaky|Outside|Ramp|Heaven|Main|Garage/i.test(label))).toBe(false);
 
   const invalidAnchors = await radar.locator('.radar-callout').evaluateAll((groups) => groups.filter((group) => {
@@ -56,6 +56,76 @@ test('Nuke role diagram uses the clean radar and precise Russian callouts', asyn
     return !Number.isFinite(x) || !Number.isFinite(y) || x < 0 || x > 1558 || y < 0 || y > 848 || !path.startsWith(`M ${x} ${y} L `);
   }).length);
   expect(invalidAnchors).toBe(0);
+
+  const geometry = await radar.locator('.radar-callout').evaluateAll((groups) => groups.map((group) => {
+    const anchor = group.querySelector('.radar-anchor');
+    const leader = group.querySelector('.radar-leader');
+    const plate = group.querySelector('.radar-plate');
+    const path = leader.getAttribute('d').match(/M\s+([\d.]+)\s+([\d.]+)\s+L\s+([\d.]+)\s+([\d.]+)/);
+    const x = Number(anchor.getAttribute('cx'));
+    const y = Number(anchor.getAttribute('cy'));
+    const px = Number(plate.getAttribute('x'));
+    const py = Number(plate.getAttribute('y'));
+    const pw = Number(plate.getAttribute('width'));
+    const ph = Number(plate.getAttribute('height'));
+    const endX = Number(path?.[3]);
+    const endY = Number(path?.[4]);
+    const endpointOnPlate = endX >= px && endX <= px + pw && endY >= py && endY <= py + ph &&
+      (endX === px || endX === px + pw || endY === py || endY === py + ph);
+    return { x, y, startsAtAnchor: Number(path?.[1]) === x && Number(path?.[2]) === y, endpointOnPlate };
+  }));
+  expect(geometry).toEqual([
+    { x: 808, y: 492, startsAtAnchor: true, endpointOnPlate: true },
+    { x: 714, y: 548, startsAtAnchor: true, endpointOnPlate: true },
+    { x: 920, y: 690, startsAtAnchor: true, endpointOnPlate: true },
+    { x: 855, y: 120, startsAtAnchor: true, endpointOnPlate: true },
+    { x: 995, y: 340, startsAtAnchor: true, endpointOnPlate: true }
+  ]);
+});
+
+test('Nuke names D4ba as the only map leader', async ({ page }) => {
+  await page.goto(deckUrl);
+  const copy = await page.locator('.slide').allTextContents();
+  const leadership = copy.filter((text) => /лидер|капитан/i.test(text));
+  expect(leadership.join(' ')).toContain('На тренировке это D4ba');
+  expect(leadership.join(' ')).not.toMatch(/На тренировке это L!S|L!S\s*[·—:-].*капитан/i);
+});
+
+test('every Nuke tactical block links to a timestamped YouTube fragment', async ({ page }) => {
+  await page.goto(deckUrl);
+  const tacticalTitles = await page.locator('.slide:has(.video-cue) h2').allTextContents();
+  expect(tacticalTitles).toEqual([
+    'Дефолт: базовое начало раунда',
+    'Стандартная расстановка',
+    'Пять зон ответственности',
+    'Давление на Рампу',
+    'Контакт, задержка и отход',
+    'Улица и Секрет',
+    'Считаем переход, а не геройствуем',
+    'Давление на A',
+    'Два входа — две линии',
+    'Что делает вся пятёрка',
+    'Два игрока всегда держат Лобби',
+    'Открываем Рампу',
+    'Трое входят одной волной',
+    'Открываем A',
+    'Два входа в одну секунду',
+    'Контроль Улицы одним дымом',
+    'Быстрый дым, размен и выбор'
+  ]);
+
+  const cues = page.locator('.slide .video-cue');
+  await expect(cues).toHaveCount(tacticalTitles.length);
+  expect(await cues.evaluateAll((links) => links.every((link) => (
+    /^https:\/\/www\.youtube\.com\/watch\?v=[\w-]+&t=\d+s$/.test(link.href) &&
+    /\d+:\d{2}–\d+:\d{2}/.test(link.textContent || '') &&
+    link.target === '_blank' &&
+    link.rel === 'noopener noreferrer'
+  )))).toBe(true);
+
+  const overviewLinks = page.locator('.slide', { hasText: 'Базовая игра за защиту' }).locator('.source-table a[href*="youtube.com"]');
+  await expect(overviewLinks).toHaveCount(4);
+  expect(await overviewLinks.evaluateAll((links) => links.every((link) => /[?&]t=\d+s$/.test(link.href)))).toBe(true);
 });
 
 test('Nuke utility practice has exactly ten complete CSNADES drills', async ({ page }) => {

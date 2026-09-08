@@ -9,6 +9,25 @@ let ancientUrl;
 const ancientRoot = path.resolve(import.meta.dirname, '../../playbooks/ancient');
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png' };
 
+const expectedDiagramAnchors = [
+  [['Мейн A', 10, 39], ['Пончик', 27, 50], ['Мид', 49, 52], ['Верх мида', 49, 41], ['Рампа B', 91, 49], ['Кейв', 71, 42], ['Короткая B', 79, 30], ['Респаун КТ', 52, 10]],
+  [['Мейн A', 10, 39], ['Пончик', 27, 50], ['Мид', 49, 52], ['Ягуар', 65, 59], ['Рампа B', 91, 49]],
+  [['D4ba · A', 23, 24], ['middle · Пончик', 27, 50], ['d0lfero · Верх мида', 49, 41], ['L!S · Кейв', 71, 42], ['Reconnecting · B', 84, 40]],
+  [['T дым / контакт', 49, 49], ['назвал число', 49, 41], ['держит Пончик', 27, 50], ['отход Коннектор', 47, 29]],
+  [['A якорь', 23, 24], ['Пончик', 27, 50], ['флешка A', 19, 28], ['Линия КТ', 38, 20]],
+  [['B якорь', 84, 40], ['Кейв', 71, 42], ['Рампа волна', 91, 49], ['Короткая безопасность', 79, 30]],
+  [['D4ba · первый', 49, 58], ['middle · флешка', 44, 64], ['d0lfero · A удержание', 13, 48], ['L!S · размен', 53, 61], ['Reconnect · B удержание', 86, 61]],
+  [['Верх мида дым', 49, 41], ['поп-флешка', 49, 51], ['первый · D4ba', 47, 49], ['размен · L!S', 53, 51]],
+  [['Пончик', 27, 50], ['Ягуар → Кейв', 65, 59], ['Сброс', 47, 67]],
+  [['D4ba · первый', 21, 28], ['L!S · размен', 17, 32], ['d0lfero · Пончик', 27, 50], ['middle · гранаты', 13, 43], ['бомба · вторая волна', 21, 35]],
+  [['Дым Линия КТ', 38, 20], ['Храм дым', 25, 15], ['Короткая A дым', 28, 40], ['A поп-флешка', 20, 27]],
+  [['D4ba · Колонна', 81, 40], ['L!S · размен', 84, 44], ['middle · флешка', 83, 38], ['d0lfero · Кейв', 71, 42], ['бомба · волна 2', 88, 52]],
+  [['Кейв дым', 71, 42], ['Короткая / Аллея', 79, 30], ['Колонна молотов', 81, 40], ['Плент B флешка', 84, 44]],
+  [['D4ba · Ягуар', 65, 59], ['L!S · Кейв размен', 71, 42], ['d0lfero · Рампа первый', 89, 49], ['middle · Рампа флешка', 88, 58], ['бомба · Рампа волна 2', 84, 61]],
+  [['Верх мида', 49, 41], ['безопасный сброс', 42, 66], ['Мейн A контакт', 13, 48], ['Рампа B контакт', 86, 61]],
+  [['Верх мида', 49, 41], ['Линия КТ', 38, 20], ['Пончик', 27, 50], ['Кейв', 71, 42], ['Короткая / Аллея', 79, 30]]
+];
+
 test.beforeAll(async () => {
   ancientServer = http.createServer(async (request, response) => {
     const pathname = new URL(request.url, 'http://127.0.0.1').pathname;
@@ -122,6 +141,85 @@ test('map overlays use normalized anchored labels and distinct tactical routes',
 
   for (const route of ['ct', 't', 'utility', 'retreat', 'danger']) {
     await expect(page.locator(`.route--${route}`).first()).toBeAttached();
+  }
+
+  const anchors = await visuals.evaluateAll((nodes) => nodes.map((diagram) => [...diagram.querySelectorAll('.map-note')].map((note) => [
+    note.querySelector('.map-label').textContent.replace(/^\s*(?:\d+|[ABR])\s*/, '').trim(),
+    Number(note.dataset.x),
+    Number(note.dataset.y)
+  ])));
+  expect(anchors).toEqual(expectedDiagramAnchors);
+});
+
+test('Ancient assigns every captain decision to D4ba and keeps L!S on the trade', async ({ page }) => {
+  const tacticalCopy = await page.locator('.slide').allTextContents();
+  const joined = tacticalCopy.join(' ');
+  expect(joined).toContain('D4ba запускает волну');
+  expect(joined).toContain('D4ba называет новый сбор');
+  expect(joined).toContain('Капитан/первый');
+  expect(joined).toContain('L!SРазмен');
+  expect(joined).not.toMatch(/Только L!S запускает|Решение называет L!S|L!S зовёт|L!S решает|L!S выбирает|L!S\s*Капитан/i);
+});
+
+test('every Ancient tactical block links to a timestamped YouTube fragment', async ({ page }) => {
+  const tacticalSlides = page.locator('.slide.ct, .slide.t');
+  await expect(tacticalSlides).toHaveCount(16);
+
+  for (let index = 0; index < await tacticalSlides.count(); index += 1) {
+    const cue = tacticalSlides.nth(index).locator('.video-cue');
+    await expect(cue).toHaveCount(1);
+    await expect(cue).toHaveAttribute('href', /^https:\/\/www\.youtube\.com\/watch\?v=[\w-]+&t=\d+s$/);
+    await expect(cue).toHaveText(/\d+:\d{2}–\d+:\d{2}/);
+    await expect(cue).toHaveAttribute('target', '_blank');
+    await expect(cue).toHaveAttribute('rel', 'noopener noreferrer');
+  }
+
+  const topologyCue = page.locator('.slide', { hasText: 'Пять коридоров — три развилки' }).locator('.video-cue');
+  await expect(topologyCue).toHaveCount(1);
+  await expect(topologyCue).toHaveAttribute('href', /[?&]t=27s$/);
+});
+
+test('every Ancient plaque stays separate and every leader terminates on its plaque', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  for (const viewport of [{ width: 1600, height: 836 }, { width: 1366, height: 704 }, { width: 1280, height: 656 }]) {
+    await page.setViewportSize(viewport);
+    for (const diagram of await page.locator('.map-stage').all()) {
+      const slideIndex = await diagram.evaluate((node) => node.closest('.slide').dataset.index);
+      await page.goto(`${ancientUrl}#${Number(slideIndex)}`);
+      await page.evaluate((target) => window.ancientDeck.showSlide(target - 1, false), Number(slideIndex));
+      await page.evaluate(async () => {
+        await document.fonts.ready;
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        window.ancientDeck.layoutActiveDiagram();
+      });
+      await expect(diagram.locator('.map-note').first()).toHaveAttribute('style', /--leader-end-x/);
+      const issues = await diagram.evaluate((frame) => {
+        window.ancientDeck.layoutActiveDiagram();
+        const bounds = frame.getBoundingClientRect();
+        const labels = [...frame.querySelectorAll('.map-label')].map((label) => ({ label, rect: label.getBoundingClientRect() }));
+        const failures = [];
+        for (const { label, rect } of labels) {
+          if (rect.left < bounds.left - 1 || rect.top < bounds.top - 1 || rect.right > bounds.right + 1 || rect.bottom > bounds.bottom + 1) failures.push(`${label.textContent}: leaves radar`);
+        }
+        for (let i = 0; i < labels.length; i += 1) for (let j = i + 1; j < labels.length; j += 1) {
+          const a = labels[i].rect; const b = labels[j].rect;
+          const overlapX = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+          const overlapY = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+          if (overlapX > 2 && overlapY > 2) failures.push(`${labels[i].label.textContent}/${labels[j].label.textContent}: collide`);
+        }
+        for (const note of frame.querySelectorAll('.map-note')) {
+          const label = note.querySelector('.map-label').getBoundingClientRect();
+          const dot = note.querySelector('.anchor-dot').getBoundingClientRect();
+          const dotCenter = { x: dot.left + dot.width / 2, y: dot.top + dot.height / 2 };
+          const endpoint = { x: dotCenter.x + Number(note.style.getPropertyValue('--leader-end-x')), y: dotCenter.y + Number(note.style.getPropertyValue('--leader-end-y')) };
+          const onEdge = endpoint.x >= label.left - 2 && endpoint.x <= label.right + 2 && endpoint.y >= label.top - 2 && endpoint.y <= label.bottom + 2 &&
+            (Math.abs(endpoint.x - label.left) <= 2 || Math.abs(endpoint.x - label.right) <= 2 || Math.abs(endpoint.y - label.top) <= 2 || Math.abs(endpoint.y - label.bottom) <= 2);
+          if (!onEdge || dotCenter.x < bounds.left || dotCenter.x > bounds.right || dotCenter.y < bounds.top || dotCenter.y > bounds.bottom) failures.push(`${note.textContent}: bad leader/anchor`);
+        }
+        return failures;
+      });
+      expect(issues, `${viewport.width}x${viewport.height}, slide ${slideIndex}`).toEqual([]);
+    }
   }
 });
 

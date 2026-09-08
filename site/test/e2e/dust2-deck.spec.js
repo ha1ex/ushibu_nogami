@@ -1,7 +1,96 @@
 import { test, expect } from '@playwright/test';
 
 const deckUrl = '/playbooks/dust2/index.html';
+
+const tacticalVideoSlides = Array.from({ length: 13 }, (_, index) => index + 6);
+const verifiedVideoIds = new Set(['Bn5RPHcIelw', '-uBIs8dVOZE', 'l44J_OUEjtc']);
+
+test('every Dust 2 tactical slide has a verified timestamped video fragment', async ({ page }) => {
+  for (const slideIndex of tacticalVideoSlides) {
+    await page.goto(`${deckUrl}?slide=${slideIndex}`);
+    const refs = page.locator('.slide .video-ref');
+    expect(await refs.count(), `slide ${slideIndex}`).toBeGreaterThanOrEqual(1);
+    for (const ref of await refs.all()) {
+      await expect(ref).toBeVisible();
+      const href = await ref.getAttribute('href');
+      const url = new URL(href);
+      expect(url.hostname).toBe('www.youtube.com');
+      expect(url.pathname).toBe('/watch');
+      expect(verifiedVideoIds.has(url.searchParams.get('v'))).toBe(true);
+      expect(url.searchParams.get('t')).toMatch(/^\d+s$/);
+      await expect(ref).toHaveAttribute('target', '_blank');
+      await expect(ref).toHaveAttribute('rel', /noopener/);
+      await expect(ref.locator('.video-ref__range')).toHaveText(/^\d{1,2}:\d{2}–\d{1,2}:\d{2}$/);
+    }
+  }
+});
 const slideUrl = (index) => `${deckUrl}?slide=${index}`;
+const viewports = [
+  { width: 1600, height: 836 },
+  { width: 1366, height: 704 },
+  { width: 1280, height: 656 }
+];
+
+async function expectAnchorsOnRadar(groups, dotSelector, context) {
+  const failures = await groups.evaluateAll((nodes, selector) => nodes.flatMap((node, index) => {
+    const frame = node.closest('.radar-shell');
+    const image = frame?.querySelector('img');
+    const dot = node.querySelector(selector);
+    const svg = node.ownerSVGElement;
+    if (!frame || !image || !dot || !svg || !image.complete || !image.naturalWidth) return [`${index + 1}: radar unavailable`];
+    const canvas = document.createElement('canvas');
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(image, 0, 0);
+    const frameBox = frame.getBoundingClientRect();
+    const scale = Math.min(frameBox.width / image.naturalWidth, frameBox.height / image.naturalHeight);
+    const renderedWidth = image.naturalWidth * scale;
+    const renderedHeight = image.naturalHeight * scale;
+    const offsetX = (frameBox.width - renderedWidth) / 2;
+    const offsetY = (frameBox.height - renderedHeight) / 2;
+    const viewBox = svg.viewBox.baseVal;
+    const x = Number(dot.getAttribute('cx'));
+    const y = Number(dot.getAttribute('cy'));
+    const sourceX = ((x - viewBox.x) / viewBox.width * frameBox.width - offsetX) / scale;
+    const sourceY = ((y - viewBox.y) / viewBox.height * frameBox.height - offsetY) / scale;
+    if (sourceX < 0 || sourceX >= image.naturalWidth || sourceY < 0 || sourceY >= image.naturalHeight) return [`${index + 1}: outside radar image`];
+    const alpha = ctx.getImageData(Math.floor(sourceX), Math.floor(sourceY), 1, 1).data[3];
+    return alpha >= 160 ? [] : [`${index + 1}: transparent radar pixel (${alpha})`];
+  }), dotSelector);
+  expect(failures, context).toEqual([]);
+}
+
+async function expectLeadersMeetNearestPlaqueEdge(groups, { dot, line, plaque, context }) {
+  const failures = await groups.evaluateAll((nodes, selectors) => nodes.flatMap((node, index) => {
+    const anchor = node.querySelector(selectors.dot);
+    const connector = node.querySelector(selectors.line);
+    const label = node.querySelector(selectors.plaque);
+    if (!anchor || !connector || !label) return [`${index + 1}: incomplete callout`];
+    const ax = Number(anchor.getAttribute('cx'));
+    const ay = Number(anchor.getAttribute('cy'));
+    const left = Number(label.getAttribute('x'));
+    const top = Number(label.getAttribute('y'));
+    const right = left + Number(label.getAttribute('width'));
+    const bottom = top + Number(label.getAttribute('height'));
+    const cx = (left + right) / 2;
+    const cy = (top + bottom) / 2;
+    if (ax >= left && ax <= right && ay >= top && ay <= bottom) return [`${index + 1}: anchor under own plaque`];
+    const dx = cx - ax;
+    const dy = cy - ay;
+    const tx = dx === 0 ? -Infinity : Math.min((left - ax) / dx, (right - ax) / dx);
+    const ty = dy === 0 ? -Infinity : Math.min((top - ay) / dy, (bottom - ay) / dy);
+    const entry = Math.max(tx, ty);
+    const expected = { x: ax + dx * entry, y: ay + dy * entry };
+    const actual = connector.tagName.toLowerCase() === 'path'
+      ? connector.getPointAtLength(connector.getTotalLength())
+      : { x: Number(connector.getAttribute('x2')), y: Number(connector.getAttribute('y2')) };
+    return Math.hypot(actual.x - expected.x, actual.y - expected.y) <= .75
+      ? []
+      : [`${index + 1}: leader misses nearest plaque edge`];
+  }), { dot, line, plaque });
+  expect(failures, context).toEqual([]);
+}
 
 test('Dust 2 deck exposes a complete Russian training lesson and navigates by URL', async ({ page }) => {
   const response = await page.goto(deckUrl);
@@ -57,6 +146,10 @@ test('Russian radar labels use normalized anchors, leader lines and collision-fr
 
   const labels = page.locator('.map-label');
   await expect(labels).toHaveCount(expectedCallouts.length);
+  await expectAnchorsOnRadar(labels, '.map-anchor', 'Dust 2 callout anchors');
+  await expectLeadersMeetNearestPlaqueEdge(labels, {
+    dot: '.map-anchor', line: '.map-line--label', plaque: '.map-plaque', context: 'Dust 2 callout leaders'
+  });
   const invalid = await labels.evaluateAll((nodes) => nodes.filter((node) => {
     const dot = node.querySelector('.map-anchor');
     const line = node.querySelector('.map-line--label');
@@ -98,6 +191,10 @@ test('defaults show five players with exact groups and collision-free Russian ro
     const labels = page.locator('.map-pin__label');
     await expect(labels).toHaveCount(5);
     expect((await labels.allTextContents()).join(' ')).toMatch(/L!S.*D4ba.*d0lfero.*middle.*Reconnecting/s);
+    await expectAnchorsOnRadar(page.locator('.role-pin'), '.map-pin', `slide ${index} role anchors`);
+    await expectLeadersMeetNearestPlaqueEdge(page.locator('.role-pin'), {
+      dot: '.map-pin', line: '.map-pin__leader', plaque: '.map-pin__plaque', context: `slide ${index} role leaders`
+    });
     const groups = await page.locator('.role-pin').evaluateAll((nodes) => nodes.map((node) => ({
       player: node.dataset.player,
       group: node.dataset.group,
@@ -125,6 +222,16 @@ test('defaults show five players with exact groups and collision-free Russian ro
       expect(intersects(geometry[b].plaque, geometry[a].pin, 1), `slide ${index}, plaque ${b + 1}/pin ${a + 1}`).toBe(false);
     }
   }
+});
+
+test('D4ba is the captain while L!S keeps the first-contact duty', async ({ page }) => {
+  await page.goto(slideUrl(5));
+  const d4ba = page.locator('.card').filter({ has: page.locator('h3', { hasText: /^D4ba$/ }) });
+  const lis = page.locator('.card').filter({ has: page.locator('h3', { hasText: /^L!S$/ }) });
+  await expect(d4ba).toContainText(/капитан/i);
+  await expect(d4ba).toContainText(/размен/i);
+  await expect(lis).toContainText(/первый контакт/i);
+  await expect(lis).not.toContainText(/капитан/i);
 });
 
 test('utility syllabus has ten sourced drills with ownership, method and local evidence', async ({ page }) => {
@@ -163,7 +270,7 @@ test('utility syllabus has ten sourced drills with ownership, method and local e
 
 test('slides, controls and images fit all presentation viewports', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  for (const viewport of [{ width: 1600, height: 900 }, { width: 1366, height: 768 }, { width: 1280, height: 720 }]) {
+  for (const viewport of viewports) {
     await page.setViewportSize(viewport);
     for (let index = 1; index <= 24; index += 1) {
       await page.goto(slideUrl(index));

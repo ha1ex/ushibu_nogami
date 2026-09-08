@@ -35,6 +35,14 @@
 | Будка: ослепляющая из Лобби | [CSNADES](https://csnades.gg/nuke/flashbangs/hut-from-lobby-a) | `assets/csnades-nuke-hut-flash.webp` | [lineup.webp](https://assets.csnades.gg/nades/nuke-flashbang-76fv0beqvt/lineup.webp) |
 | Секрет: ближний дым с места появления атаки | [CSNADES](https://csnades.gg/nuke/smokes/secret-close-from-t-spawn) | `assets/csnades-nuke-secret-smoke.webp` | [lineup.webp](https://assets.csnades.gg/nades/nuke-smoke-Ox2V20EXl2/lineup.webp) |
 
+## Видео-фрагменты тактических слайдов
+
+Главы и стартовые отметки повторно проверены 8 сентября 2026 года по публичным страницам YouTube.
+
+- [sebcs — Lock Down Nuke's CT Side](https://www.youtube.com/watch?v=53cQnMpDqJw): базовые позиции 0:15–0:27, Рампа 0:28–1:54, игроки A 1:55–4:19, Улица 4:20–6:08, ротации B 8:22–9:16.
+- [sebcs — How To Properly Default on Nuke, T Side](https://www.youtube.com/watch?v=j74yKZ7i1pM): внутренний дефолт 0:33–0:58, игроки Лобби 3:17–6:15, внешний дефолт и переход к Секрету 6:57–9:13.
+- [CS as fast as possible — Best CS2 Nuke Nades Guide](https://www.youtube.com/watch?v=6_WAimVYF0I): гранаты выхода A 7:47–10:54, гранаты Рампы 11:38–12:30.
+
 ## Ограничения использования
 
 - Права на страницы и кадры принадлежат CSNADES и соответствующим правообладателям игры; локальные копии используются здесь как учебные ссылки и требуют отдельной проверки условий перед публичным распространением.

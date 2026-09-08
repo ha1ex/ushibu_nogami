@@ -209,6 +209,51 @@
       font-size: 1.22em;
     }
 
+    .slide-tools {
+      display: flex;
+      flex: 0 0 auto;
+      align-items: flex-start;
+      gap: clamp(0.65rem, 1vw, 1rem);
+    }
+
+    .video-cue {
+      display: grid;
+      gap: 0.16rem;
+      width: clamp(13.5rem, 17vw, 18rem);
+      border: 1px solid color-mix(in srgb, var(--accent) 58%, var(--line));
+      border-left: 4px solid var(--accent);
+      padding: 0.52rem 0.7rem;
+      background: color-mix(in srgb, var(--accent) 8%, rgba(9, 13, 16, 0.9));
+      color: var(--ink);
+      text-decoration: none;
+      box-shadow: 0 9px 28px rgba(0, 0, 0, 0.2);
+    }
+
+    .video-cue strong {
+      color: var(--accent);
+      font-family: var(--display);
+      font-size: clamp(0.75rem, 0.86vw, 0.9rem);
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      line-height: 1.05;
+      text-transform: uppercase;
+    }
+
+    .video-cue span {
+      color: var(--muted);
+      font-family: var(--display);
+      font-size: clamp(0.7rem, 0.78vw, 0.82rem);
+      font-weight: 760;
+      line-height: 1.15;
+    }
+
+    .video-cue:hover,
+    .video-cue:focus-visible {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+      color: #fff;
+    }
+
     .slide-body {
       min-height: 0;
       font-size: clamp(1.2rem, 1.55vw, 1.82rem);
@@ -1263,7 +1308,9 @@
       }
 
       .slide.is-active:not(.cover) { display: block; }
-      .slide-head { gap: 1rem; margin-bottom: 1.25rem; }
+      .slide-head { flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem; }
+      .slide-tools { width: 100%; justify-content: space-between; }
+      .video-cue { width: min(72vw, 19rem); }
       .split,
       .tactic-layout,
       .protocol,
@@ -1301,6 +1348,11 @@
       }
 
       .slide-head { padding-bottom: 0.65rem; }
+      .slide-tools { gap: 0.55rem; }
+      .video-cue { width: 11.5rem; padding: 0.34rem 0.5rem; }
+      .video-cue strong { font-size: 0.72rem; }
+      .video-cue span { font-size: 0.66rem; }
+      .timing { min-width: 7.2rem; }
       h2 { font-size: clamp(2.35rem, 3.8vw, 4.25rem); }
       h3 { margin-bottom: 0.55rem; }
 
@@ -1469,7 +1521,7 @@
           <p class="eyebrow">Общее правило для всех карт</p>
           <h2>Дефолт: базовое начало раунда</h2>
         </div>
-        <div class="timing" aria-label="Время слайда"></div>
+        <div class="slide-tools"><a class="video-cue" href="https://www.youtube.com/watch?v=j74yKZ7i1pM&amp;t=33s" target="_blank" rel="noopener noreferrer"><strong>▶ Видео · пример дефолта</strong><span>0:33–0:58 · sebcs</span></a><div class="timing" aria-label="Время слайда"></div></div>
       </header>
       <div class="slide-body tactic-flow">
         <p class="default-lead">Дефолт — заранее согласованное начало раунда без раннего решения идти всей пятёркой на одну точку.</p>
@@ -1556,7 +1608,7 @@
           </aside>
           <section>
             <ol class="steps">
-              <li><strong>Приоритет у лидера карты.</strong> На тренировке это L!S; он задаёт направление, момент начала и условие отмены.</li>
+              <li><strong>Приоритет у лидера карты.</strong> На тренировке это D4ba; он задаёт направление, момент начала и условие отмены.</li>
               <li><strong>Лидер молчит — играем основу.</strong> Держим свои зоны, собираем сведения и не начинаем одиночный выход.</li>
               <li><strong>Предложить может любой.</strong> Коротко: действие и причина. Например: «Предлагаю B: Рампа свободна».</li>
               <li><strong>Команда принята — не спорим.</strong> Не меняем направление и не останавливаем товарищей посреди исполнения.</li>
@@ -1701,29 +1753,29 @@
             <tbody>
               <tr>
                 <td><strong>Защита: расстановка</strong></td>
-                <td><a href="https://www.youtube.com/watch?v=HHhVoql9BNQ&amp;t=24s" target="_blank" rel="noopener noreferrer">YouTube · канал sebcs<br>0:24–4:28</a></td>
-                <td>4:05</td>
+                <td><a href="https://www.youtube.com/watch?v=53cQnMpDqJw&amp;t=15s" target="_blank" rel="noopener noreferrer">YouTube · канал sebcs<br>0:15–0:27</a></td>
+                <td>0:13</td>
                 <td>Ответственность A, Рампы, Улицы и свободного игрока</td>
                 <td>Каждый называет свою зону и сведения, после которых имеет право уйти</td>
               </tr>
               <tr>
                 <td><strong>Защита Улицы</strong></td>
-                <td><a href="https://www.youtube.com/watch?v=zhgmkbM-ACA&amp;t=0s" target="_blank" rel="noopener noreferrer">YouTube · канал CS Tactics<br>0:00–1:56</a></td>
-                <td>1:57</td>
+                <td><a href="https://www.youtube.com/watch?v=53cQnMpDqJw&amp;t=260s" target="_blank" rel="noopener noreferrer">YouTube · канал sebcs<br>4:20–6:08</a></td>
+                <td>1:49</td>
                 <td>Гранаты против быстрого выхода и безопасное занятие Красного</td>
                 <td>Остановить первую волну, сообщить число и остаться живым</td>
               </tr>
               <tr>
                 <td><strong>Защита A</strong></td>
-                <td><a href="https://www.youtube.com/watch?v=zhgmkbM-ACA&amp;t=145s" target="_blank" rel="noopener noreferrer">YouTube · канал CS Tactics<br>2:25–3:46</a></td>
-                <td>1:22</td>
+                <td><a href="https://www.youtube.com/watch?v=53cQnMpDqJw&amp;t=115s" target="_blank" rel="noopener noreferrer">YouTube · канал sebcs<br>1:55–4:19</a></td>
+                <td>2:25</td>
                 <td>Зажигательные в Скрип и Будку, сохранение дыма</td>
                 <td>Два защитника держат разные входы и не тратят всё заранее</td>
               </tr>
               <tr>
                 <td><strong>Защита Рампы</strong></td>
-                <td><a href="https://www.youtube.com/watch?v=zhgmkbM-ACA&amp;t=227s" target="_blank" rel="noopener noreferrer">YouTube · канал CS Tactics<br>3:47–4:22</a></td>
-                <td>0:36</td>
+                <td><a href="https://www.youtube.com/watch?v=53cQnMpDqJw&amp;t=28s" target="_blank" rel="noopener noreferrer">YouTube · канал sebcs<br>0:28–1:54</a></td>
+                <td>1:27</td>
                 <td>Порядок зажигательной и дыма при разном темпе</td>
                 <td>Задержать выход и выжить важнее первого убийства</td>
               </tr>
@@ -1740,7 +1792,7 @@
           <p class="eyebrow">Защита · основа</p>
           <h2>Стандартная расстановка</h2>
         </div>
-        <div class="timing" aria-label="Время слайда"></div>
+        <div class="slide-tools"><a class="video-cue" href="https://www.youtube.com/watch?v=53cQnMpDqJw&amp;t=15s" target="_blank" rel="noopener noreferrer"><strong>▶ Видео · CT-дефолт</strong><span>0:15–0:27 · sebcs</span></a><div class="timing" aria-label="Время слайда"></div></div>
       </header>
       <div class="slide-body">
         <p class="formula"><span>2 на A</span> / 1 Улица / 1 Рампа / 1 свободный</p>
@@ -1767,17 +1819,17 @@
           <p class="eyebrow">Защита · схема основы</p>
           <h2>Пять зон ответственности</h2>
         </div>
-        <div class="timing" aria-label="Время слайда"></div>
+        <div class="slide-tools"><a class="video-cue" href="https://www.youtube.com/watch?v=53cQnMpDqJw&amp;t=15s" target="_blank" rel="noopener noreferrer"><strong>▶ Видео · CT-дефолт</strong><span>0:15–0:27 · sebcs</span></a><div class="timing" aria-label="Время слайда"></div></div>
       </header>
       <div class="slide-body visual-grid">
         <div class="visual-frame radar" aria-label="Схема верхнего этажа Нюка с пятью ролями защиты">
           <img src="assets/nuke-radar-clean.webp" alt="Чистый радар Нюка с точными русскими выносками ролей">
           <svg class="radar-overlay" viewBox="0 0 1558 848" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Пять точных зон ответственности защиты">
-            <g class="radar-callout"><circle class="radar-anchor" cx="775" cy="455" r="13"></circle><path class="radar-leader" d="M 775 455 L 715 430"></path><rect class="radar-plate" x="500" y="395" width="215" height="54" rx="10"></rect><text class="radar-label" x="518" y="431">1 · A · Будка</text></g>
-            <g class="radar-callout"><circle class="radar-anchor" cx="835" cy="470" r="13"></circle><path class="radar-leader" d="M 835 470 L 900 505"></path><rect class="radar-plate" x="900" y="478" width="225" height="54" rx="10"></rect><text class="radar-label" x="918" y="514">2 · A · Скрип</text></g>
-            <g class="radar-callout"><circle class="radar-anchor" cx="990" cy="625" r="13"></circle><path class="radar-leader" d="M 990 625 L 1060 670"></path><rect class="radar-plate" x="1060" y="643" width="180" height="54" rx="10"></rect><text class="radar-label" x="1078" y="679">3 · Улица</text></g>
-            <g class="radar-callout"><circle class="radar-anchor" cx="800" cy="205" r="13"></circle><path class="radar-leader" d="M 800 205 L 710 165"></path><rect class="radar-plate" x="520" y="128" width="190" height="54" rx="10"></rect><text class="radar-label" x="538" y="164">4 · Рампа</text></g>
-            <g class="radar-callout"><circle class="radar-anchor" cx="965" cy="410" r="13"></circle><path class="radar-leader" d="M 965 410 L 1050 370"></path><rect class="radar-plate" x="1050" y="343" width="255" height="54" rx="10"></rect><text class="radar-label" x="1068" y="379">5 · Свободный</text></g>
+            <g class="radar-callout"><circle class="radar-anchor" cx="808" cy="492" r="13"></circle><path class="radar-leader" d="M 808 492 L 755 491"></path><rect class="radar-plate" x="535" y="464" width="220" height="54" rx="10"></rect><text class="radar-label" x="553" y="500">1 · A · Будка</text></g>
+            <g class="radar-callout"><circle class="radar-anchor" cx="714" cy="548" r="13"></circle><path class="radar-leader" d="M 714 548 L 660 567"></path><rect class="radar-plate" x="430" y="540" width="230" height="54" rx="10"></rect><text class="radar-label" x="448" y="576">2 · A · Скрип</text></g>
+            <g class="radar-callout"><circle class="radar-anchor" cx="920" cy="690" r="13"></circle><path class="radar-leader" d="M 920 690 L 1010 687"></path><rect class="radar-plate" x="1010" y="660" width="185" height="54" rx="10"></rect><text class="radar-label" x="1028" y="696">3 · Улица</text></g>
+            <g class="radar-callout"><circle class="radar-anchor" cx="855" cy="120" r="13"></circle><path class="radar-leader" d="M 855 120 L 770 127"></path><rect class="radar-plate" x="580" y="100" width="190" height="54" rx="10"></rect><text class="radar-label" x="598" y="136">4 · Рампа</text></g>
+            <g class="radar-callout"><circle class="radar-anchor" cx="995" cy="340" r="13"></circle><path class="radar-leader" d="M 995 340 L 1070 357"></path><rect class="radar-plate" x="1070" y="330" width="205" height="54" rx="10"></rect><text class="radar-label" x="1088" y="366">5 · Девятка</text></g>
           </svg>
         </div>
         <aside class="visual-panel">
@@ -1786,7 +1838,7 @@
             <li><strong>1 + 2 · точка A</strong>Два разных входа: Будка и Скрип. Не смотрят одну линию.</li>
             <li><strong>3 · Улица</strong>Видит стенку дымов, считает переход и остаётся жив.</li>
             <li><strong>4 · Рампа</strong>Даёт первый контакт, задерживает и заранее называет отход.</li>
-            <li><strong>5 · свободный</strong>Не угадывает атаку. Первым закрывает только подтверждённую дыру.</li>
+            <li><strong>5 · Девятка / свободный</strong>Не угадывает атаку. Первым закрывает только подтверждённую дыру.</li>
           </ol>
           <div class="after-entry"><strong>Передача зоны</strong><p>Уйти можно после слов «передал» и ответа нового ответственного.</p></div>
           <p class="image-credit">Чистый радар: <a href="https://csnades.gg/nuke/callouts" target="_blank" rel="noopener noreferrer">CSNADES · Nuke 2026</a>. Русские метки — командный слой L!S.</p>
@@ -1800,13 +1852,9 @@
           <p class="eyebrow">Защита · реакция 1</p>
           <h2>Давление на Рампу</h2>
         </div>
-        <div class="timing" aria-label="Время слайда"></div>
+        <div class="slide-tools"><a class="video-cue" href="https://www.youtube.com/watch?v=53cQnMpDqJw&amp;t=28s" target="_blank" rel="noopener noreferrer"><strong>▶ Видео · защита Рампы</strong><span>0:28–1:54 · sebcs</span></a><div class="timing" aria-label="Время слайда"></div></div>
       </header>
       <div class="slide-body tactic-flow">
-        <div class="video-strip">
-          <a href="https://www.youtube.com/watch?v=zhgmkbM-ACA&amp;t=227s" target="_blank" rel="noopener noreferrer">Видео · защита Рампы, 3:47–4:22</a>
-          <span>Смотрим порядок гранат и безопасный отход. Длина: 0:36.</span>
-        </div>
         <ol class="ordered-steps">
           <li><strong>L!S принимает первый контакт.</strong><p>Слышит двух и больше — говорит: <span class="command">РАМПА, ТРОЕ, БОМБА ЕСТЬ/НЕТ</span>. При быстром выходе сначала зажигательная, затем дым.</p></li>
           <li><strong>Reconnecting усиливает Рампу.</strong><p>Занимает другую линию или даёт названную ослепляющую. Подсадка — разовая ловушка, а не постоянная позиция.</p></li>
@@ -1823,7 +1871,7 @@
           <p class="eyebrow">Защита · Рампа на экране</p>
           <h2>Контакт, задержка и отход</h2>
         </div>
-        <div class="timing" aria-label="Время слайда"></div>
+        <div class="slide-tools"><a class="video-cue" href="https://www.youtube.com/watch?v=53cQnMpDqJw&amp;t=28s" target="_blank" rel="noopener noreferrer"><strong>▶ Видео · защита Рампы</strong><span>0:28–1:54 · sebcs</span></a><div class="timing" aria-label="Время слайда"></div></div>
       </header>
       <div class="slide-body visual-grid">
         <div class="visual-frame" aria-label="Рампа Нюка с отмеченными входом, двумя линиями защиты и отходом">
@@ -1853,13 +1901,9 @@
           <p class="eyebrow">Защита · реакция 2</p>
           <h2>Улица и Секрет</h2>
         </div>
-        <div class="timing" aria-label="Время слайда"></div>
+        <div class="slide-tools"><a class="video-cue" href="https://www.youtube.com/watch?v=53cQnMpDqJw&amp;t=260s" target="_blank" rel="noopener noreferrer"><strong>▶ Видео · защита Улицы</strong><span>4:20–6:08 · sebcs</span></a><div class="timing" aria-label="Время слайда"></div></div>
       </header>
       <div class="slide-body tactic-flow">
-        <div class="video-strip">
-          <a href="https://www.youtube.com/watch?v=zhgmkbM-ACA&amp;t=0s" target="_blank" rel="noopener noreferrer">Видео · защита Улицы, 0:00–1:56</a>
-          <span>Смотрим безопасную линию, гранаты против быстрого выхода и сохранение жизни.</span>
-        </div>
         <ol class="ordered-steps">
           <li><strong>d0lfero читает выход с Улицы.</strong><p>Из Мейна, от ящиков или из Гаража замечает дым, считает прошедших и не открывается всем углам сразу.</p></li>
           <li><strong>Reconnecting закрывает Секрет.</strong><p>Если Улицу атакуют часто, принимает спуск из укрытия и не выглядывает в дым без ослепляющей.</p></li>
@@ -1876,7 +1920,7 @@
           <p class="eyebrow">Защита · Улица на экране</p>
           <h2>Считаем переход, а не геройствуем</h2>
         </div>
-        <div class="timing" aria-label="Время слайда"></div>
+        <div class="slide-tools"><a class="video-cue" href="https://www.youtube.com/watch?v=53cQnMpDqJw&amp;t=260s" target="_blank" rel="noopener noreferrer"><strong>▶ Видео · защита Улицы</strong><span>4:20–6:08 · sebcs</span></a><div class="timing" aria-label="Время слайда"></div></div>
       </header>
       <div class="slide-body visual-grid">
         <div class="visual-frame" aria-label="Улица Нюка с отмеченными линиями Мейна, Гаража, стены дымов и пути в Секрет">
@@ -1905,13 +1949,9 @@
           <p class="eyebrow">Защита · реакция 3</p>
           <h2>Давление на A</h2>
         </div>
-        <div class="timing" aria-label="Время слайда"></div>
+        <div class="slide-tools"><a class="video-cue" href="https://www.youtube.com/watch?v=53cQnMpDqJw&amp;t=115s" target="_blank" rel="noopener noreferrer"><strong>▶ Видео · защита A</strong><span>1:55–4:19 · sebcs</span></a><div class="timing" aria-label="Время слайда"></div></div>
       </header>
       <div class="slide-body tactic-flow">
-        <div class="video-strip">
-          <a href="https://www.youtube.com/watch?v=zhgmkbM-ACA&amp;t=145s" target="_blank" rel="noopener noreferrer">Видео · защита A, 2:25–3:46</a>
-          <span>Смотрим разные линии двух опорников и момент для зажигательных. Длина: 1:22.</span>
-        </div>
         <ol class="ordered-steps">
           <li><strong>D4ba держит Будку, middle — Скрип.</strong><p>Игроки не повторяют один угол: каждый заранее знает свой вход и путь безопасного отхода.</p></li>
           <li><strong>Быстрый выход останавливаем по входам.</strong><p>D4ba даёт огонь в Будку, middle — в Скрип. Дым используем после огня или на второй путь атаки.</p></li>
@@ -1928,7 +1968,7 @@
           <p class="eyebrow">Защита · точка A на экране</p>
           <h2>Два входа — две линии</h2>
         </div>
-        <div class="timing" aria-label="Время слайда"></div>
+        <div class="slide-tools"><a class="video-cue" href="https://www.youtube.com/watch?v=53cQnMpDqJw&amp;t=115s" target="_blank" rel="noopener noreferrer"><strong>▶ Видео · защита A</strong><span>1:55–4:19 · sebcs</span></a><div class="timing" aria-label="Время слайда"></div></div>
       </header>
       <div class="slide-body visual-grid">
         <div class="visual-frame" aria-label="Точка A Нюка с отмеченными Будкой, Скрипом, Мейном и Девяткой">
@@ -1957,7 +1997,7 @@
           <p class="eyebrow">Защита · зона прорвана</p>
           <h2>Что делает вся пятёрка</h2>
         </div>
-        <div class="timing" aria-label="Время слайда"></div>
+        <div class="slide-tools"><a class="video-cue" href="https://www.youtube.com/watch?v=53cQnMpDqJw&amp;t=502s" target="_blank" rel="noopener noreferrer"><strong>▶ Видео · ротации B</strong><span>8:22–9:16 · sebcs</span></a><div class="timing" aria-label="Время слайда"></div></div>
       </header>
       <div class="slide-body breach-layout">
         <aside class="breach-summary">
@@ -2002,7 +2042,7 @@
           <p class="eyebrow">Атака · постоянное правило</p>
           <h2>Два игрока всегда держат Лобби</h2>
         </div>
-        <div class="timing" aria-label="Время слайда"></div>
+        <div class="slide-tools"><a class="video-cue" href="https://www.youtube.com/watch?v=j74yKZ7i1pM&amp;t=197s" target="_blank" rel="noopener noreferrer"><strong>▶ Видео · контроль Лобби</strong><span>3:17–6:15 · sebcs</span></a><div class="timing" aria-label="Время слайда"></div></div>
       </header>
       <div class="slide-body">
         <div class="table-wrap">
@@ -2028,13 +2068,9 @@
           <p class="eyebrow">Атака · тактика 1</p>
           <h2>Открываем Рампу</h2>
         </div>
-        <div class="timing" aria-label="Время слайда"></div>
+        <div class="slide-tools"><a class="video-cue" href="https://www.youtube.com/watch?v=6_WAimVYF0I&amp;t=698s" target="_blank" rel="noopener noreferrer"><strong>▶ Видео · выход Рампа</strong><span>11:38–12:30 · CS as fast as possible</span></a><div class="timing" aria-label="Время слайда"></div></div>
       </header>
       <div class="slide-body tactic-flow">
-        <div class="video-strip">
-          <a href="https://www.youtube.com/watch?v=6_WAimVYF0I&amp;t=698s" target="_blank" rel="noopener noreferrer">Видео · гранаты Рампы, с 11:38</a>
-          <span>Смотрим одну ослепляющую, которая запускает первый выход и размен.</span>
-        </div>
         <ol class="ordered-steps">
           <li><strong>Reconnecting называет ослепляющую.</strong><p>Команда: <span class="command">ОСЛЕПЛЯЮ РАМПУ</span>. Первый начинает движение на взрыве, не раньше.</p></li>
           <li><strong>Первый и второй входят одной парой.</strong><p>Первый чистит ближайший угол, второй смотрит его бой и сохраняет расстояние для размена.</p></li>
@@ -2051,7 +2087,7 @@
           <p class="eyebrow">Атака · Рампа на экране</p>
           <h2>Трое входят одной волной</h2>
         </div>
-        <div class="timing" aria-label="Время слайда"></div>
+        <div class="slide-tools"><a class="video-cue" href="https://www.youtube.com/watch?v=6_WAimVYF0I&amp;t=698s" target="_blank" rel="noopener noreferrer"><strong>▶ Видео · выход Рампа</strong><span>11:38–12:30 · CS as fast as possible</span></a><div class="timing" aria-label="Время слайда"></div></div>
       </header>
       <div class="slide-body visual-grid">
         <div class="visual-frame" aria-label="Схема атаки Рампы с ослепляющей, первым игроком, разменом и бомбой">
@@ -2080,13 +2116,9 @@
           <p class="eyebrow">Атака · тактика 2</p>
           <h2>Открываем A</h2>
         </div>
-        <div class="timing" aria-label="Время слайда"></div>
+        <div class="slide-tools"><a class="video-cue" href="https://www.youtube.com/watch?v=6_WAimVYF0I&amp;t=467s" target="_blank" rel="noopener noreferrer"><strong>▶ Видео · выход A</strong><span>7:47–10:54 · CS as fast as possible</span></a><div class="timing" aria-label="Время слайда"></div></div>
       </header>
       <div class="slide-body tactic-flow">
-        <div class="video-strip">
-          <a href="https://www.youtube.com/watch?v=6_WAimVYF0I&amp;t=467s" target="_blank" rel="noopener noreferrer">Видео · гранаты для выхода A, с 7:47</a>
-          <span>Смотрим дым в Мейн, огонь на крышу Будки и ослепляющую перед входом.</span>
-        </div>
         <ol class="ordered-steps">
           <li><strong>Reconnecting закрывает Мейн, второй игрок — крышу Будки.</strong><p>Дым и зажигательная летят одновременно. Другие гранаты без задачи не добавляем.</p></li>
           <li><strong>middle говорит: <span class="command">ОСЛЕПЛЯЮ ЧЕРЕЗ ДВА</span>.</strong><p>D4ba и игрок размена выходят из Будки на взрыве ослепляющей.</p></li>
@@ -2103,7 +2135,7 @@
           <p class="eyebrow">Атака · точка A на экране</p>
           <h2>Два входа в одну секунду</h2>
         </div>
-        <div class="timing" aria-label="Время слайда"></div>
+        <div class="slide-tools"><a class="video-cue" href="https://www.youtube.com/watch?v=6_WAimVYF0I&amp;t=467s" target="_blank" rel="noopener noreferrer"><strong>▶ Видео · выход A</strong><span>7:47–10:54 · CS as fast as possible</span></a><div class="timing" aria-label="Время слайда"></div></div>
       </header>
       <div class="slide-body visual-grid">
         <div class="visual-frame" aria-label="Схема одновременного входа на A через Будку и Скрип с бомбой во второй волне">
@@ -2133,13 +2165,9 @@
           <p class="eyebrow">Атака · тактика 3</p>
           <h2>Контроль Улицы одним дымом</h2>
         </div>
-        <div class="timing" aria-label="Время слайда"></div>
+        <div class="slide-tools"><a class="video-cue" href="https://www.youtube.com/watch?v=j74yKZ7i1pM&amp;t=417s" target="_blank" rel="noopener noreferrer"><strong>▶ Видео · дефолт Улицы</strong><span>6:57–9:13 · sebcs</span></a><div class="timing" aria-label="Время слайда"></div></div>
       </header>
       <div class="slide-body tactic-flow">
-        <div class="video-strip">
-          <a href="https://www.youtube.com/watch?v=bx3_2tiPW6k" target="_blank" rel="noopener noreferrer">Видео · один быстрый дым в Гараж</a>
-          <span>Смотрим весь короткий бросок с места появления. <a href="https://www.cs2tricks.com/nades/nuke/smokes/garage-from-t-spawn-7fda" target="_blank" rel="noopener noreferrer">Пошаговая схема</a>.</span>
-        </div>
         <ol class="ordered-steps">
           <li><strong>L!S сразу бросает дым в Гараж.</strong><p>Прыжковый бросок с места появления. d0lfero в это же время начинает движение к Улице — команда не ждёт приземления дыма.</p></li>
           <li><strong>d0lfero идёт первым, L!S — вторым.</strong><p>Первый проверяет ближний угол у Красного защиты, второй смотрит его бой и готов к размену.</p></li>
@@ -2156,7 +2184,7 @@
           <p class="eyebrow">Атака · Улица на экране</p>
           <h2>Быстрый дым, размен и выбор</h2>
         </div>
-        <div class="timing" aria-label="Время слайда"></div>
+        <div class="slide-tools"><a class="video-cue" href="https://www.youtube.com/watch?v=j74yKZ7i1pM&amp;t=417s" target="_blank" rel="noopener noreferrer"><strong>▶ Видео · дефолт Улицы</strong><span>6:57–9:13 · sebcs</span></a><div class="timing" aria-label="Время слайда"></div></div>
       </header>
       <div class="slide-body visual-grid">
         <div class="visual-frame" aria-label="Схема быстрого занятия Улицы под дымом в Гараж и двух продолжений атаки">
@@ -2175,7 +2203,7 @@
             <li><strong>3–5 · один общий выбор</strong>Секрет ведёт к B; Мейн соединяет Улицу с выходом Лобби на A. Девятку сначала проверяем как опасную линию.</li>
           </ol>
           <div class="after-entry"><strong>После прорыва Улицы</strong><p>Первый чистит следующий угол, второй остаётся в размене, бомба идёт третьей. Один игрок держит открытый путь назад и обход; лидер коротко называет конечную точку.</p></div>
-          <p class="image-credit">Дым в Гараж ограничивает защитника с дальней винтовкой, но не закрывает Мейн и Девятку: <a href="https://blast.tv/article/cs2-Nuke-smokes" target="_blank" rel="noopener noreferrer">BLAST · Nuke smokes</a>. <a href="https://www.youtube.com/watch?v=bx3_2tiPW6k" target="_blank" rel="noopener noreferrer">Видео броска</a>.</p>
+          <p class="image-credit">Дым в Гараж ограничивает защитника с дальней винтовкой, но не закрывает Мейн и Девятку: <a href="https://blast.tv/article/cs2-Nuke-smokes" target="_blank" rel="noopener noreferrer">BLAST · Nuke smokes</a>.</p>
         </aside>
       </div>
     </section>

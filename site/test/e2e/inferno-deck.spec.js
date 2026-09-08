@@ -1,11 +1,93 @@
 import { test, expect } from '@playwright/test';
 
 const deckPath = '/playbooks/inferno/index.html';
+const tacticalVideoSlides = Array.from({ length: 15 }, (_, index) => index + 6);
+const verifiedVideoIds = new Set(['Q2ZbsYahBYU', 'I0PmXuD-KGU', 'B31jBh84Lak', 'GGnIlSezLi0', 'R4T4uVoD9wo']);
+
+test('every Inferno tactical slide has a verified timestamped video fragment', async ({ page }) => {
+  for (const slideIndex of tacticalVideoSlides) {
+    await page.goto(`${deckPath}?slide=${slideIndex}`);
+    const refs = page.locator('.slide.is-active .video-ref');
+    expect(await refs.count(), `slide ${slideIndex}`).toBeGreaterThanOrEqual(1);
+    for (const ref of await refs.all()) {
+      await expect(ref).toBeVisible();
+      const url = new URL(await ref.getAttribute('href'));
+      expect(url.hostname).toBe('www.youtube.com');
+      expect(url.pathname).toBe('/watch');
+      expect(verifiedVideoIds.has(url.searchParams.get('v'))).toBe(true);
+      expect(url.searchParams.get('t')).toMatch(/^\d+s$/);
+      await expect(ref).toHaveAttribute('target', '_blank');
+      await expect(ref).toHaveAttribute('rel', /noopener/);
+      await expect(ref.locator('.video-ref__range')).toHaveText(/^\d{1,2}:\d{2}–\d{1,2}:\d{2}$/);
+    }
+  }
+});
 const viewports = [
-  { width: 1600, height: 900 },
-  { width: 1366, height: 768 },
-  { width: 1280, height: 720 }
+  { width: 1600, height: 836 },
+  { width: 1366, height: 704 },
+  { width: 1280, height: 656 }
 ];
+
+async function expectAnchorsOnRadar(groups, dotSelector, context) {
+  const failures = await groups.evaluateAll((nodes, selector) => nodes.flatMap((node, index) => {
+    const frame = node.closest('.radar-frame');
+    const image = frame?.querySelector('img');
+    const dot = node.querySelector(selector);
+    const svg = node.ownerSVGElement;
+    if (!frame || !image || !dot || !svg || !image.complete || !image.naturalWidth) return [`${index + 1}: radar unavailable`];
+    const canvas = document.createElement('canvas');
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(image, 0, 0);
+    const frameBox = frame.getBoundingClientRect();
+    const scale = Math.min(frameBox.width / image.naturalWidth, frameBox.height / image.naturalHeight);
+    const renderedWidth = image.naturalWidth * scale;
+    const renderedHeight = image.naturalHeight * scale;
+    const offsetX = (frameBox.width - renderedWidth) / 2;
+    const offsetY = (frameBox.height - renderedHeight) / 2;
+    const viewBox = svg.viewBox.baseVal;
+    const x = Number(dot.getAttribute('cx'));
+    const y = Number(dot.getAttribute('cy'));
+    const sourceX = ((x - viewBox.x) / viewBox.width * frameBox.width - offsetX) / scale;
+    const sourceY = ((y - viewBox.y) / viewBox.height * frameBox.height - offsetY) / scale;
+    if (sourceX < 0 || sourceX >= image.naturalWidth || sourceY < 0 || sourceY >= image.naturalHeight) return [`${index + 1}: outside radar image`];
+    const alpha = ctx.getImageData(Math.floor(sourceX), Math.floor(sourceY), 1, 1).data[3];
+    return alpha >= 160 ? [] : [`${index + 1}: transparent radar pixel (${alpha})`];
+  }), dotSelector);
+  expect(failures, context).toEqual([]);
+}
+
+async function expectLeadersMeetNearestPlaqueEdge(groups, { dot, line, plaque, context }) {
+  const failures = await groups.evaluateAll((nodes, selectors) => nodes.flatMap((node, index) => {
+    const anchor = node.querySelector(selectors.dot);
+    const connector = node.querySelector(selectors.line);
+    const label = node.querySelector(selectors.plaque);
+    if (!anchor || !connector || !label) return [`${index + 1}: incomplete callout`];
+    const ax = Number(anchor.getAttribute('cx'));
+    const ay = Number(anchor.getAttribute('cy'));
+    const left = Number(label.getAttribute('x'));
+    const top = Number(label.getAttribute('y'));
+    const right = left + Number(label.getAttribute('width'));
+    const bottom = top + Number(label.getAttribute('height'));
+    const cx = (left + right) / 2;
+    const cy = (top + bottom) / 2;
+    if (ax >= left && ax <= right && ay >= top && ay <= bottom) return [`${index + 1}: anchor under own plaque`];
+    const dx = cx - ax;
+    const dy = cy - ay;
+    const tx = dx === 0 ? -Infinity : Math.min((left - ax) / dx, (right - ax) / dx);
+    const ty = dy === 0 ? -Infinity : Math.min((top - ay) / dy, (bottom - ay) / dy);
+    const entry = Math.max(tx, ty);
+    const expected = { x: ax + dx * entry, y: ay + dy * entry };
+    const actual = connector.tagName.toLowerCase() === 'path'
+      ? connector.getPointAtLength(connector.getTotalLength())
+      : { x: Number(connector.getAttribute('x2')), y: Number(connector.getAttribute('y2')) };
+    return Math.hypot(actual.x - expected.x, actual.y - expected.y) <= .75
+      ? []
+      : [`${index + 1}: leader misses nearest plaque edge`];
+  }), { dot, line, plaque });
+  expect(failures, context).toEqual([]);
+}
 
 async function expectNoOverlaps(locator, context) {
   const boxes = await locator.evaluateAll((nodes) => nodes.map((node) => {
@@ -151,6 +233,19 @@ test.describe('Inferno team training deck', () => {
     await expect(page.locator('[data-quiz-question]')).toHaveCount(8);
   });
 
+  test('D4ba is the captain while L!S keeps the support and bomb duties', async ({ page }) => {
+    await page.goto(`${deckPath}?slide=6`);
+    const d4ba = page.locator('.slide.is-active .role-card').filter({ has: page.locator('h3', { hasText: /^D4ba$/ }) });
+    const lis = page.locator('.slide.is-active .role-card').filter({ has: page.locator('h3', { hasText: /^L!S$/ }) });
+    await expect(d4ba).toContainText(/капитан/i);
+    await expect(d4ba).toContainText(/первый банана/i);
+    await expect(lis).toContainText(/поддержка/i);
+    await expect(lis).not.toContainText(/капитан/i);
+
+    await page.goto(`${deckPath}?slide=21`);
+    await expect(page.locator('.slide.is-active .panel').filter({ hasText: 'Кто говорит' })).toContainText('D4ba');
+  });
+
   test('keeps every callout, role and retake pin anchored and non-overlapping at all presentation sizes', async ({ page }) => {
     test.setTimeout(60_000);
     for (const viewport of viewports) {
@@ -163,6 +258,11 @@ test.describe('Inferno team training deck', () => {
       await expectNormalizedPins(callouts, {
         dot: '.anchor-dot', line: '.leader-line', label: '.label-text',
         context: `${viewport.width}x${viewport.height} callouts`
+      });
+      await expectAnchorsOnRadar(callouts, '.anchor-dot', `${viewport.width}x${viewport.height} callout anchors`);
+      await expectLeadersMeetNearestPlaqueEdge(callouts, {
+        dot: '.anchor-dot', line: '.leader-line', plaque: '.label-bg',
+        context: `${viewport.width}x${viewport.height} callout leaders`
       });
       await expectNoOverlaps(callouts.locator('.label-bg'), `${viewport.width}x${viewport.height} callouts`);
       await expectNoForeignLabelIntrusions(callouts, {
@@ -180,6 +280,11 @@ test.describe('Inferno team training deck', () => {
         await expectNormalizedPins(pins, {
           dot: '.pin-dot', line: '.pin-line', label: '.pin-label',
           context: `${viewport.width}x${viewport.height} slide ${index} roles`
+        });
+        await expectAnchorsOnRadar(pins, '.pin-dot', `${viewport.width}x${viewport.height} slide ${index} role anchors`);
+        await expectLeadersMeetNearestPlaqueEdge(pins, {
+          dot: '.pin-dot', line: '.pin-line', plaque: '.pin-bg',
+          context: `${viewport.width}x${viewport.height} slide ${index} role leaders`
         });
         expect(await pins.locator('.pin-label').allTextContents()).not.toContainEqual(expect.stringMatching(/Entry|Trader|Utility|Lurk|AWP/i));
         await expectNoOverlaps(pins.locator('.pin-bg'), `${viewport.width}x${viewport.height} slide ${index} roles`);
@@ -200,6 +305,11 @@ test.describe('Inferno team training deck', () => {
         await expectNormalizedPins(pins, {
           dot: '.pin-dot', line: '.pin-line', label: '.pin-label',
           context: `${viewport.width}x${viewport.height} slide ${index} retake`
+        });
+        await expectAnchorsOnRadar(pins, '.pin-dot', `${viewport.width}x${viewport.height} slide ${index} retake anchors`);
+        await expectLeadersMeetNearestPlaqueEdge(pins, {
+          dot: '.pin-dot', line: '.pin-line', plaque: '.pin-bg',
+          context: `${viewport.width}x${viewport.height} slide ${index} retake leaders`
         });
         await expectNoOverlaps(pins.locator('.pin-bg'), `${viewport.width}x${viewport.height} slide ${index} retake`);
         await expectNoForeignLabelIntrusions(pins, {

@@ -6,6 +6,88 @@ function slideUrl(index) {
   return `${deckUrl}?slide=${index}`;
 }
 
+const diagramSlides = [3, 4, 6, 8, 10, 11, 12, 13, 15, 16, 17, 18, 21];
+const presentationViewports = [
+  { width: 1600, height: 836 },
+  { width: 1366, height: 704 },
+  { width: 1280, height: 656 }
+];
+
+const calloutAnchors = {
+  't-spawn': [440, 932], 'ct-spawn': [399, 207], 'a-main': [809, 426],
+  'a-connector': [602, 377], 'a-heaven': [674, 228], water: [681, 494],
+  bridge: [469, 596], 'mid-doors': [524, 499], drop: [719, 531],
+  'b-main': [244, 570], 'b-connector': [467, 327], ebox: [349, 588],
+  'back-b': [359, 499], pillar: [264, 559]
+};
+
+function intersects(a, b, inset = 0) {
+  return a.left + inset < b.right - inset && a.right - inset > b.left + inset &&
+    a.top + inset < b.bottom - inset && a.bottom - inset > b.top + inset;
+}
+
+async function expectDiagramGeometry(page, slideIndex, viewport) {
+  await page.setViewportSize(viewport);
+  await page.goto(slideUrl(slideIndex));
+  const failures = await page.locator('.visual-frame').evaluate((frame) => {
+    const issues = [];
+    const svg = frame.querySelector('svg');
+    const viewBox = svg.viewBox.baseVal;
+    const numbers = (value) => (value || '').match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
+    const onEdge = (x, y, rect) => {
+      const left = Number(rect.getAttribute('x'));
+      const top = Number(rect.getAttribute('y'));
+      const right = left + Number(rect.getAttribute('width'));
+      const bottom = top + Number(rect.getAttribute('height'));
+      const onVertical = (Math.abs(x - left) <= 1 || Math.abs(x - right) <= 1) && y >= top - 1 && y <= bottom + 1;
+      const onHorizontal = (Math.abs(y - top) <= 1 || Math.abs(y - bottom) <= 1) && x >= left - 1 && x <= right + 1;
+      return onVertical || onHorizontal;
+    };
+    for (const group of svg.querySelectorAll('.map-label, .map-pin-group')) {
+      const anchor = group.querySelector('.map-anchor, .map-pin');
+      const leader = group.querySelector('.map-line--label, .map-pin__leader');
+      const plaque = group.querySelector('.map-plaque, .map-pin__plaque');
+      if (!anchor || !leader || !plaque) {
+        issues.push(`${group.className.baseVal}: incomplete anchor/leader/plaque`);
+        continue;
+      }
+      const [sx, sy, ex, ey] = numbers(leader.getAttribute('d'));
+      const ax = Number(anchor.getAttribute('cx'));
+      const ay = Number(anchor.getAttribute('cy'));
+      if (sx !== ax || sy !== ay) issues.push(`${group.className.baseVal}: leader does not start at anchor`);
+      if (!onEdge(ex, ey, plaque)) issues.push(`${group.className.baseVal}: leader does not stop at plaque edge`);
+    }
+    for (const route of svg.querySelectorAll('.map-route')) {
+      const values = numbers(route.getAttribute('points'));
+      for (let index = 0; index < values.length; index += 2) {
+        if (values[index] < 0 || values[index] > viewBox.width || values[index + 1] < 0 || values[index + 1] > viewBox.height) issues.push('route leaves visual');
+      }
+    }
+    return issues;
+  });
+  expect(failures, `${viewport.width}x${viewport.height}, slide ${slideIndex}`).toEqual([]);
+
+  const geometry = await page.locator('.visual-frame').evaluate((frame) => ({
+    frame: frame.getBoundingClientRect().toJSON(),
+    plaques: Array.from(frame.querySelectorAll('.map-plaque, .map-pin__plaque')).map((node) => node.getBoundingClientRect().toJSON()),
+    anchors: Array.from(frame.querySelectorAll('.map-anchor, .map-pin')).map((node) => node.getBoundingClientRect().toJSON())
+  }));
+  for (const box of [...geometry.plaques, ...geometry.anchors]) {
+    expect(box.left, `slide ${slideIndex}: left crop`).toBeGreaterThanOrEqual(geometry.frame.left - 1);
+    expect(box.top, `slide ${slideIndex}: top crop`).toBeGreaterThanOrEqual(geometry.frame.top - 1);
+    expect(box.right, `slide ${slideIndex}: right crop`).toBeLessThanOrEqual(geometry.frame.right + 1);
+    expect(box.bottom, `slide ${slideIndex}: bottom crop`).toBeLessThanOrEqual(geometry.frame.bottom + 1);
+  }
+  for (let a = 0; a < geometry.plaques.length; a += 1) {
+    for (let b = a + 1; b < geometry.plaques.length; b += 1) {
+      expect(intersects(geometry.plaques[a], geometry.plaques[b], 1), `slide ${slideIndex}: plaques ${a + 1}/${b + 1}`).toBe(false);
+    }
+    for (let b = 0; b < geometry.anchors.length; b += 1) {
+      expect(intersects(geometry.plaques[a], geometry.anchors[b], 1), `slide ${slideIndex}: plaque ${a + 1}/anchor ${b + 1}`).toBe(false);
+    }
+  }
+}
+
 test('Anubis deck exposes 22 slides and keeps keyboard, picker and timer navigation usable', async ({ page }) => {
   await page.goto(deckUrl);
 
@@ -61,6 +143,60 @@ test('Anubis lesson covers the required tactical phases with frequent visuals', 
   }
 });
 
+test('Anubis tactical slides expose a timed YouTube fragment or an explicit exception', async ({ page }) => {
+  const expected = {
+    6: ['AjvPl3qamwE', 18], 7: ['AjvPl3qamwE', 18], 8: ['AjvPl3qamwE', 223], 9: ['AjvPl3qamwE', 329],
+    10: ['AjvPl3qamwE', 309], 11: ['AjvPl3qamwE', 309], 12: ['AjvPl3qamwE', 401],
+    13: ['588UtJa98F0', 212], 14: ['588UtJa98F0', 212], 15: ['AjvPl3qamwE', 277],
+    16: ['588UtJa98F0', 147], 17: ['588UtJa98F0', 147], 18: ['AjvPl3qamwE', 205],
+    19: ['AjvPl3qamwE', 205]
+  };
+
+  for (const [index, clip] of Object.entries(expected)) {
+    await page.goto(slideUrl(index));
+    const strip = page.locator('.slide .video-strip');
+    await expect(strip, `slide ${index}`).toHaveCount(1);
+    if (!clip) {
+      await expect(strip).toHaveAttribute('data-video-kind', 'exception');
+      await expect(strip).toContainText('без точного фрагмента');
+      await expect(strip.locator('a')).toHaveCount(0);
+      continue;
+    }
+    await expect(strip).toHaveAttribute('data-video-kind', 'clip');
+    const href = await strip.locator('a').getAttribute('href');
+    expect(new URL(href).hostname).toBe('www.youtube.com');
+    expect(new URL(href).searchParams.get('v')).toBe(clip[0]);
+    expect(new URL(href).searchParams.get('t')).toBe(`${clip[1]}s`);
+    await expect(strip).toContainText(/\d+:\d{2}–\d+:\d{2}/);
+  }
+});
+
+test('D4ba is the only named captain while the five gameplay duties stay assigned', async ({ page }) => {
+  await page.goto(slideUrl(5));
+  await expect(page.locator('.slide')).toContainText('D4ba');
+  await expect(page.locator('.slide')).toContainText(/D4ba.*капитан/i);
+
+  for (const index of [12, 15]) {
+    await page.goto(slideUrl(index));
+    const text = await page.locator('.slide').innerText();
+    for (const player of ['L!S', 'D4ba', 'd0lfero', 'middle', 'Reconnecting']) expect(text.toLowerCase()).toContain(player.toLowerCase());
+    const lisAssignments = await page.getByText(/L!S/i).allTextContents();
+    expect(lisAssignments.some((assignment) => /капитан/i.test(assignment))).toBe(false);
+  }
+
+  for (const index of [13, 16]) {
+    await page.goto(slideUrl(index));
+    const labels = await page.locator('.map-pin__label').allTextContents();
+    expect(labels).toEqual([
+      expect.stringMatching(/^L!S · энтри$/i),
+      expect.stringMatching(/^D4ba · капитан \/ размен$/i),
+      expect.stringMatching(/^d0lfero · бомба$/i),
+      expect.stringMatching(/^Reconnecting · гранаты$/i),
+      expect.stringMatching(/^middle · фланг \/ инфо$/i)
+    ]);
+  }
+});
+
 test('tactical maps use exact anchor dots, leader lines and Russian labels', async ({ page }) => {
   await page.setViewportSize({ width: 1600, height: 900 });
   await page.goto(slideUrl(3));
@@ -71,6 +207,11 @@ test('tactical maps use exact anchor dots, leader lines and Russian labels', asy
   ];
   await expect(page.locator('.map-label')).toHaveCount(expectedCallouts.length);
   expect(await page.locator('.map-text').allTextContents()).toEqual(expectedCallouts);
+  for (const [id, [x, y]] of Object.entries(calloutAnchors)) {
+    const anchor = page.locator(`.map-label[data-point="${id}"] .map-anchor`);
+    await expect(anchor, id).toHaveAttribute('cx', String(x));
+    await expect(anchor, id).toHaveAttribute('cy', String(y));
+  }
 
   const invalidLabels = await page.locator('.map-label').evaluateAll((groups) => groups.filter((group) => {
     const dot = group.querySelector('.map-anchor');
@@ -109,6 +250,13 @@ test('tactical maps use exact anchor dots, leader lines and Russian labels', asy
         expect(overlap, `slide ${index}, labels ${a + 1} and ${b + 1} overlap`).toBe(false);
       }
     }
+  }
+});
+
+test('every Anubis diagram keeps labels, named player pins, routes and edge-terminated leaders at all presentation sizes', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  for (const viewport of presentationViewports) {
+    for (const slideIndex of diagramSlides) await expectDiagramGeometry(page, slideIndex, viewport);
   }
 });
 
@@ -151,7 +299,7 @@ test('utility library has ten direct CSNADES cards with local position and aim f
 test('all Anubis slides and controls fit horizontally at the three presentation viewports', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
 
-  for (const viewport of [{ width: 1600, height: 900 }, { width: 1366, height: 768 }, { width: 1280, height: 720 }]) {
+  for (const viewport of presentationViewports) {
     await page.setViewportSize(viewport);
     for (let index = 1; index <= 22; index += 1) {
       await page.goto(slideUrl(index));
