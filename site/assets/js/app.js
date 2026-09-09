@@ -527,20 +527,33 @@
   /* ---------------- 02 Тренировки ---------------- */
 
   function sessionCard(s, optional) {
+    var doneCheckId = 'session-done-' + s.id;
+    var done = s.done || window.Store.getCheck(doneCheckId);
     var when = s.doneDate || s.date;
-    return el('article', { id: 'session-' + s.id, class: 'session' + (s.final ? ' session--final' : '') + (optional ? ' session--optional' : '') + (s.done ? ' session--done' : '') }, [
-      el('div', { class: 'session__index', text: s.done ? '✓' : s.n }),
+    var index = el('div', { class: 'session__index', text: done ? '✓' : s.n });
+    var slot = el('span', { class: 'session__slot', text: done ? 'проведена' : U.daysUntil(s.date) < 0 ? 'результат не подтверждён' : s.slot });
+    var completion = U.check(doneCheckId, 'Тренировка проведена');
+    var input = completion.querySelector('input');
+    if (s.done) { input.checked = true; input.disabled = true; }
+    var card = el('article', { id: 'session-' + s.id, class: 'session' + (s.final ? ' session--final' : '') + (optional ? ' session--optional' : '') + (done ? ' session--done' : '') }, [
+      index,
       el('div', { class: 'session__when' }, [
         el('time', { class: 'session__date', datetime: when, text: U.fmtShort(when) }),
-        el('span', { class: 'session__slot', text: s.done ? 'проведена' : U.daysUntil(s.date) < 0 ? 'результат не подтверждён' : s.slot })
+        slot
       ]),
       el('div', { class: 'session__topic' }, [
         el('span', { class: 'label', text: optional ? 'Опционально' : (s.kind || 'Карта') }),
         el('h3', { class: 'session__map', text: optional ? s.title : s.map }),
         el('p', { class: 'session__focus', text: s.focus })
       ]),
-      el('div', { class: 'session__goals check-list' }, s.goals.map(function (g) { return U.check(g.id, g.text); }))
+      el('div', { class: 'session__goals check-list' }, [completion].concat(s.goals.map(function (g) { return U.check(g.id, g.text); })))
     ]);
+    input.addEventListener('change', function () {
+      card.classList.toggle('session--done', input.checked);
+      index.textContent = input.checked ? '✓' : s.n;
+      slot.textContent = input.checked ? 'проведена' : U.daysUntil(s.date) < 0 ? 'результат не подтверждён' : s.slot;
+    });
+    return card;
   }
 
   function renderTraining() {

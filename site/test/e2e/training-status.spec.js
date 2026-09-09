@@ -29,3 +29,13 @@ test('проведённая сессия Nuke не требует подтве�
   await expect(nukeSession).toContainText('проведена');
   await expect(nukeSession).not.toContainText('результат не подтверждён');
 });
+
+test('тренировку можно отметить проведённой галочкой', async ({ page }) => {
+  await page.goto('/#/trenirovki');
+
+  const mirageSession = page.locator('#session-s02');
+  await expect(mirageSession).not.toHaveClass(/session--done/);
+  await mirageSession.getByRole('checkbox', { name: 'Тренировка проведена' }).check();
+  await expect(mirageSession).toHaveClass(/session--done/);
+  await expect(mirageSession).toContainText('проведена');
+});
