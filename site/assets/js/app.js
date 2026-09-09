@@ -334,6 +334,10 @@
     var future = S.sessions.filter(function (s) { return !s.done && U.daysUntil(s.date) >= 0; });
     var doneMaps = PB.maps.filter(function (m) { return m.order === 'done'; });
     var openMaps = PB.maps.filter(function (m) { return m.order !== 'done'; });
+    var doneMapNames = doneMaps.map(function (m) { return m.name; });
+    var practicedMaps = doneMapNames.length > 1
+      ? doneMapNames.slice(0, -1).join(', ') + ' и ' + doneMapNames[doneMapNames.length - 1]
+      : doneMapNames[0];
     var many = doneMaps.length > 1;
 
     var head = panelHeader(
@@ -411,7 +415,7 @@
           ]);
         })),
         doneMaps.length ? el('div', { class: 'note note--plain', style: 'margin-top:var(--s4)' }, [
-          el('span', { class: 'note__title', text: 'Практиковали: ' + doneMaps.map(function (m) { return m.name; }).join(' и ') }),
+          el('span', { class: 'note__title', text: 'Практиковали: ' + practicedMaps }),
           el('p', { class: 'note__body', text: 'Тренировка проведена; освоение составом требует проверки на практике.' })
         ]) : null
       ]),

@@ -71,6 +71,7 @@ window.SEASON = {
     },
     {
       id: 's03', n: '03', date: '2026-09-06', slot: 'ВС · 21:00', kind: 'основа', map: 'Nuke', mapId: 'nuke',
+      done: true, doneDate: '2026-09-06',
       focus: 'Верх и низ, контроль двора и улицы, тайминги вертикальных ротаций через венты, единые короткие коллы.',
       goals: [
         { id: 's03-outside', text: 'Пройти двор и улицу' },
@@ -226,12 +227,12 @@ window.SEASON = {
         { rank: '01', map: 'Dust 2', votes: 5, pct: 83, done: true },
         { rank: '02', map: 'Inferno', votes: 4, pct: 66, done: true },
         { rank: '03', map: 'Mirage', votes: 3, pct: 50 },
-        { rank: '04', map: 'Nuke', votes: 3, pct: 50 },
+        { rank: '04', map: 'Nuke', votes: 3, pct: 50, done: true },
         { rank: '05', map: 'Anubis', votes: 2, pct: 33 },
         { rank: '06', map: 'Ancient', votes: 1, pct: 16 },
         { rank: '07', map: 'Cache', votes: 1, pct: 16 }
       ],
-      decision: 'Dust 2 и Inferno отработаны. Остальные карты идут по убыванию результата: Mirage → Nuke → Anubis → Ancient → Cache.'
+      decision: 'Dust 2, Inferno и Nuke отработаны. Остальные карты идут по убыванию результата: Mirage → Anubis → Ancient → Cache.'
     },
     days: [
       { day: 'Пятница', answers: '4 ответа', rows: [

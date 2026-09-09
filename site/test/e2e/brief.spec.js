@@ -11,8 +11,8 @@ test('brief connects the next match, personal task and unresolved session', asyn
   await expect(page.locator('#overview')).toContainText('Mirage · 02.09 — результат не подтверждён');
   await expect(page.locator('#overview')).not.toContainText('Следующая обязательная — Mirage');
   await expect(page.locator('#overview')).not.toContainText('Dust 2 и Inferno готовы');
-  await brief.getByRole('button', { name: /Тренировка Nuke/ }).click();
-  await expect(page.locator('#session-s03')).toBeInViewport();
+  await brief.getByRole('button', { name: /Тренировка Anubis/ }).click();
+  await expect(page.locator('#session-s04')).toBeInViewport();
 });
 test('next match rolls forward and season end is explicit', async ({ page }) => {
   await page.clock.setFixedTime(new Date('2026-10-01T12:00:00+03:00'));
