@@ -2,12 +2,13 @@
 type: wiki
 title: Пул карт сезона 2026 — голосование, сила, сравнительный сигнал
 date: 2026-08-29
-updated: 2026-08-30
+updated: 2026-09-12
 confidence: medium
 tags: [cs2, maps, veto]
 related:
   - /02_sources/2026-08-29-cs2-whoajor-intelligence.md
   - /02_sources/2026-08-29-inferno-training-report.md
+  - /02_sources/2026-09-12-training-status-owner.md
   - /03_wiki/metric-estimated-strength.md
   - /00_context/product.md
 ---
@@ -23,7 +24,7 @@ related:
 | Dust 2 | 5 | 83% | да | 0.999 |
 | Inferno | 4 | 66% | да, 2026-08-29 | 1.080 |
 | Mirage | 3 | 50% | нет | 1.088 |
-| Nuke | 3 | 50% | нет | 1.038 |
+| Nuke | 3 | 50% | да, 2026-09-06 | 1.038 |
 | Anubis | 2 | 33% | нет | 1.137 |
 | Ancient | 1 | 16% | нет | 1.030 |
 | Cache | 1 | 16% | нет | 1.130 |
@@ -36,6 +37,14 @@ related:
 Вторая закрытая карта — Inferno: тренировка проведена 2026-08-29, следующий заход — закрепление
 20.09. Отработанность гранат и чеклиста при этом не подтверждена — считается по отметкам игроков
 в штабе. [source: /02_sources/2026-08-29-inferno-training-report.md] [conf: medium]
+
+Третья — Nuke, сессия 03 плана, 2026-09-06. На 2026-09-12 отработаны три карты из семи: Dust 2,
+Inferno и Nuke. [source: /02_sources/2026-09-12-training-status-owner.md] [conf: high]
+
+RISK: обе карты, которые движок `veto-1` ставит нам в пик на первые два матча — Cache (30.09) и
+Anubis (01.10), — на 12.09 не отработаны, а слот Anubis 09.09 сорвался. До первой игры остаётся
+пять обязательных сессий, из них последние две — проверка и генеральная.
+[source: /02_sources/2026-09-12-training-status-owner.md] [conf: medium]
 
 ## Сравнительный сигнал против каждого соперника
 

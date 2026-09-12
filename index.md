@@ -17,6 +17,8 @@
   368 карточек матчей, trends и проверенная SQLite с 29 таблицами
 - [Снимок whoajor 2026-08-29](./02_sources/2026-08-29-cs2-whoajor-intelligence.md) — статистика пяти составов CS2
 - [Тренировка Inferno 2026-08-29](./02_sources/2026-08-29-inferno-training-report.md) — сессия 01 проведена, что осталось неизвестным
+- [Статус тренировок 2026-09-12](./02_sources/2026-09-12-training-status-owner.md) — закрыты Dust 2,
+  Inferno и Nuke; слоты Mirage 02.09 и Anubis 09.09 сорвались
 
 ## Wiki (концепты)
 
